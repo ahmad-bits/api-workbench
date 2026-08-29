@@ -3,6 +3,7 @@ import { api } from './services/api';
 import { KeyValueEditor } from './components/KeyValueEditor';
 import { BodyEditor } from './components/BodyEditor';
 import { ResponseViewer } from './components/ResponseViewer';
+import { MockManager } from './components/mock/MockManager';
 import type {
   HttpMethod,
   BodyType,
@@ -12,6 +13,7 @@ import type {
   BatchWorkbenchResponse,
   QuickPreset,
 } from './types/workbench';
+import type { MockEndpoint } from './types/mock';
 
 const QUICK_PRESETS: QuickPreset[] = [
   {
@@ -65,11 +67,26 @@ const QUICK_PRESETS: QuickPreset[] = [
     bodyType: 'none',
     body: '',
   },
+  {
+    id: 'mock-users-demo',
+    name: '🎭 Demo Mock: GET /users',
+    method: 'GET',
+    url: 'http://127.0.0.1:8000/mock/users_demo/users',
+    params: [],
+    headers: [
+      { id: 'h_mock', key: 'Accept', value: 'application/json', enabled: true },
+    ],
+    bodyType: 'none',
+    body: '',
+  },
 ];
 
 const QUICK_COUNT_OPTIONS = [1, 5, 10, 25, 50, 100];
 
 export function App() {
+  // Navigation View: 'workbench' | 'mock-server'
+  const [currentView, setCurrentView] = useState<'workbench' | 'mock-server'>('workbench');
+
   // Backend health state
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading');
   const [backendLatency, setBackendLatency] = useState<number | null>(null);
@@ -140,6 +157,25 @@ export function App() {
     setRequestCount(clamped);
   };
 
+  // Test mock endpoint inside Workbench
+  const handleTestInWorkbench = (mock: MockEndpoint) => {
+    const fullMockUrl = mock.fullUrl || `http://127.0.0.1:8000${mock.mockUrl}`;
+    setMethod(mock.method);
+    setUrl(fullMockUrl);
+    setRequestCount(1);
+    setParams([]);
+    setHeaders([
+      { id: 'h_accept', key: 'Accept', value: 'application/json', enabled: true },
+    ]);
+    if (mock.method !== 'GET' && mock.method !== 'HEAD') {
+      setBodyType('none');
+      setBody('');
+    }
+    setResponse(null);
+    setBatchResponse(null);
+    setCurrentView('workbench');
+  };
+
   // Dispatch HTTP request (single or multi-run benchmark)
   const handleSendRequest = async () => {
     if (!url.trim()) return;
@@ -200,14 +236,39 @@ export function App() {
     <div className="app-container">
       {/* Navigation Header */}
       <header className="navbar">
-        <div className="brand-wrapper">
-          <div className="brand-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
+        <div className="brand-nav-group">
+          <div className="brand-wrapper" onClick={() => setCurrentView('workbench')} style={{ cursor: 'pointer' }}>
+            <div className="brand-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+            </div>
+            <span className="brand-title">API Workbench</span>
+            <span className="badge-tag">v0.2.0</span>
           </div>
-          <span className="brand-title">API Workbench</span>
-          <span className="badge-tag">v0.1.0-alpha</span>
+
+          {/* App Navigation Switcher */}
+          <nav className="nav-view-switcher">
+            <button
+              type="button"
+              className={`nav-view-btn ${currentView === 'workbench' ? 'active' : ''}`}
+              onClick={() => setCurrentView('workbench')}
+            >
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <span>API Tester</span>
+            </button>
+
+            <button
+              type="button"
+              className={`nav-view-btn ${currentView === 'mock-server' ? 'active' : ''}`}
+              onClick={() => setCurrentView('mock-server')}
+            >
+              <span style={{ fontSize: '1rem' }}>🎭</span>
+              <span>Mock API Server</span>
+            </button>
+          </nav>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -246,217 +307,227 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="main-content">
-        {/* Quick Presets Bar */}
-        <div className="presets-container">
-          <span className="presets-label">Quick Presets:</span>
-          {QUICK_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              className="preset-pill"
-              onClick={() => handleLoadPreset(preset)}
-            >
-              <span
-                className="preset-method-tag"
-                style={{
-                  color:
-                    preset.method === 'GET'
-                      ? 'var(--method-get)'
-                      : preset.method === 'POST'
-                      ? 'var(--method-post)'
-                      : 'var(--method-put)',
-                  background:
-                    preset.method === 'GET'
-                      ? 'rgba(16, 185, 129, 0.15)'
-                      : preset.method === 'POST'
-                      ? 'rgba(59, 130, 246, 0.15)'
-                      : 'rgba(245, 158, 11, 0.15)',
-                }}
-              >
-                {preset.method}
-              </span>
-              <span>{preset.name}</span>
-            </button>
-          ))}
-        </div>
+        {/* VIEW 1: Mock API Server */}
+        {currentView === 'mock-server' && (
+          <MockManager onTestInWorkbench={handleTestInWorkbench} />
+        )}
 
-        {/* Request Builder Card */}
-        <div className="glass-card request-bar-card">
-          {/* Method + URL + Count + Send Input Row */}
-          <div className="request-input-row">
-            <select
-              value={method}
-              onChange={(e) => setMethod(e.target.value as HttpMethod)}
-              className={`method-select ${method.toLowerCase()}`}
-            >
-              <option value="GET">GET</option>
-              <option value="POST">POST</option>
-              <option value="PUT">PUT</option>
-              <option value="PATCH">PATCH</option>
-              <option value="DELETE">DELETE</option>
-              <option value="HEAD">HEAD</option>
-              <option value="OPTIONS">OPTIONS</option>
-            </select>
-
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={handleKeyDownUrl}
-              placeholder="https://api.example.com/v1/resource"
-              className="url-input"
-            />
-
-            {/* Request Count Control */}
-            <div className="request-count-wrapper" title="Configure number of requests to execute (1-100)">
-              <span className="count-label">Runs:</span>
-              <div className="count-stepper">
+        {/* VIEW 2: API Workbench (Request Builder + Response Viewer) */}
+        {currentView === 'workbench' && (
+          <>
+            {/* Quick Presets Bar */}
+            <div className="presets-container">
+              <span className="presets-label">Quick Presets:</span>
+              {QUICK_PRESETS.map((preset) => (
                 <button
+                  key={preset.id}
                   type="button"
-                  className="count-step-btn"
-                  onClick={() => handleSetCount(requestCount - 1)}
-                  disabled={requestCount <= 1 || isSending}
-                  title="Decrease requests"
+                  className="preset-pill"
+                  onClick={() => handleLoadPreset(preset)}
                 >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={requestCount}
-                  onChange={(e) => handleSetCount(parseInt(e.target.value, 10))}
-                  className="count-number-input"
-                  disabled={isSending}
-                />
-                <button
-                  type="button"
-                  className="count-step-btn"
-                  onClick={() => handleSetCount(requestCount + 1)}
-                  disabled={requestCount >= 100 || isSending}
-                  title="Increase requests"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Send Button */}
-            <button
-              type="button"
-              className={`btn-send ${requestCount > 1 ? 'benchmark-mode' : ''}`}
-              onClick={handleSendRequest}
-              disabled={isSending || !url.trim()}
-            >
-              {isSending ? (
-                <>
-                  <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
-                  <span>{requestCount > 1 ? `Executing ${requestCount}x...` : 'Sending...'}</span>
-                </>
-              ) : (
-                <>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                  <span>{requestCount > 1 ? `Run (${requestCount}x)` : 'Send'}</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Quick Count Selector Row & Benchmark Notice */}
-          <div className="count-toolbar">
-            <div className="count-chips-group">
-              <span className="count-toolbar-label">Request Count:</span>
-              {QUICK_COUNT_OPTIONS.map((num) => (
-                <button
-                  key={num}
-                  type="button"
-                  className={`count-chip ${requestCount === num ? 'active' : ''}`}
-                  onClick={() => handleSetCount(num)}
-                  disabled={isSending}
-                >
-                  {num === 1 ? '1 (Single)' : `${num} requests`}
+                  <span
+                    className="preset-method-tag"
+                    style={{
+                      color:
+                        preset.method === 'GET'
+                          ? 'var(--method-get)'
+                          : preset.method === 'POST'
+                          ? 'var(--method-post)'
+                          : 'var(--method-put)',
+                      background:
+                        preset.method === 'GET'
+                          ? 'rgba(16, 185, 129, 0.15)'
+                          : preset.method === 'POST'
+                          ? 'rgba(59, 130, 246, 0.15)'
+                          : 'rgba(245, 158, 11, 0.15)',
+                    }}
+                  >
+                    {preset.method}
+                  </span>
+                  <span>{preset.name}</span>
                 </button>
               ))}
             </div>
 
-            {requestCount > 1 && (
-              <div className="benchmark-badge-indicator">
-                <span className="benchmark-dot"></span>
-                <span>Benchmark Mode ({requestCount} runs)</span>
+            {/* Request Builder Card */}
+            <div className="glass-card request-bar-card">
+              {/* Method + URL + Count + Send Input Row */}
+              <div className="request-input-row">
+                <select
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value as HttpMethod)}
+                  className={`method-select ${method.toLowerCase()}`}
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="PATCH">PATCH</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="HEAD">HEAD</option>
+                  <option value="OPTIONS">OPTIONS</option>
+                </select>
+
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  onKeyDown={handleKeyDownUrl}
+                  placeholder="https://api.example.com/v1/resource or http://127.0.0.1:8000/mock/..."
+                  className="url-input"
+                />
+
+                {/* Request Count Control */}
+                <div className="request-count-wrapper" title="Configure number of requests to execute (1-100)">
+                  <span className="count-label">Runs:</span>
+                  <div className="count-stepper">
+                    <button
+                      type="button"
+                      className="count-step-btn"
+                      onClick={() => handleSetCount(requestCount - 1)}
+                      disabled={requestCount <= 1 || isSending}
+                      title="Decrease requests"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={requestCount}
+                      onChange={(e) => handleSetCount(parseInt(e.target.value, 10))}
+                      className="count-number-input"
+                      disabled={isSending}
+                    />
+                    <button
+                      type="button"
+                      className="count-step-btn"
+                      onClick={() => handleSetCount(requestCount + 1)}
+                      disabled={requestCount >= 100 || isSending}
+                      title="Increase requests"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Send Button */}
+                <button
+                  type="button"
+                  className={`btn-send ${requestCount > 1 ? 'benchmark-mode' : ''}`}
+                  onClick={handleSendRequest}
+                  disabled={isSending || !url.trim()}
+                >
+                  {isSending ? (
+                    <>
+                      <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
+                      <span>{requestCount > 1 ? `Executing ${requestCount}x...` : 'Sending...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                      </svg>
+                      <span>{requestCount > 1 ? `Run (${requestCount}x)` : 'Send'}</span>
+                    </>
+                  )}
+                </button>
               </div>
-            )}
-          </div>
 
-          {/* Workbench Tabs (Params, Headers, Body) */}
-          <div>
-            <div className="workbench-tabs">
-              <button
-                type="button"
-                className={`tab-nav-item ${activeTab === 'params' ? 'active' : ''}`}
-                onClick={() => setActiveTab('params')}
-              >
-                Params {enabledParamsCount > 0 && <span className="tab-counter">{enabledParamsCount}</span>}
-              </button>
-              <button
-                type="button"
-                className={`tab-nav-item ${activeTab === 'headers' ? 'active' : ''}`}
-                onClick={() => setActiveTab('headers')}
-              >
-                Headers {enabledHeadersCount > 0 && <span className="tab-counter">{enabledHeadersCount}</span>}
-              </button>
-              <button
-                type="button"
-                className={`tab-nav-item ${activeTab === 'body' ? 'active' : ''}`}
-                onClick={() => setActiveTab('body')}
-              >
-                Body {bodyType !== 'none' && <span className="tab-counter">{bodyType}</span>}
-              </button>
+              {/* Quick Count Selector Row & Benchmark Notice */}
+              <div className="count-toolbar">
+                <div className="count-chips-group">
+                  <span className="count-toolbar-label">Request Count:</span>
+                  {QUICK_COUNT_OPTIONS.map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      className={`count-chip ${requestCount === num ? 'active' : ''}`}
+                      onClick={() => handleSetCount(num)}
+                      disabled={isSending}
+                    >
+                      {num === 1 ? '1 (Single)' : `${num} requests`}
+                    </button>
+                  ))}
+                </div>
+
+                {requestCount > 1 && (
+                  <div className="benchmark-badge-indicator">
+                    <span className="benchmark-dot"></span>
+                    <span>Benchmark Mode ({requestCount} runs)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Workbench Tabs (Params, Headers, Body) */}
+              <div>
+                <div className="workbench-tabs">
+                  <button
+                    type="button"
+                    className={`tab-nav-item ${activeTab === 'params' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('params')}
+                  >
+                    Params {enabledParamsCount > 0 && <span className="tab-counter">{enabledParamsCount}</span>}
+                  </button>
+                  <button
+                    type="button"
+                    className={`tab-nav-item ${activeTab === 'headers' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('headers')}
+                  >
+                    Headers {enabledHeadersCount > 0 && <span className="tab-counter">{enabledHeadersCount}</span>}
+                  </button>
+                  <button
+                    type="button"
+                    className={`tab-nav-item ${activeTab === 'body' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('body')}
+                  >
+                    Body {bodyType !== 'none' && <span className="tab-counter">{bodyType}</span>}
+                  </button>
+                </div>
+
+                {/* Tab Contents */}
+                <div style={{ paddingTop: '0.25rem' }}>
+                  {activeTab === 'params' && (
+                    <KeyValueEditor
+                      items={params}
+                      onChange={setParams}
+                      keyPlaceholder="parameter_name"
+                      valuePlaceholder="value"
+                      title="Query Parameters"
+                    />
+                  )}
+
+                  {activeTab === 'headers' && (
+                    <KeyValueEditor
+                      items={headers}
+                      onChange={setHeaders}
+                      keyPlaceholder="Header-Name"
+                      valuePlaceholder="value"
+                      title="Request Headers"
+                    />
+                  )}
+
+                  {activeTab === 'body' && (
+                    <BodyEditor
+                      bodyType={bodyType}
+                      body={body}
+                      onBodyTypeChange={setBodyType}
+                      onBodyChange={setBody}
+                    />
+                  )}
+                </div>
+              </div>
             </div>
 
-            {/* Tab Contents */}
-            <div style={{ paddingTop: '0.25rem' }}>
-              {activeTab === 'params' && (
-                <KeyValueEditor
-                  items={params}
-                  onChange={setParams}
-                  keyPlaceholder="parameter_name"
-                  valuePlaceholder="value"
-                  title="Query Parameters"
-                />
-              )}
-
-              {activeTab === 'headers' && (
-                <KeyValueEditor
-                  items={headers}
-                  onChange={setHeaders}
-                  keyPlaceholder="Header-Name"
-                  valuePlaceholder="value"
-                  title="Request Headers"
-                />
-              )}
-
-              {activeTab === 'body' && (
-                <BodyEditor
-                  bodyType={bodyType}
-                  body={body}
-                  onBodyTypeChange={setBodyType}
-                  onBodyChange={setBody}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Response Viewer Section */}
-        <ResponseViewer
-          response={response}
-          batchResponse={batchResponse}
-          requestCount={requestCount}
-          isLoading={isSending}
-        />
+            {/* Response Viewer Section */}
+            <ResponseViewer
+              response={response}
+              batchResponse={batchResponse}
+              requestCount={requestCount}
+              isLoading={isSending}
+            />
+          </>
+        )}
       </main>
 
       {/* Footer */}
@@ -468,3 +539,4 @@ export function App() {
 }
 
 export default App;
+

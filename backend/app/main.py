@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
+from app.api.v1.endpoints.mock_server import mock_execution_router
 from app.core.config import settings
 
 
@@ -27,6 +28,10 @@ def create_application() -> FastAPI:
 
     # Include API router
     application.include_router(api_router, prefix=settings.API_V1_STR)
+
+    # Include Mock Server execution router
+    application.include_router(mock_execution_router, prefix="/mock", tags=["Mock Execution Server"])
+
 
     @application.get("/", tags=["Root"])
     async def root():
