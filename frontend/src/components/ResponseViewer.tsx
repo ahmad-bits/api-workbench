@@ -1,22 +1,37 @@
 import React, { useState } from 'react';
-import type { WorkbenchResponse } from '../types/workbench';
+import type { WorkbenchResponse, BatchWorkbenchResponse } from '../types/workbench';
+import { BenchmarkViewer } from './BenchmarkViewer';
 
 interface ResponseViewerProps {
   response: WorkbenchResponse | null;
+  batchResponse: BatchWorkbenchResponse | null;
+  requestCount: number;
   isLoading: boolean;
 }
 
-export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response, isLoading }) => {
-  const [activeTab, setActiveTab] = useState<'body' | 'headers'>('body');
+export const ResponseViewer: React.FC<ResponseViewerProps> = ({
+  response,
+  batchResponse,
+  requestCount,
+  isLoading,
+}) => {
+  // Tabs for single response mode
+  const [singleActiveTab, setSingleActiveTab] = useState<'body' | 'headers'>('body');
+  // Tabs for benchmark multi-response mode
+  const [benchmarkTab, setBenchmarkTab] = useState<'stats' | 'body' | 'headers' | 'runs'>('stats');
+
   const [copied, setCopied] = useState(false);
   const [headerFilter, setHeaderFilter] = useState('');
 
+  const isMultiRequest = requestCount > 1 && batchResponse !== null;
+
   const handleCopy = () => {
-    if (!response) return;
+    const target = isMultiRequest ? batchResponse?.latestResponse : response;
+    if (!target) return;
     const content =
-      typeof response.data === 'object'
-        ? JSON.stringify(response.data, null, 2)
-        : String(response.data || '');
+      typeof target.data === 'object'
+        ? JSON.stringify(target.data, null, 2)
+        : String(target.data || '');
 
     navigator.clipboard.writeText(content);
     setCopied(true);
@@ -48,11 +63,15 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response, isLoad
 
   return (
     <div className="response-viewer glass-card">
-      {/* Header Bar */}
+      {/* Top Header Bar */}
       <div className="response-header">
         <div className="response-title-group">
-          <span className="response-heading">Response</span>
-          {response && !isLoading && (
+          <span className="response-heading">
+            {isMultiRequest ? 'Benchmark Analysis' : 'Response'}
+          </span>
+
+          {/* Single Request Meta Tags */}
+          {!isMultiRequest && response && !isLoading && (
             <div className="response-meta-tags">
               <span className={`status-tag ${getStatusClass(response.statusCode)}`}>
                 {response.statusCode} {response.statusText}
@@ -74,28 +93,48 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response, isLoad
               </span>
             </div>
           )}
+
+          {/* Multi Request Meta Tags */}
+          {isMultiRequest && batchResponse && !isLoading && (
+            <div className="response-meta-tags">
+              <span className="badge-tag multi-count-badge">
+                {batchResponse.stats.totalRequests} Requests
+              </span>
+              <span className="meta-tag">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Avg {batchResponse.stats.avgLatencyMs} ms
+              </span>
+              <span className="meta-tag text-emerald">
+                {batchResponse.stats.successRate}% Success
+              </span>
+            </div>
+          )}
         </div>
 
-        {response && !isLoading && (
+        {/* Single Request Header Controls */}
+        {!isMultiRequest && response && !isLoading && (
           <div className="response-tabs-controls">
             <div className="tab-buttons">
               <button
                 type="button"
-                className={`tab-btn ${activeTab === 'body' ? 'active' : ''}`}
-                onClick={() => setActiveTab('body')}
+                className={`tab-btn ${singleActiveTab === 'body' ? 'active' : ''}`}
+                onClick={() => setSingleActiveTab('body')}
               >
                 Body {response.isJson && <span className="pill-subtle">JSON</span>}
               </button>
               <button
                 type="button"
-                className={`tab-btn ${activeTab === 'headers' ? 'active' : ''}`}
-                onClick={() => setActiveTab('headers')}
+                className={`tab-btn ${singleActiveTab === 'headers' ? 'active' : ''}`}
+                onClick={() => setSingleActiveTab('headers')}
               >
                 Headers ({Object.keys(response.headers).length})
               </button>
             </div>
 
-            {activeTab === 'body' && (
+            {singleActiveTab === 'body' && (
               <button type="button" className="btn-copy" onClick={handleCopy} title="Copy response to clipboard">
                 {copied ? '✓ Copied' : 'Copy'}
               </button>
@@ -104,30 +143,48 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response, isLoad
         )}
       </div>
 
-      {/* Response Content Area */}
+      {/* Loading State */}
       {isLoading ? (
         <div className="response-loading-state">
           <div className="spinner"></div>
-          <span>Dispatching request through FastAPI proxy...</span>
+          <span>
+            {requestCount > 1
+              ? `Executing benchmark across ${requestCount} parallel requests through FastAPI proxy...`
+              : 'Dispatching request through FastAPI proxy...'}
+          </span>
         </div>
-      ) : !response ? (
+      ) : !response && !batchResponse ? (
+        /* Empty State */
         <div className="response-empty-state">
           <div className="empty-icon">⚡</div>
           <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
             No Response Yet
           </h4>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Enter a URL above and click <strong>Send</strong> or select a quick preset to execute a request.
+            Enter a target URL, select request count (1–100), and click <strong>Send</strong> to execute.
           </p>
         </div>
-      ) : response.error ? (
+      ) : isMultiRequest && batchResponse ? (
+        /* Multi-Request Benchmark View */
+        <BenchmarkViewer
+          batchResponse={batchResponse}
+          activeTab={benchmarkTab}
+          onTabChange={setBenchmarkTab}
+          headerFilter={headerFilter}
+          onHeaderFilterChange={setHeaderFilter}
+          onCopy={handleCopy}
+          copied={copied}
+        />
+      ) : response?.error ? (
+        /* Single Request Error */
         <div className="response-error-panel">
           <div className="error-badge">Dispatch Failed</div>
           <p className="error-detail">{response.error}</p>
         </div>
-      ) : (
+      ) : response ? (
+        /* Single Request Normal Content Area */
         <div className="response-body-area">
-          {activeTab === 'body' && (
+          {singleActiveTab === 'body' && (
             <div className="code-viewer-container">
               <pre className="code-content">
                 {typeof response.data === 'object'
@@ -137,7 +194,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response, isLoad
             </div>
           )}
 
-          {activeTab === 'headers' && (
+          {singleActiveTab === 'headers' && (
             <div className="headers-table-wrapper">
               <div className="headers-search-bar">
                 <input
@@ -179,7 +236,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response, isLoad
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

@@ -18,6 +18,7 @@ export interface WorkbenchRequest {
   bodyType: BodyType;
   body: string;
   timeoutSeconds: number;
+  requestCount?: number;
 }
 
 export interface WorkbenchResponse {
@@ -31,6 +32,31 @@ export interface WorkbenchResponse {
   error?: string | null;
 }
 
+export interface StatusCodeStat {
+  statusCode: number;
+  statusText: string;
+  count: number;
+  percentage: number;
+}
+
+export interface BenchmarkStats {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  successRate: number;
+  avgLatencyMs: number;
+  minLatencyMs: number;
+  maxLatencyMs: number;
+  statusCodeDistribution: Record<number, number>;
+  statusCodes: StatusCodeStat[];
+}
+
+export interface BatchWorkbenchResponse {
+  stats: BenchmarkStats;
+  results: WorkbenchResponse[];
+  latestResponse: WorkbenchResponse;
+}
+
 export interface QuickPreset {
   id: string;
   name: string;
@@ -40,4 +66,6 @@ export interface QuickPreset {
   params?: KeyValuePair[];
   bodyType?: BodyType;
   body?: string;
+  requestCount?: number;
 }
+

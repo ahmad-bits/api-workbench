@@ -9,6 +9,7 @@ import type {
   KeyValuePair,
   WorkbenchRequest,
   WorkbenchResponse,
+  BatchWorkbenchResponse,
   QuickPreset,
 } from './types/workbench';
 
@@ -66,6 +67,8 @@ const QUICK_PRESETS: QuickPreset[] = [
   },
 ];
 
+const QUICK_COUNT_OPTIONS = [1, 5, 10, 25, 50, 100];
+
 export function App() {
   // Backend health state
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading');
@@ -82,10 +85,12 @@ export function App() {
   const [bodyType, setBodyType] = useState<BodyType>('none');
   const [body, setBody] = useState<string>('');
   const [timeoutSeconds] = useState<number>(30);
+  const [requestCount, setRequestCount] = useState<number>(1);
 
   // Execution & Response state
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<WorkbenchResponse | null>(null);
+  const [batchResponse, setBatchResponse] = useState<BatchWorkbenchResponse | null>(null);
 
   // Check backend health on mount
   const checkBackend = useCallback(async () => {
@@ -114,6 +119,9 @@ export function App() {
     );
     setBodyType(preset.bodyType || 'none');
     setBody(preset.body || '');
+    if (preset.requestCount !== undefined) {
+      setRequestCount(preset.requestCount);
+    }
     if (preset.bodyType && preset.bodyType !== 'none') {
       setActiveTab('body');
     } else if (preset.params && preset.params.length > 0) {
@@ -123,7 +131,16 @@ export function App() {
     }
   };
 
-  // Dispatch HTTP request
+  const handleSetCount = (val: number) => {
+    if (isNaN(val)) {
+      setRequestCount(1);
+      return;
+    }
+    const clamped = Math.max(1, Math.min(100, Math.floor(val)));
+    setRequestCount(clamped);
+  };
+
+  // Dispatch HTTP request (single or multi-run benchmark)
   const handleSendRequest = async () => {
     if (!url.trim()) return;
 
@@ -136,12 +153,25 @@ export function App() {
       bodyType,
       body,
       timeoutSeconds,
+      requestCount,
     };
 
     try {
-      const resp = await api.dispatchHttpRequest(req);
-      setResponse(resp);
+      if (requestCount > 1) {
+        // Multi-request Benchmark mode
+        setResponse(null);
+        const batch = await api.dispatchBenchmarkRequest(req);
+        setBatchResponse(batch);
+      } else {
+        // Single-request normal mode
+        setBatchResponse(null);
+        const resp = await api.dispatchHttpRequest(req);
+        setResponse(resp);
+      }
     } catch (err: any) {
+      if (requestCount > 1) {
+        setBatchResponse(null);
+      }
       setResponse({
         statusCode: 0,
         statusText: 'Client Error',
@@ -252,7 +282,7 @@ export function App() {
 
         {/* Request Builder Card */}
         <div className="glass-card request-bar-card">
-          {/* Method + URL + Send Input Row */}
+          {/* Method + URL + Count + Send Input Row */}
           <div className="request-input-row">
             <select
               value={method}
@@ -277,16 +307,51 @@ export function App() {
               className="url-input"
             />
 
+            {/* Request Count Control */}
+            <div className="request-count-wrapper" title="Configure number of requests to execute (1-100)">
+              <span className="count-label">Runs:</span>
+              <div className="count-stepper">
+                <button
+                  type="button"
+                  className="count-step-btn"
+                  onClick={() => handleSetCount(requestCount - 1)}
+                  disabled={requestCount <= 1 || isSending}
+                  title="Decrease requests"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={requestCount}
+                  onChange={(e) => handleSetCount(parseInt(e.target.value, 10))}
+                  className="count-number-input"
+                  disabled={isSending}
+                />
+                <button
+                  type="button"
+                  className="count-step-btn"
+                  onClick={() => handleSetCount(requestCount + 1)}
+                  disabled={requestCount >= 100 || isSending}
+                  title="Increase requests"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Send Button */}
             <button
               type="button"
-              className="btn-send"
+              className={`btn-send ${requestCount > 1 ? 'benchmark-mode' : ''}`}
               onClick={handleSendRequest}
               disabled={isSending || !url.trim()}
             >
               {isSending ? (
                 <>
                   <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
-                  <span>Sending...</span>
+                  <span>{requestCount > 1 ? `Executing ${requestCount}x...` : 'Sending...'}</span>
                 </>
               ) : (
                 <>
@@ -294,10 +359,35 @@ export function App() {
                     <line x1="22" y1="2" x2="11" y2="13" />
                     <polygon points="22 2 15 22 11 13 2 9 22 2" />
                   </svg>
-                  <span>Send</span>
+                  <span>{requestCount > 1 ? `Run (${requestCount}x)` : 'Send'}</span>
                 </>
               )}
             </button>
+          </div>
+
+          {/* Quick Count Selector Row & Benchmark Notice */}
+          <div className="count-toolbar">
+            <div className="count-chips-group">
+              <span className="count-toolbar-label">Request Count:</span>
+              {QUICK_COUNT_OPTIONS.map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  className={`count-chip ${requestCount === num ? 'active' : ''}`}
+                  onClick={() => handleSetCount(num)}
+                  disabled={isSending}
+                >
+                  {num === 1 ? '1 (Single)' : `${num} requests`}
+                </button>
+              ))}
+            </div>
+
+            {requestCount > 1 && (
+              <div className="benchmark-badge-indicator">
+                <span className="benchmark-dot"></span>
+                <span>Benchmark Mode ({requestCount} runs)</span>
+              </div>
+            )}
           </div>
 
           {/* Workbench Tabs (Params, Headers, Body) */}
@@ -361,7 +451,12 @@ export function App() {
         </div>
 
         {/* Response Viewer Section */}
-        <ResponseViewer response={response} isLoading={isSending} />
+        <ResponseViewer
+          response={response}
+          batchResponse={batchResponse}
+          requestCount={requestCount}
+          isLoading={isSending}
+        />
       </main>
 
       {/* Footer */}
