@@ -1,7 +1,16 @@
 # Python / FastAPI
 backend/venv/
 backend/__pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Database (future)
+*.db
+*.sqlite3
 
 # Node / React / Vite
 frontend/node_modules/
@@ -17,12 +26,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Local files
+# Local files & Environment variables
 *.local
-
-# Environment variables
 .env
 *.env
+!.env.example
 
 # Editor / OS files
 .vscode/*
