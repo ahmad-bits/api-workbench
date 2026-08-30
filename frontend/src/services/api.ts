@@ -21,6 +21,12 @@ import type {
   OtpInitiateResponse,
   OtpResendResponse,
 } from '../types/auth';
+import type {
+  SavedApi,
+  SavedApiCreate,
+  SavedApiUpdate,
+  SavedApiOpenResponse,
+} from '../types/savedApi';
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -592,6 +598,149 @@ export class ApiClient {
     const result: DeleteAccountResponse = await response.json();
     this.clearAuthToken();
     return result;
+  }
+
+  // ==========================================
+  // Saved APIs API Methods
+  // ==========================================
+
+  async getSavedApis(): Promise<SavedApi[]> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/saved-apis`, {
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to fetch saved APIs: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to fetch saved APIs: HTTP ${response.status}`);
+      }
+    }
+
+    return await response.json();
+  }
+
+  async createSavedApi(data: SavedApiCreate): Promise<SavedApi> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/saved-apis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to save API: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to save API: HTTP ${response.status}`);
+      }
+    }
+
+    return await response.json();
+  }
+
+  async getSavedApi(id: string): Promise<SavedApi> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/saved-apis/${id}`, {
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to get saved API: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to get saved API: HTTP ${response.status}`);
+      }
+    }
+
+    return await response.json();
+  }
+
+  async getSavedApiToOpen(id: string): Promise<SavedApiOpenResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/saved-apis/${id}/open`, {
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to open saved API: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to open saved API: HTTP ${response.status}`);
+      }
+    }
+
+    return await response.json();
+  }
+
+  async updateSavedApi(id: string, data: SavedApiUpdate): Promise<SavedApi> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/saved-apis/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to update saved API: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to update saved API: HTTP ${response.status}`);
+      }
+    }
+
+    return await response.json();
+  }
+
+  async deleteSavedApi(id: string): Promise<{ success: boolean; message: string; id: string }> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/saved-apis/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to delete saved API: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to delete saved API: HTTP ${response.status}`);
+      }
+    }
+
+    return await response.json();
   }
 }
 

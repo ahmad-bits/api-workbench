@@ -6,6 +6,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.mock import MockEndpoint
+    from app.models.saved_api import SavedApi
 
 
 def utc_now() -> datetime:
@@ -30,6 +31,9 @@ class User(Base):
     # Relationships
     mocks: Mapped[List["MockEndpoint"]] = relationship(
         "MockEndpoint", back_populates="user", cascade="all, delete-orphan"
+    )
+    saved_apis: Mapped[List["SavedApi"]] = relationship(
+        "SavedApi", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:

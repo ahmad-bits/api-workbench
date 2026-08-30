@@ -8,6 +8,8 @@ import { KeyValueEditor } from './components/KeyValueEditor';
 import { BodyEditor } from './components/BodyEditor';
 import { ResponseViewer } from './components/ResponseViewer';
 import { MockManager } from './components/mock/MockManager';
+import { SavedApiManager } from './components/saved/SavedApiManager';
+import { SaveApiModal } from './components/saved/SaveApiModal';
 import type {
   HttpMethod,
   BodyType,
@@ -78,8 +80,13 @@ const QUICK_COUNT_OPTIONS = [1, 5, 10, 25, 50, 100];
 function WorkbenchDashboard() {
   const { user } = useAuth();
 
-  // Navigation View: 'workbench' | 'mock-server'
-  const [currentView, setCurrentView] = useState<'workbench' | 'mock-server'>('workbench');
+  // Navigation View: 'workbench' | 'saved-apis' | 'mock-server'
+  const [currentView, setCurrentView] = useState<'workbench' | 'saved-apis' | 'mock-server'>('workbench');
+
+  // Saved APIs & Save Modal State
+  const [saveApiModalOpen, setSaveApiModalOpen] = useState<boolean>(false);
+  const [savedApiCount, setSavedApiCount] = useState<number>(0);
+  const [saveToast, setSaveToast] = useState<string | null>(null);
 
   // Profile Modal State
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -105,6 +112,90 @@ function WorkbenchDashboard() {
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<WorkbenchResponse | null>(null);
   const [batchResponse, setBatchResponse] = useState<BatchWorkbenchResponse | null>(null);
+
+  // Helper to extract an API Key from current headers or query params
+  const detectCurrentApiKey = (): string | null => {
+    // 1. Check headers for X-API-Key, api-key, apikey, Authorization (Bearer ... or direct), x-api-token
+    for (const h of headers) {
+      if (h.enabled && h.key.trim() && h.value.trim()) {
+        const k = h.key.trim().toLowerCase();
+        if (
+          k === 'x-api-key' ||
+          k === 'api-key' ||
+          k === 'apikey' ||
+          k === 'x-api-token' ||
+          k === 'api_key' ||
+          k === 'x-auth-token'
+        ) {
+          return h.value.trim();
+        }
+        if (k === 'authorization') {
+          const val = h.value.trim();
+          if (val.toLowerCase().startsWith('bearer ')) {
+            return val.slice(7).trim();
+          }
+          return val;
+        }
+      }
+    }
+    // 2. Check query params for api_key, apikey, key, token
+    for (const p of params) {
+      if (p.enabled && p.key.trim() && p.value.trim()) {
+        const k = p.key.trim().toLowerCase();
+        if (k === 'api_key' || k === 'apikey' || k === 'key' || k === 'token' || k === 'auth') {
+          return p.value.trim();
+        }
+      }
+    }
+    return null;
+  };
+
+  // Open a saved API inside Workbench Tester
+  const handleOpenSavedApi = async (apiId: string) => {
+    try {
+      const openData = await api.getSavedApiToOpen(apiId);
+      setUrl(openData.url);
+      setMethod('GET');
+      setRequestCount(1);
+      setResponse(null);
+      setBatchResponse(null);
+
+      // If saved API has an API key, load it into headers
+      if (openData.has_api_key && openData.api_key) {
+        const existingKeyIndex = headers.findIndex((h) => {
+          const k = h.key.trim().toLowerCase();
+          return k === 'x-api-key' || k === 'api-key' || k === 'apikey';
+        });
+
+        if (existingKeyIndex >= 0) {
+          const updated = [...headers];
+          updated[existingKeyIndex] = {
+            ...updated[existingKeyIndex],
+            value: openData.api_key,
+            enabled: true,
+          };
+          setHeaders(updated);
+        } else {
+          setHeaders([
+            ...headers,
+            {
+              id: `h_key_${Date.now()}`,
+              key: 'X-API-Key',
+              value: openData.api_key,
+              enabled: true,
+            },
+          ]);
+        }
+        setActiveTab('headers');
+      }
+
+      setCurrentView('workbench');
+      setSaveToast(`Loaded "${openData.name}" into API Tester.`);
+      setTimeout(() => setSaveToast(null), 3000);
+    } catch (err: any) {
+      alert(err.message || 'Failed to open saved API');
+    }
+  };
 
   // Check backend health on mount
   const checkBackend = useCallback(async () => {
@@ -259,6 +350,16 @@ function WorkbenchDashboard() {
 
             <button
               type="button"
+              className={`nav-view-btn ${currentView === 'saved-apis' ? 'active' : ''}`}
+              onClick={() => setCurrentView('saved-apis')}
+            >
+              <span style={{ fontSize: '1rem' }}>🗂️</span>
+              <span>My APIs</span>
+              {savedApiCount > 0 && <span className="nav-tab-badge">{savedApiCount}</span>}
+            </button>
+
+            <button
+              type="button"
               className={`nav-view-btn ${currentView === 'mock-server' ? 'active' : ''}`}
               onClick={() => setCurrentView('mock-server')}
             >
@@ -306,14 +407,32 @@ function WorkbenchDashboard() {
 
       {/* Main Content Area */}
       <main className="main-content">
-        {/* VIEW 1: Mock API Server */}
+        {/* VIEW 1: My Saved APIs */}
+        {currentView === 'saved-apis' && (
+          <SavedApiManager
+            onOpenInTester={handleOpenSavedApi}
+            onCountChange={setSavedApiCount}
+          />
+        )}
+
+        {/* VIEW 2: Mock API Server */}
         {currentView === 'mock-server' && (
           <MockManager onTestInWorkbench={handleTestInWorkbench} />
         )}
 
-        {/* VIEW 2: API Workbench (Request Builder + Response Viewer) */}
+        {/* VIEW 3: API Workbench (Request Builder + Response Viewer) */}
         {currentView === 'workbench' && (
           <>
+            {saveToast && (
+              <div className="auth-alert success" style={{ marginBottom: '1rem' }}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <span>{saveToast}</span>
+              </div>
+            )}
+
             {/* Quick Presets Bar */}
             <div className="presets-container">
               <span className="presets-label">Quick Presets:</span>
@@ -350,7 +469,7 @@ function WorkbenchDashboard() {
 
             {/* Request Builder Card */}
             <div className="glass-card request-bar-card">
-              {/* Method + URL + Count + Send Input Row */}
+              {/* Method + URL + Count + Send + Save Input Row */}
               <div className="request-input-row">
                 <select
                   value={method}
@@ -408,6 +527,22 @@ function WorkbenchDashboard() {
                     </button>
                   </div>
                 </div>
+
+                {/* Save API Button */}
+                <button
+                  type="button"
+                  className="btn-save-api"
+                  onClick={() => setSaveApiModalOpen(true)}
+                  disabled={!url.trim()}
+                  title="Save this API configuration to My APIs"
+                >
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                  <span>Save API</span>
+                </button>
 
                 {/* Send Button */}
                 <button
@@ -533,6 +668,19 @@ function WorkbenchDashboard() {
       <UserProfileModal
         isOpen={profileModalOpen}
         onClose={() => setProfileModalOpen(false)}
+      />
+
+      {/* Save API Modal */}
+      <SaveApiModal
+        isOpen={saveApiModalOpen}
+        onClose={() => setSaveApiModalOpen(false)}
+        currentUrl={url}
+        detectedApiKey={detectCurrentApiKey()}
+        onSaved={(saved) => {
+          setSavedApiCount((prev) => prev + 1);
+          setSaveToast(`API "${saved.name}" was saved successfully to My APIs!`);
+          setTimeout(() => setSaveToast(null), 4000);
+        }}
       />
 
       {/* Footer */}

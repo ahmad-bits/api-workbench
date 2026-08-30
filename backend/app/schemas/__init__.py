@@ -27,6 +27,14 @@ from app.schemas.auth import (
     OtpResendResponse,
 )
 
+from app.schemas.saved_api import (
+    SavedApiBase,
+    SavedApiCreate,
+    SavedApiUpdate,
+    SavedApiResponse,
+    SavedApiOpenResponse,
+)
+
 __all__ = [
     "HttpRequestPayload",
     "HttpResponsePayload",
@@ -46,6 +54,11 @@ __all__ = [
     "OtpVerifyRequest",
     "OtpResendRequest",
     "OtpResendResponse",
+    "SavedApiBase",
+    "SavedApiCreate",
+    "SavedApiUpdate",
+    "SavedApiResponse",
+    "SavedApiOpenResponse",
 ]
 
 
