@@ -1,8 +1,9 @@
-import asyncio
 import json
 import uuid
-from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any
+from sqlalchemy.orm import Session
+from app.models.user import User
+from app.models.mock import MockEndpoint
 from app.schemas.mock import (
     MockEndpointCreate,
     MockEndpointUpdate,
@@ -10,203 +11,205 @@ from app.schemas.mock import (
 )
 
 
-class MockService:
-    """In-memory Mock API Server service managing mock endpoints and handling requests."""
+def _format_mock_urls(username: str, path: str) -> Tuple[str, str]:
+    clean_path = path if path.startswith("/") else f"/{path}"
+    mock_url = f"/mock/{username.lower()}{clean_path}"
+    full_url = f"http://127.0.0.1:8000{mock_url}"
+    return mock_url, full_url
 
-    def __init__(self):
-        self._mocks: Dict[str, MockEndpointResponse] = {}
-        self._lock = asyncio.Lock()
-        self._seed_default_mocks()
 
-    def _now_iso(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+def _to_response_schema(mock: MockEndpoint, username: str) -> MockEndpointResponse:
+    headers_dict = {}
+    try:
+        if mock.response_headers:
+            headers_dict = json.loads(mock.response_headers)
+    except Exception:
+        headers_dict = {"Content-Type": "application/json"}
 
-    def _build_urls(self, mock_id: str, path: str) -> Tuple[str, str]:
-        clean_path = path if path.startswith("/") else f"/{path}"
-        mock_url = f"/mock/{mock_id}{clean_path}"
-        full_url = f"http://127.0.0.1:8000{mock_url}"
-        return mock_url, full_url
+    mock_url, full_url = _format_mock_urls(username, mock.path)
 
-    def _seed_default_mocks(self):
-        """Seed initial practical mock endpoints for developer preview."""
-        # 1. Users List GET Mock
-        users_id = "users_demo"
-        u_mock_url, u_full_url = self._build_urls(users_id, "/users")
-        self._mocks[users_id] = MockEndpointResponse(
-            id=users_id,
-            name="Get Users List",
-            method="GET",
-            path="/users",
-            status_code=200,
-            response_headers={
-                "Content-Type": "application/json",
-                "X-Mock-Engine": "API-Workbench-v1",
-            },
-            response_body=json.dumps(
-                [
-                    {"id": 1, "name": "Ahmad", "role": "Full-Stack Engineer", "status": "active"},
-                    {"id": 2, "name": "Ali", "role": "Frontend Specialist", "status": "active"},
-                    {"id": 3, "name": "Sarah", "role": "DevOps Engineer", "status": "away"},
-                ],
-                indent=2,
-            ),
-            response_type="json",
-            description="Returns sample team users dataset with roles and statuses",
-            mock_url=u_mock_url,
-            full_url=u_full_url,
-            created_at=self._now_iso(),
-            updated_at=self._now_iso(),
-            call_count=0,
+    return MockEndpointResponse(
+        id=mock.id,
+        user_id=mock.user_id,
+        username=username,
+        name=mock.name,
+        method=mock.method,
+        path=mock.path,
+        status_code=mock.status_code,
+        response_headers=headers_dict,
+        response_body=mock.response_body or "",
+        response_type=mock.response_type or "json",
+        description=mock.description,
+        mock_url=mock_url,
+        full_url=full_url,
+        created_at=mock.created_at.isoformat() if mock.created_at else "",
+        updated_at=mock.updated_at.isoformat() if mock.updated_at else "",
+        call_count=mock.call_count or 0,
+    )
+
+
+class DatabaseMockService:
+    """Database-backed Mock API Service managing user-scoped mock endpoints in SQLite."""
+
+    def list_user_mocks(self, db: Session, user: User) -> List[MockEndpointResponse]:
+        """Return all mock endpoints belonging strictly to the authenticated user."""
+        mocks = (
+            db.query(MockEndpoint)
+            .filter(MockEndpoint.user_id == user.id)
+            .order_by(MockEndpoint.created_at.desc())
+            .all()
         )
+        return [_to_response_schema(m, user.username) for m in mocks]
 
-        # 2. Auth Login POST Mock
-        auth_id = "auth_demo"
-        a_mock_url, a_full_url = self._build_urls(auth_id, "/auth/login")
-        self._mocks[auth_id] = MockEndpointResponse(
-            id=auth_id,
-            name="Authenticate User",
-            method="POST",
-            path="/auth/login",
-            status_code=200,
-            response_headers={
-                "Content-Type": "application/json",
-                "X-Mock-Engine": "API-Workbench-v1",
-            },
-            response_body=json.dumps(
-                {
-                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_token_workbench",
-                    "user": {
-                        "id": 1,
-                        "email": "developer@workbench.local",
-                        "name": "Ahmad",
-                    },
-                    "expires_in": 3600,
-                },
-                indent=2,
-            ),
-            response_type="json",
-            description="Mock authentication session response returning JWT token",
-            mock_url=a_mock_url,
-            full_url=a_full_url,
-            created_at=self._now_iso(),
-            updated_at=self._now_iso(),
-            call_count=0,
+    def get_user_mock(
+        self, db: Session, user: User, mock_id: str
+    ) -> Optional[MockEndpointResponse]:
+        """Get single mock endpoint by ID belonging to the authenticated user."""
+        mock = (
+            db.query(MockEndpoint)
+            .filter(MockEndpoint.id == mock_id, MockEndpoint.user_id == user.id)
+            .first()
         )
+        if not mock:
+            return None
+        return _to_response_schema(mock, user.username)
 
-    async def list_mocks(self) -> List[MockEndpointResponse]:
-        """Return all mock endpoints sorted with newest first."""
-        async with self._lock:
-            # Sort by created_at desc
-            return sorted(
-                list(self._mocks.values()),
-                key=lambda m: m.created_at,
-                reverse=True,
-            )
-
-    async def get_mock(self, mock_id: str) -> Optional[MockEndpointResponse]:
-        """Get single mock endpoint by ID."""
-        async with self._lock:
-            return self._mocks.get(mock_id)
-
-    async def create_mock(self, data: MockEndpointCreate) -> MockEndpointResponse:
-        """Create a new mock endpoint."""
-        async with self._lock:
+    def create_user_mock(
+        self, db: Session, user: User, data: MockEndpointCreate
+    ) -> MockEndpointResponse:
+        """Create and persist a new mock endpoint for the authenticated user."""
+        mock_id = uuid.uuid4().hex[:8]
+        # Ensure ID is unique in table
+        while db.query(MockEndpoint).filter(MockEndpoint.id == mock_id).first():
             mock_id = uuid.uuid4().hex[:8]
-            # Ensure unique id
-            while mock_id in self._mocks:
-                mock_id = uuid.uuid4().hex[:8]
 
-            name = data.name.strip() if data.name and data.name.strip() else f"{data.method} {data.path}"
-            mock_url, full_url = self._build_urls(mock_id, data.path)
-            now = self._now_iso()
+        name = data.name.strip() if data.name and data.name.strip() else f"{data.method} {data.path}"
+        headers_str = json.dumps(data.response_headers or {"Content-Type": "application/json"})
 
-            mock_endpoint = MockEndpointResponse(
-                id=mock_id,
-                name=name,
-                method=data.method,
-                path=data.path,
-                status_code=data.status_code,
-                response_headers=data.response_headers or {"Content-Type": "application/json"},
-                response_body=data.response_body,
-                response_type=data.response_type or "json",
-                description=data.description,
-                mock_url=mock_url,
-                full_url=full_url,
-                created_at=now,
-                updated_at=now,
-                call_count=0,
-            )
+        clean_path = data.path.strip()
+        if not clean_path.startswith("/"):
+            clean_path = f"/{clean_path}"
 
-            self._mocks[mock_id] = mock_endpoint
-            return mock_endpoint
+        db_mock = MockEndpoint(
+            id=mock_id,
+            user_id=user.id,
+            name=name,
+            method=data.method.upper().strip(),
+            path=clean_path,
+            status_code=data.status_code,
+            response_headers=headers_str,
+            response_body=data.response_body or "",
+            response_type=data.response_type or "json",
+            description=data.description,
+            call_count=0,
+        )
+        db.add(db_mock)
+        db.commit()
+        db.refresh(db_mock)
 
-    async def update_mock(self, mock_id: str, data: MockEndpointUpdate) -> Optional[MockEndpointResponse]:
-        """Update an existing mock endpoint."""
-        async with self._lock:
-            existing = self._mocks.get(mock_id)
-            if not existing:
-                return None
+        return _to_response_schema(db_mock, user.username)
 
-            new_method = data.method if data.method is not None else existing.method
-            new_path = data.path if data.path is not None else existing.path
-            new_name = data.name if data.name is not None else existing.name
-            new_status_code = data.status_code if data.status_code is not None else existing.status_code
-            new_headers = data.response_headers if data.response_headers is not None else existing.response_headers
-            new_body = data.response_body if data.response_body is not None else existing.response_body
-            new_type = data.response_type if data.response_type is not None else existing.response_type
-            new_desc = data.description if data.description is not None else existing.description
+    def update_user_mock(
+        self, db: Session, user: User, mock_id: str, data: MockEndpointUpdate
+    ) -> Optional[MockEndpointResponse]:
+        """Update an existing mock endpoint owned by the authenticated user."""
+        db_mock = (
+            db.query(MockEndpoint)
+            .filter(MockEndpoint.id == mock_id, MockEndpoint.user_id == user.id)
+            .first()
+        )
+        if not db_mock:
+            return None
 
-            mock_url, full_url = self._build_urls(mock_id, new_path)
+        if data.name is not None:
+            db_mock.name = data.name.strip()
+        if data.method is not None:
+            db_mock.method = data.method.upper().strip()
+        if data.path is not None:
+            clean_path = data.path.strip()
+            if not clean_path.startswith("/"):
+                clean_path = f"/{clean_path}"
+            db_mock.path = clean_path
+        if data.status_code is not None:
+            db_mock.status_code = data.status_code
+        if data.response_headers is not None:
+            db_mock.response_headers = json.dumps(data.response_headers)
+        if data.response_body is not None:
+            db_mock.response_body = data.response_body
+        if data.response_type is not None:
+            db_mock.response_type = data.response_type
+        if data.description is not None:
+            db_mock.description = data.description
 
-            updated = MockEndpointResponse(
-                id=mock_id,
-                name=new_name,
-                method=new_method,
-                path=new_path,
-                status_code=new_status_code,
-                response_headers=new_headers,
-                response_body=new_body,
-                response_type=new_type,
-                description=new_desc,
-                mock_url=mock_url,
-                full_url=full_url,
-                created_at=existing.created_at,
-                updated_at=self._now_iso(),
-                call_count=existing.call_count,
-            )
+        db.commit()
+        db.refresh(db_mock)
+        return _to_response_schema(db_mock, user.username)
 
-            self._mocks[mock_id] = updated
-            return updated
-
-    async def delete_mock(self, mock_id: str) -> bool:
-        """Delete a mock endpoint."""
-        async with self._lock:
-            if mock_id in self._mocks:
-                del self._mocks[mock_id]
-                return True
+    def delete_user_mock(self, db: Session, user: User, mock_id: str) -> bool:
+        """Delete a mock endpoint owned by the authenticated user."""
+        db_mock = (
+            db.query(MockEndpoint)
+            .filter(MockEndpoint.id == mock_id, MockEndpoint.user_id == user.id)
+            .first()
+        )
+        if not db_mock:
             return False
 
-    async def match_and_serve(
-        self, mock_id: str, incoming_method: str, subpath: str
-    ) -> Tuple[Optional[MockEndpointResponse], Optional[str]]:
+        db.delete(db_mock)
+        db.commit()
+        return True
+
+    def match_and_serve_public(
+        self, db: Session, username: str, incoming_method: str, subpath: str
+    ) -> Tuple[Optional[MockEndpoint], Optional[str]]:
         """
-        Lookup mock by ID and validate HTTP method.
-        Returns (mock_endpoint, error_message).
+        Public mock execution resolver:
+        Finds user by username in SQLite, then finds configured Mock endpoint matching path and method.
+        Does NOT require authentication!
+        Returns (MockEndpoint, error_message).
         """
-        async with self._lock:
-            mock = self._mocks.get(mock_id)
-            if not mock:
-                return None, f"Mock endpoint with ID '{mock_id}' was not found."
+        clean_user = username.lower().strip()
+        user = db.query(User).filter(User.username == clean_user).first()
+        if not user or not user.is_active:
+            return None, f"No active user found with username '@{username}'."
 
-            if mock.method.upper() != incoming_method.upper():
-                return (
-                    mock,
-                    f"Method Not Allowed: Mock '{mock_id}' only accepts {mock.method} requests, but received {incoming_method}.",
-                )
+        # Normalize target subpath
+        clean_subpath = subpath.strip()
+        if not clean_subpath.startswith("/"):
+            clean_subpath = f"/{clean_subpath}" if clean_subpath else "/"
 
-            # Increment call count
-            mock.call_count += 1
-            return mock, None
+        # Match exact path or path with/without trailing slash
+        candidates = [clean_subpath]
+        if clean_subpath.endswith("/") and len(clean_subpath) > 1:
+            candidates.append(clean_subpath.rstrip("/"))
+        elif not clean_subpath.endswith("/"):
+            candidates.append(f"{clean_subpath}/")
+
+        # Find mock among candidates
+        mock = (
+            db.query(MockEndpoint)
+            .filter(
+                MockEndpoint.user_id == user.id,
+                MockEndpoint.path.in_(candidates),
+            )
+            .first()
+        )
+
+        if not mock:
+            return None, f"Mock endpoint '{clean_subpath}' not configured under user '@{user.username}'."
+
+        # Validate HTTP method
+        if mock.method.upper() != incoming_method.upper():
+            return (
+                mock,
+                f"Method Not Allowed: Mock '{mock.path}' only accepts {mock.method} requests, but received {incoming_method}.",
+            )
+
+        # Increment call counter in database
+        mock.call_count = (mock.call_count or 0) + 1
+        db.commit()
+
+        return mock, None
 
 
-mock_service = MockService()
+mock_service = DatabaseMockService()

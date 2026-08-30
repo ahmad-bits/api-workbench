@@ -11,14 +11,65 @@ import type {
   MockEndpointCreate,
   MockEndpointUpdate,
 } from '../types/mock';
+import type {
+  User,
+  LoginCredentials,
+  RegisterCredentials,
+  AuthResponse,
+  UserProfileUpdateData,
+  DeleteAccountResponse,
+} from '../types/auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 export class ApiClient {
   private baseUrl: string;
+  private authToken: string | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
+    this.authToken = localStorage.getItem('api_workbench_token') || null;
+  }
+
+  private async fetchWithHandling(url: string, options?: RequestInit): Promise<Response> {
+    try {
+      const res = await fetch(url, options);
+      return res;
+    } catch (err: any) {
+      if (
+        err instanceof TypeError ||
+        (err.message && (err.message.toLowerCase().includes('fetch') || err.message.toLowerCase().includes('network')))
+      ) {
+        throw new Error(
+          'Backend server is unreachable (Failed to fetch). Please ensure the FastAPI backend is running on port 8000 (e.g. uvicorn app.main:app --port 8000).'
+        );
+      }
+      throw err;
+    }
+  }
+
+  setAuthToken(token: string | null) {
+    this.authToken = token;
+    if (token) {
+      localStorage.setItem('api_workbench_token', token);
+    } else {
+      localStorage.removeItem('api_workbench_token');
+    }
+  }
+
+  getAuthToken(): string | null {
+    return this.authToken || localStorage.getItem('api_workbench_token') || null;
+  }
+
+  clearAuthToken() {
+    this.authToken = null;
+    localStorage.removeItem('api_workbench_token');
+    localStorage.removeItem('api_workbench_user');
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    const token = this.getAuthToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   private buildPayload(req: WorkbenchRequest) {
@@ -82,7 +133,7 @@ export class ApiClient {
 
   async checkHealth(): Promise<{ data: HealthResponse; latencyMs: number }> {
     const startTime = performance.now();
-    const response = await fetch(`${this.baseUrl}/health`, {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/health`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -100,10 +151,12 @@ export class ApiClient {
     return { data, latencyMs };
   }
 
+  // --- Workbench Dispatcher Operations ---
+
   async dispatchHttpRequest(req: WorkbenchRequest): Promise<WorkbenchResponse> {
     const payload = this.buildPayload(req);
 
-    const response = await fetch(`${this.baseUrl}/requests/dispatch`, {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/requests/dispatch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -129,7 +182,7 @@ export class ApiClient {
   async dispatchBenchmarkRequest(req: WorkbenchRequest): Promise<BatchWorkbenchResponse> {
     const payload = this.buildPayload(req);
 
-    const response = await fetch(`${this.baseUrl}/requests/benchmark`, {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/requests/benchmark`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -190,13 +243,14 @@ export class ApiClient {
     };
   }
 
-  // --- Mock API Operations ---
+  // --- Authenticated User Mock API Operations ---
 
   async getMocks(): Promise<MockEndpoint[]> {
-    const response = await fetch(`${this.baseUrl}/mocks`, {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        ...this.getAuthHeaders(),
       },
     });
 
@@ -220,11 +274,12 @@ export class ApiClient {
       description: data.description,
     };
 
-    const response = await fetch(`${this.baseUrl}/mocks`, {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...this.getAuthHeaders(),
       },
       body: JSON.stringify(payload),
     });
@@ -254,11 +309,12 @@ export class ApiClient {
     if (data.responseType !== undefined) payload.response_type = data.responseType;
     if (data.description !== undefined) payload.description = data.description;
 
-    const response = await fetch(`${this.baseUrl}/mocks/${id}`, {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...this.getAuthHeaders(),
       },
       body: JSON.stringify(payload),
     });
@@ -278,10 +334,11 @@ export class ApiClient {
   }
 
   async deleteMock(id: string): Promise<{ success: boolean }> {
-    const response = await fetch(`${this.baseUrl}/mocks/${id}`, {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${id}`, {
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',
+        ...this.getAuthHeaders(),
       },
     });
 
@@ -291,8 +348,156 @@ export class ApiClient {
 
     return { success: true };
   }
+
+  // --- Authentication Operations ---
+
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        username_or_email: credentials.username_or_email.trim(),
+        password: credentials.password,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Authentication failed. Please check your credentials.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Authentication failed. Please check your credentials.' && !e.message.startsWith('Unexpected')) {
+          throw e;
+        }
+        throw new Error(errorText || `Authentication failed (HTTP ${response.status})`);
+      }
+    }
+
+    const data: AuthResponse = await response.json();
+    this.setAuthToken(data.access_token);
+    localStorage.setItem('api_workbench_user', JSON.stringify(data.user));
+    return data;
+  }
+
+  async register(credentials: RegisterCredentials): Promise<AuthResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        name: credentials.name.trim(),
+        username: credentials.username.trim().toLowerCase(),
+        email: credentials.email.trim().toLowerCase(),
+        password: credentials.password,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Registration failed. Please verify your details.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Registration failed. Please verify your details.' && !e.message.startsWith('Unexpected')) {
+          throw e;
+        }
+        throw new Error(errorText || `Registration failed (HTTP ${response.status})`);
+      }
+    }
+
+    const data: AuthResponse = await response.json();
+    this.setAuthToken(data.access_token);
+    localStorage.setItem('api_workbench_user', JSON.stringify(data.user));
+    return data;
+  }
+
+  async getMe(): Promise<User> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.clearAuthToken();
+      }
+      throw new Error(`HTTP ${response.status}: Failed to fetch authenticated user session`);
+    }
+
+    const user: User = await response.json();
+    localStorage.setItem('api_workbench_user', JSON.stringify(user));
+    return user;
+  }
+
+  async updateMe(data: UserProfileUpdateData): Promise<User> {
+    const payload: any = {};
+    if (data.name !== undefined) payload.name = data.name.trim();
+    if (data.username !== undefined) payload.username = data.username.trim().toLowerCase();
+    if (data.email !== undefined) payload.email = data.email.trim().toLowerCase();
+    if (data.current_password !== undefined) payload.current_password = data.current_password;
+    if (data.new_password !== undefined) payload.new_password = data.new_password;
+
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to update profile: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected') && !e.message.startsWith('Failed to update profile')) {
+          throw e;
+        }
+        throw new Error(errorText || `Failed to update profile: HTTP ${response.status}`);
+      }
+    }
+
+    const updatedUser: User = await response.json();
+    localStorage.setItem('api_workbench_user', JSON.stringify(updatedUser));
+    return updatedUser;
+  }
+
+  async deleteMe(): Promise<DeleteAccountResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/me`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to delete account: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to delete account: HTTP ${response.status}`);
+      }
+    }
+
+    const result: DeleteAccountResponse = await response.json();
+    this.clearAuthToken();
+    return result;
+  }
 }
 
 export const api = new ApiClient();
-
-

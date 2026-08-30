@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from './services/api';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthPage } from './components/auth/AuthPage';
+import { UserProfileModal } from './components/auth/UserProfileModal';
+import { UserNav } from './components/auth/UserNav';
 import { KeyValueEditor } from './components/KeyValueEditor';
 import { BodyEditor } from './components/BodyEditor';
 import { ResponseViewer } from './components/ResponseViewer';
@@ -44,14 +48,14 @@ const QUICK_PRESETS: QuickPreset[] = [
     params: [],
     headers: [
       { id: 'h1', key: 'Content-Type', value: 'application/json', enabled: true },
-      { id: 'h2', key: 'X-API-Workbench', value: 'v0.1.0', enabled: true },
+      { id: 'h2', key: 'X-API-Workbench', value: 'v1.0.0', enabled: true },
     ],
     bodyType: 'json',
     body: JSON.stringify(
       {
         message: 'Hello from API Workbench!',
         timestamp: new Date().toISOString(),
-        developer: 'Internship Portfolio',
+        developer: 'Full-Stack Workbench User',
       },
       null,
       2
@@ -67,25 +71,18 @@ const QUICK_PRESETS: QuickPreset[] = [
     bodyType: 'none',
     body: '',
   },
-  {
-    id: 'mock-users-demo',
-    name: '🎭 Demo Mock: GET /users',
-    method: 'GET',
-    url: 'http://127.0.0.1:8000/mock/users_demo/users',
-    params: [],
-    headers: [
-      { id: 'h_mock', key: 'Accept', value: 'application/json', enabled: true },
-    ],
-    bodyType: 'none',
-    body: '',
-  },
 ];
 
 const QUICK_COUNT_OPTIONS = [1, 5, 10, 25, 50, 100];
 
-export function App() {
+function WorkbenchDashboard() {
+  const { user } = useAuth();
+
   // Navigation View: 'workbench' | 'mock-server'
   const [currentView, setCurrentView] = useState<'workbench' | 'mock-server'>('workbench');
+
+  // Profile Modal State
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   // Backend health state
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading');
@@ -244,7 +241,7 @@ export function App() {
               </svg>
             </div>
             <span className="brand-title">API Workbench</span>
-            <span className="badge-tag">v0.2.0</span>
+            <span className="badge-tag">@{user?.username}</span>
           </div>
 
           {/* App Navigation Switcher */}
@@ -271,7 +268,9 @@ export function App() {
           </nav>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="navbar-right-group">
+          <UserNav onOpenProfileModal={() => setProfileModalOpen(true)} />
+
           <a
             href="http://127.0.0.1:8000/docs"
             target="_blank"
@@ -292,7 +291,7 @@ export function App() {
             {backendStatus === 'healthy' && (
               <div className="status-pill healthy" onClick={checkBackend} style={{ cursor: 'pointer' }} title="Click to re-ping">
                 <span className="pulse-dot"></span>
-                FastAPI Proxy Ready {backendLatency !== null && `(${backendLatency}ms)`}
+                FastAPI Ready {backendLatency !== null && `(${backendLatency}ms)`}
               </div>
             )}
             {backendStatus === 'error' && (
@@ -530,6 +529,12 @@ export function App() {
         )}
       </main>
 
+      {/* Profile Modal */}
+      <UserProfileModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+      />
+
       {/* Footer */}
       <footer className="footer">
         API Workbench &bull; Practical Full-Stack Developer Tooling (React + FastAPI)
@@ -538,5 +543,31 @@ export function App() {
   );
 }
 
-export default App;
+function MainApp() {
+  const { isAuthenticated, isLoading } = useAuth();
 
+  if (isLoading) {
+    return (
+      <div className="auth-loading-screen">
+        <div className="spinner" style={{ width: '36px', height: '36px', borderWidth: '3px' }}></div>
+        <p className="auth-loading-text">Loading API Workbench...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
+
+  return <WorkbenchDashboard />;
+}
+
+export function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
+  );
+}
+
+export default App;

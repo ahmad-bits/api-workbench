@@ -8,9 +8,17 @@ backend/__pycache__/
 htmlcov/
 .mypy_cache/
 
-# Database (future)
+# Database (SQLite)
 *.db
+*.sqlite
 *.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+backend/database/*.db
+backend/database/*.sqlite
+backend/database/*.sqlite3
+
 
 # Node / React / Vite
 frontend/node_modules/

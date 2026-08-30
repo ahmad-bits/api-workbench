@@ -1,5 +1,9 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.api.deps import get_current_active_user
+from app.db.session import get_db
+from app.models.user import User
 from app.schemas.mock import (
     MockEndpointCreate,
     MockEndpointUpdate,
@@ -14,11 +18,15 @@ router = APIRouter()
     "",
     response_model=List[MockEndpointResponse],
     status_code=status.HTTP_200_OK,
-    summary="List all Mock Endpoints",
-    description="Returns a list of all configured mock endpoints sorted by creation date.",
+    summary="List User Mock Endpoints",
+    description="Returns a list of all mock endpoints created and owned by the authenticated user.",
 )
-async def list_mock_endpoints() -> List[MockEndpointResponse]:
-    return await mock_service.list_mocks()
+def list_mock_endpoints(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+) -> List[MockEndpointResponse]:
+    """Retrieve all mock endpoints owned by the current user."""
+    return mock_service.list_user_mocks(db=db, user=current_user)
 
 
 @router.post(
@@ -26,10 +34,15 @@ async def list_mock_endpoints() -> List[MockEndpointResponse]:
     response_model=MockEndpointResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Mock Endpoint",
-    description="Registers a new mock endpoint with custom HTTP method, path, response code, headers, and body.",
+    description="Registers a new mock endpoint belonging strictly to the authenticated user.",
 )
-async def create_mock_endpoint(payload: MockEndpointCreate) -> MockEndpointResponse:
-    return await mock_service.create_mock(payload)
+def create_mock_endpoint(
+    payload: MockEndpointCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+) -> MockEndpointResponse:
+    """Create a new mock endpoint for the current user."""
+    return mock_service.create_user_mock(db=db, user=current_user, data=payload)
 
 
 @router.get(
@@ -37,14 +50,19 @@ async def create_mock_endpoint(payload: MockEndpointCreate) -> MockEndpointRespo
     response_model=MockEndpointResponse,
     status_code=status.HTTP_200_OK,
     summary="Get Mock Endpoint Details",
-    description="Retrieves a specific mock endpoint configuration by ID.",
+    description="Retrieves a specific mock endpoint configuration owned by the authenticated user.",
 )
-async def get_mock_endpoint(mock_id: str) -> MockEndpointResponse:
-    mock = await mock_service.get_mock(mock_id)
+def get_mock_endpoint(
+    mock_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+) -> MockEndpointResponse:
+    """Get mock endpoint details by ID."""
+    mock = mock_service.get_user_mock(db=db, user=current_user, mock_id=mock_id)
     if not mock:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Mock endpoint with ID '{mock_id}' not found.",
+            detail=f"Mock endpoint with ID '{mock_id}' not found in your account.",
         )
     return mock
 
@@ -54,16 +72,22 @@ async def get_mock_endpoint(mock_id: str) -> MockEndpointResponse:
     response_model=MockEndpointResponse,
     status_code=status.HTTP_200_OK,
     summary="Update Mock Endpoint",
-    description="Updates an existing mock endpoint configuration.",
+    description="Updates an existing mock endpoint configuration owned by the authenticated user.",
 )
-async def update_mock_endpoint(
-    mock_id: str, payload: MockEndpointUpdate
+def update_mock_endpoint(
+    mock_id: str,
+    payload: MockEndpointUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
 ) -> MockEndpointResponse:
-    updated = await mock_service.update_mock(mock_id, payload)
+    """Update mock endpoint owned by user."""
+    updated = mock_service.update_user_mock(
+        db=db, user=current_user, mock_id=mock_id, data=payload
+    )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Mock endpoint with ID '{mock_id}' not found.",
+            detail=f"Mock endpoint with ID '{mock_id}' not found in your account.",
         )
     return updated
 
@@ -72,13 +96,18 @@ async def update_mock_endpoint(
     "/{mock_id}",
     status_code=status.HTTP_200_OK,
     summary="Delete Mock Endpoint",
-    description="Removes a mock endpoint from the mock server.",
+    description="Permanently removes a mock endpoint owned by the authenticated user.",
 )
-async def delete_mock_endpoint(mock_id: str):
-    deleted = await mock_service.delete_mock(mock_id)
+def delete_mock_endpoint(
+    mock_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Delete a mock endpoint owned by user."""
+    deleted = mock_service.delete_user_mock(db=db, user=current_user, mock_id=mock_id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Mock endpoint with ID '{mock_id}' not found.",
+            detail=f"Mock endpoint with ID '{mock_id}' not found in your account.",
         )
     return {"success": True, "message": f"Mock endpoint '{mock_id}' was deleted."}

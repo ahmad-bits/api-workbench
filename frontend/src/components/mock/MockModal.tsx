@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import type { HttpMethod } from '../../types/workbench';
 import type {
   MockEndpoint,
@@ -6,6 +7,7 @@ import type {
   MockEndpointUpdate,
   MockHeaderRow,
 } from '../../types/mock';
+
 
 interface MockModalProps {
   isOpen: boolean;
@@ -83,9 +85,11 @@ export const MockModal: React.FC<MockModalProps> = ({
   onSave,
   initialMock,
 }) => {
+  const { user } = useAuth();
   const isEdit = !!initialMock;
 
   const [name, setName] = useState('');
+
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [path, setPath] = useState('/users');
   const [statusCode, setStatusCode] = useState<number>(200);
@@ -306,7 +310,7 @@ export const MockModal: React.FC<MockModalProps> = ({
                 Endpoint Path <span className="required-star">*</span>
               </label>
               <div className="path-input-wrapper">
-                <span className="path-prefix">/mock/...</span>
+                <span className="path-prefix">/mock/{user?.username || 'username'}</span>
                 <input
                   type="text"
                   placeholder="/users or /api/v1/orders"
@@ -316,6 +320,7 @@ export const MockModal: React.FC<MockModalProps> = ({
                   required
                 />
               </div>
+
             </div>
 
             <div className="form-group">

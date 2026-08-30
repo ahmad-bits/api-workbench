@@ -1,7 +1,5 @@
 from typing import Dict, Optional, Any, List
-from pydantic import BaseModel, Field, field_validator
-import json
-import re
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class MockEndpointBase(BaseModel):
@@ -81,9 +79,13 @@ class MockEndpointUpdate(BaseModel):
 
 
 class MockEndpointResponse(MockEndpointBase):
-    id: str = Field(..., description="Unique 8-character identifier for this mock")
-    mock_url: str = Field(..., description="Full path to execute mock endpoint, e.g. /mock/{id}/path")
+    id: str = Field(..., description="Unique identifier for this mock")
+    user_id: int = Field(..., description="Owner user ID")
+    username: Optional[str] = Field(default=None, description="Owner username for public endpoint URLs")
+    mock_url: str = Field(..., description="Full path to execute mock endpoint, e.g. /mock/{username}/path")
     full_url: Optional[str] = Field(default=None, description="Absolute URL with hostname and port")
     created_at: str = Field(..., description="ISO 8601 creation timestamp")
     updated_at: str = Field(..., description="ISO 8601 update timestamp")
     call_count: int = Field(default=0, description="Total number of requests served by this mock")
+
+    model_config = ConfigDict(from_attributes=True)
