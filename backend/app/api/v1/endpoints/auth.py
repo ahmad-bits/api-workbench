@@ -6,9 +6,18 @@ from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import LoginRequest, Token, UserProfileUpdate
+from app.schemas.auth import (
+    LoginRequest,
+    Token,
+    UserProfileUpdate,
+    OtpInitiateResponse,
+    OtpVerifyRequest,
+    OtpResendRequest,
+    OtpResendResponse,
+)
 from app.schemas.user import UserCreate, UserDeleteResponse, UserResponse
-from app.services import user_service
+from app.services import user_service, otp_service
+
 
 router = APIRouter()
 
@@ -55,17 +64,84 @@ def login(
 
 
 @router.post(
+    "/register/request-otp",
+    response_model=OtpInitiateResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Request Email OTP for Registration",
+    description="Validate credentials, generate a secure 6-digit OTP, and dispatch verification email. Account is NOT created until verified.",
+)
+def request_registration_otp(
+    user_in: UserCreate,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Validate credentials, reserve username/email, and send OTP verification code."""
+    result = otp_service.initiate_registration(db=db, user_in=user_in)
+    return OtpInitiateResponse(**result)
+
+
+@router.post(
+    "/register/verify-otp",
+    response_model=Token,
+    status_code=status.HTTP_201_CREATED,
+    summary="Verify Email OTP & Create Account",
+    description="Validate the 6-digit OTP received via email, permanently create the user account in SQLite, and return a signed JWT token.",
+)
+def verify_registration_otp(
+    verify_data: OtpVerifyRequest,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Verify 6-digit OTP and create user account."""
+    user = otp_service.verify_otp_and_create_user(
+        db=db,
+        email=verify_data.email,
+        otp=verify_data.otp,
+    )
+
+    access_token = create_access_token(
+        subject=str(user.id),
+        extra_claims={
+            "email": user.email,
+            "username": user.username,
+            "name": user.name,
+        },
+    )
+
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse.model_validate(user),
+    )
+
+
+@router.post(
+    "/register/resend-otp",
+    response_model=OtpResendResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Resend Registration Email OTP",
+    description="Request a new 6-digit OTP verification code with rate-limiting cooldown protection.",
+)
+def resend_registration_otp(
+    resend_data: OtpResendRequest,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Resend a new 6-digit OTP code to the specified email."""
+    result = otp_service.resend_registration_otp(db=db, email=resend_data.email)
+    return OtpResendResponse(**result)
+
+
+@router.post(
     "/register",
     response_model=Token,
     status_code=status.HTTP_201_CREATED,
-    summary="User Registration",
-    description="Register a new user account with unique username and email, receiving an access token immediately.",
+    summary="User Registration (Direct)",
+    description="Register a new user account directly (supported for automated API integration).",
 )
 def register(
     user_in: UserCreate,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Create user and return JWT access token."""
+    """Create user directly and return JWT access token."""
     user = user_service.create_user(db=db, user_in=user_in)
 
     access_token = create_access_token(
@@ -83,6 +159,7 @@ def register(
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=UserResponse.model_validate(user),
     )
+
 
 
 @router.get(

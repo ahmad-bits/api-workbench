@@ -31,6 +31,21 @@ class Settings(BaseSettings):
     # Database configuration
     DATABASE_URL: Optional[str] = None
 
+    # Email / SMTP configuration
+    EMAIL_HOST: Optional[str] = None
+    EMAIL_PORT: int = 587
+    EMAIL_USERNAME: Optional[str] = None
+    EMAIL_PASSWORD: Optional[str] = None
+    EMAIL_FROM: str = "noreply@apiworkbench.dev"
+    EMAIL_FROM_NAME: str = "API Workbench"
+    EMAIL_USE_TLS: bool = True
+    EMAIL_USE_SSL: bool = False
+
+    # OTP policy configuration
+    OTP_EXPIRE_MINUTES: int = 10
+    OTP_RESEND_COOLDOWN_SECONDS: int = 60
+    OTP_MAX_ATTEMPTS: int = 5
+
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
@@ -58,7 +73,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         case_sensitive=True,
-        env_file=".env",
+        env_file=(str(BACKEND_DIR / ".env"), ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )

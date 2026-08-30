@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Union
+import hashlib
+import hmac
+import secrets
 import bcrypt
 import jwt
 from app.core.config import settings
@@ -67,4 +70,33 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         settings.JWT_SECRET_KEY,
         algorithms=[settings.JWT_ALGORITHM],
     )
+
+
+def generate_otp(digits: int = 6) -> str:
+    """Generate a cryptographically secure random numeric OTP (e.g., 6 digits)."""
+    upper_bound = 10 ** digits
+    num = secrets.randbelow(upper_bound)
+    return f"{num:0{digits}d}"
+
+
+def hash_otp(otp: str, email: str = "") -> str:
+    """
+    Hash a numeric OTP using HMAC-SHA256 with secret key and email salt
+    so it is never stored as plaintext in the database.
+    """
+    key = settings.JWT_SECRET_KEY.encode("utf-8")
+    msg = f"{email.lower().strip()}:{otp.strip()}".encode("utf-8")
+    return hmac.new(key, msg, hashlib.sha256).hexdigest()
+
+
+def verify_otp(plain_otp: str, hashed_otp: str, email: str = "") -> bool:
+    """
+    Constant-time comparison of plain OTP against stored HMAC-SHA256 hash.
+    """
+    try:
+        calculated_hash = hash_otp(plain_otp, email=email)
+        return hmac.compare_digest(calculated_hash, hashed_otp)
+    except Exception:
+        return False
+
 

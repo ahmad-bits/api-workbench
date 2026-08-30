@@ -70,3 +70,39 @@ class UserProfileUpdate(BaseModel):
                 "Username must be between 3 and 30 characters and contain only letters, numbers, hyphens (-), and underscores (_)."
             )
         return clean
+
+
+class OtpInitiateResponse(BaseModel):
+    """Response returned when OTP registration is successfully initiated."""
+    message: str = Field(..., description="Success message")
+    email: str = Field(..., description="Email address the verification code was sent to")
+    resend_cooldown_seconds: int = Field(60, description="Cooldown seconds before another OTP can be requested")
+    expires_in_minutes: int = Field(10, description="Minutes until the verification code expires")
+
+
+class OtpVerifyRequest(BaseModel):
+    """Payload to verify email OTP and complete account registration."""
+    email: EmailStr = Field(..., description="Registered email address")
+    otp: str = Field(..., min_length=4, max_length=10, description="6-digit verification code")
+
+    @field_validator("otp")
+    @classmethod
+    def validate_otp(cls, v: str) -> str:
+        clean = v.strip()
+        if not clean:
+            raise ValueError("Verification code is required.")
+        return clean
+
+
+class OtpResendRequest(BaseModel):
+    """Payload to request a new OTP verification code."""
+    email: EmailStr = Field(..., description="Registered email address to resend OTP to")
+
+
+class OtpResendResponse(BaseModel):
+    """Response returned when a new OTP code is resent."""
+    message: str = Field(..., description="Status message")
+    email: str = Field(..., description="Email address the code was sent to")
+    resend_cooldown_seconds: int = Field(60, description="Cooldown seconds before another code can be requested")
+    expires_in_minutes: int = Field(10, description="Minutes until code expires")
+

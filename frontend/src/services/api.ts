@@ -18,7 +18,10 @@ import type {
   AuthResponse,
   UserProfileUpdateData,
   DeleteAccountResponse,
+  OtpInitiateResponse,
+  OtpResendResponse,
 } from '../types/auth';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -383,6 +386,97 @@ export class ApiClient {
     return data;
   }
 
+  async requestRegistrationOtp(credentials: RegisterCredentials): Promise<OtpInitiateResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/register/request-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        name: credentials.name.trim(),
+        username: credentials.username.trim().toLowerCase(),
+        email: credentials.email.trim().toLowerCase(),
+        password: credentials.password,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Failed to initiate email verification.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Failed to initiate email verification.' && !e.message.startsWith('Unexpected')) {
+          throw e;
+        }
+        throw new Error(errorText || `Failed to initiate verification (HTTP ${response.status})`);
+      }
+    }
+
+    return await response.json();
+  }
+
+  async verifyRegistrationOtp(email: string, otp: string): Promise<AuthResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/register/verify-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        otp: otp.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Invalid verification code.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Invalid verification code.' && !e.message.startsWith('Unexpected')) {
+          throw e;
+        }
+        throw new Error(errorText || `Verification failed (HTTP ${response.status})`);
+      }
+    }
+
+    const data: AuthResponse = await response.json();
+    this.setAuthToken(data.access_token);
+    localStorage.setItem('api_workbench_user', JSON.stringify(data.user));
+    return data;
+  }
+
+  async resendRegistrationOtp(email: string): Promise<OtpResendResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/register/resend-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Failed to resend verification code.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Failed to resend verification code.' && !e.message.startsWith('Unexpected')) {
+          throw e;
+        }
+        throw new Error(errorText || `Resend failed (HTTP ${response.status})`);
+      }
+    }
+
+    return await response.json();
+  }
+
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
     const response = await this.fetchWithHandling(`${this.baseUrl}/auth/register`, {
       method: 'POST',
@@ -418,6 +512,7 @@ export class ApiClient {
   }
 
   async getMe(): Promise<User> {
+
     const response = await this.fetchWithHandling(`${this.baseUrl}/auth/me`, {
       method: 'GET',
       headers: {

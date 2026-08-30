@@ -8,6 +8,8 @@ from app.db.base import Base
 from app.db.session import engine, SessionLocal
 from app.models.user import User  # noqa: F401
 from app.models.mock import MockEndpoint  # noqa: F401
+from app.models.pending_registration import PendingRegistration  # noqa: F401
+
 
 logger = logging.getLogger(__name__)
 

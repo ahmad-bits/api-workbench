@@ -21,6 +21,10 @@ from app.schemas.auth import (
     Token,
     TokenPayload,
     UserProfileUpdate,
+    OtpInitiateResponse,
+    OtpVerifyRequest,
+    OtpResendRequest,
+    OtpResendResponse,
 )
 
 __all__ = [
@@ -38,6 +42,11 @@ __all__ = [
     "Token",
     "TokenPayload",
     "UserProfileUpdate",
+    "OtpInitiateResponse",
+    "OtpVerifyRequest",
+    "OtpResendRequest",
+    "OtpResendResponse",
 ]
+
 
 

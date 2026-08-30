@@ -39,3 +39,27 @@ export interface DeleteAccountResponse {
   message: string;
   user_id: number;
 }
+
+export interface OtpInitiateResponse {
+  message: string;
+  email: string;
+  resend_cooldown_seconds: number;
+  expires_in_minutes: number;
+}
+
+export interface OtpVerifyRequest {
+  email: string;
+  otp: string;
+}
+
+export interface OtpResendRequest {
+  email: string;
+}
+
+export interface OtpResendResponse {
+  message: string;
+  email: string;
+  resend_cooldown_seconds: number;
+  expires_in_minutes: number;
+}
+

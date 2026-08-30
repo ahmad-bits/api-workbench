@@ -5,6 +5,8 @@ import type {
   LoginCredentials,
   RegisterCredentials,
   UserProfileUpdateData,
+  OtpInitiateResponse,
+  OtpResendResponse,
 } from '../types/auth';
 
 interface AuthContextType {
@@ -15,12 +17,16 @@ interface AuthContextType {
   error: string | null;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
+  requestOtp: (credentials: RegisterCredentials) => Promise<OtpInitiateResponse>;
+  verifyOtp: (email: string, otp: string) => Promise<void>;
+  resendOtp: (email: string) => Promise<OtpResendResponse>;
   logout: () => void;
   updateProfile: (data: UserProfileUpdateData) => Promise<User>;
   deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
   clearError: () => void;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -78,7 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [refreshUser]);
 
   const login = async (credentials: LoginCredentials) => {
-    setIsLoading(true);
     setError(null);
     try {
       const resp = await api.login(credentials);
@@ -87,13 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       setError(err.message || 'Login failed.');
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const register = async (credentials: RegisterCredentials) => {
-    setIsLoading(true);
     setError(null);
     try {
       const resp = await api.register(credentials);
@@ -102,13 +104,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
       throw err;
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const requestOtp = async (credentials: RegisterCredentials): Promise<OtpInitiateResponse> => {
+    setError(null);
+    try {
+      const resp = await api.requestRegistrationOtp(credentials);
+      return resp;
+    } catch (err: any) {
+      setError(err.message || 'Failed to send verification code.');
+      throw err;
+    }
+  };
+
+  const verifyOtp = async (email: string, otp: string) => {
+    setError(null);
+    try {
+      const resp = await api.verifyRegistrationOtp(email, otp);
+      setToken(resp.access_token);
+      setUser(resp.user);
+    } catch (err: any) {
+      setError(err.message || 'Verification failed.');
+      throw err;
+    }
+  };
+
+  const resendOtp = async (email: string): Promise<OtpResendResponse> => {
+    setError(null);
+    try {
+      const resp = await api.resendRegistrationOtp(email);
+      return resp;
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend verification code.');
+      throw err;
     }
   };
 
   const updateProfile = async (data: UserProfileUpdateData): Promise<User> => {
-    setIsLoading(true);
     setError(null);
     try {
       const updatedUser = await api.updateMe(data);
@@ -117,13 +150,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       setError(err.message || 'Failed to update profile.');
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const deleteAccount = async () => {
-    setIsLoading(true);
     setError(null);
     try {
       await api.deleteMe();
@@ -131,10 +161,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       setError(err.message || 'Failed to delete account.');
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
+
 
   return (
     <AuthContext.Provider
@@ -146,6 +175,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error,
         login,
         register,
+        requestOtp,
+        verifyOtp,
+        resendOtp,
         logout,
         updateProfile,
         deleteAccount,
@@ -156,6 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
+
 };
 
 export function useAuth(): AuthContextType {

@@ -3031,6 +3031,161 @@ code, pre {
   letter-spacing: 0.3px;
 }
 
+/* ==========================================================================
+   OTP Verification Flow Styles
+   ========================================================================== */
+
+.otp-verification-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: authFadeIn 0.25s ease-out;
+}
+
+@keyframes authFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.otp-step-header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.otp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.75rem;
+}
+
+.otp-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.3px;
+}
+
+.otp-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.otp-email-highlight {
+  color: #93c5fd;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.otp-input-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.otp-digit-input {
+  width: 100%;
+  max-width: 280px;
+  height: 54px;
+  background: rgba(13, 17, 23, 0.9);
+  border: 2px solid rgba(59, 130, 246, 0.4);
+  border-radius: 12px;
+  color: #60a5fa;
+  font-family: var(--font-mono, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace);
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 12px;
+  padding: 0 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.otp-digit-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), 0 6px 20px rgba(59, 130, 246, 0.2);
+  background: rgba(13, 17, 23, 1);
+}
+
+.otp-digit-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 8px;
+}
+
+.otp-expiry-hint {
+  display: block;
+  text-align: center;
+  font-size: 0.76rem;
+  color: #eab308;
+  margin-top: 0.4rem;
+}
+
+.otp-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+}
+
+.btn-link-action {
+  background: none;
+  border: none;
+  color: var(--accent-blue, #60a5fa);
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn-link-action:hover:not(:disabled) {
+  color: #93c5fd;
+  text-decoration: underline;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.btn-link-action:disabled {
+  color: var(--text-muted, #6b7280);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.btn-link-action strong {
+  color: #fbbf24;
+}
+
+.action-separator {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.9rem;
+}
+
+
 
 
 
