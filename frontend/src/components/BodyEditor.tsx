@@ -39,7 +39,7 @@ export const BodyEditor: React.FC<BodyEditorProps> = ({
       onBodyChange(JSON.stringify(parsed, null, 2));
       setJsonError(null);
     } catch (err: any) {
-      setJsonError(`Cannot format: ${err.message}`);
+      setJsonError(`Cannot format JSON: ${err.message}`);
     }
   };
 
@@ -51,7 +51,6 @@ export const BodyEditor: React.FC<BodyEditorProps> = ({
       const end = textarea.selectionEnd;
       const newValue = body.substring(0, start) + '  ' + body.substring(end);
       onBodyChange(newValue);
-      // Move cursor
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 2;
       }, 0);
@@ -59,72 +58,71 @@ export const BodyEditor: React.FC<BodyEditorProps> = ({
   };
 
   return (
-    <div className="body-editor">
-      {/* Type Selector Bar */}
-      <div className="body-type-bar">
-        <div className="body-type-options">
-          <label className={`radio-label ${bodyType === 'none' ? 'active' : ''}`}>
-            <input
-              type="radio"
-              name="bodyType"
-              value="none"
-              checked={bodyType === 'none'}
-              onChange={() => onBodyTypeChange('none')}
-            />
+    <div className="wb-body-editor-wrap">
+      {/* Format & Content-Type Toolbar */}
+      <div className="wb-body-toolbar">
+        <div className="wb-body-type-selector">
+          <button
+            type="button"
+            className={`wb-body-type-btn ${bodyType === 'none' ? 'active' : ''}`}
+            onClick={() => onBodyTypeChange('none')}
+          >
             none
-          </label>
-          <label className={`radio-label ${bodyType === 'json' ? 'active' : ''}`}>
-            <input
-              type="radio"
-              name="bodyType"
-              value="json"
-              checked={bodyType === 'json'}
-              onChange={() => onBodyTypeChange('json')}
-            />
-            JSON (application/json)
-          </label>
-          <label className={`radio-label ${bodyType === 'text' ? 'active' : ''}`}>
-            <input
-              type="radio"
-              name="bodyType"
-              value="text"
-              checked={bodyType === 'text'}
-              onChange={() => onBodyTypeChange('text')}
-            />
+          </button>
+          <button
+            type="button"
+            className={`wb-body-type-btn ${bodyType === 'json' ? 'active' : ''}`}
+            onClick={() => onBodyTypeChange('json')}
+          >
+            JSON
+          </button>
+          <button
+            type="button"
+            className={`wb-body-type-btn ${bodyType === 'text' ? 'active' : ''}`}
+            onClick={() => onBodyTypeChange('text')}
+          >
             Raw Text
-          </label>
+          </button>
         </div>
 
         {bodyType === 'json' && (
-          <button type="button" className="btn-secondary-sm" onClick={handleFormatJson}>
-            Beautify JSON
+          <button
+            type="button"
+            className="wb-btn-beautify-json"
+            onClick={handleFormatJson}
+            title="Format JSON payload"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+            <span>Format JSON</span>
           </button>
         )}
       </div>
 
       {bodyType === 'none' ? (
-        <div className="body-none-msg">
-          <span>This request does not include a payload body.</span>
+        <div className="wb-body-empty-pane">
+          <span>This request does not have a payload body.</span>
         </div>
       ) : (
-        <div className="body-input-container">
+        <div className="wb-body-textarea-container">
           <textarea
-            className={`body-textarea ${jsonError ? 'textarea-error' : ''}`}
+            className={`wb-body-textarea ${jsonError ? 'has-error' : ''}`}
             value={body}
             onChange={handleBodyChange}
             onKeyDown={handleKeyDown}
             placeholder={
               bodyType === 'json'
-                ? '{\n  "name": "API Workbench",\n  "version": 1.0\n}'
-                : 'Enter raw payload...'
+                ? '{\n  "key": "value"\n}'
+                : 'Enter raw request body...'
             }
-            rows={12}
+            rows={14}
             spellCheck={false}
           />
           {jsonError && (
-            <div className="json-error-banner">
-              <span className="error-icon">⚠</span>
-              <span>Invalid JSON: {jsonError}</span>
+            <div className="wb-body-error-badge">
+              <span>⚠ Invalid JSON syntax: {jsonError}</span>
             </div>
           )}
         </div>

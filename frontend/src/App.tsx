@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import './components/workbench.css';
 import { api } from './services/api';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthPage } from './components/auth/AuthPage';
@@ -18,65 +19,8 @@ import type {
   WorkbenchRequest,
   WorkbenchResponse,
   BatchWorkbenchResponse,
-  QuickPreset,
 } from './types/workbench';
 import type { MockEndpoint } from './types/mock';
-
-const QUICK_PRESETS: QuickPreset[] = [
-  {
-    id: 'jp-post-1',
-    name: 'JSONPlaceholder Post #1',
-    method: 'GET',
-    url: 'https://jsonplaceholder.typicode.com/posts/1',
-    params: [],
-    headers: [],
-    bodyType: 'none',
-    body: '',
-  },
-  {
-    id: 'jp-users',
-    name: 'JSONPlaceholder Users',
-    method: 'GET',
-    url: 'https://jsonplaceholder.typicode.com/users',
-    params: [],
-    headers: [],
-    bodyType: 'none',
-    body: '',
-  },
-  {
-    id: 'httpbin-post',
-    name: 'HttpBin Echo (POST JSON)',
-    method: 'POST',
-    url: 'https://httpbin.org/post',
-    params: [],
-    headers: [
-      { id: 'h1', key: 'Content-Type', value: 'application/json', enabled: true },
-      { id: 'h2', key: 'X-API-Workbench', value: 'v1.0.0', enabled: true },
-    ],
-    bodyType: 'json',
-    body: JSON.stringify(
-      {
-        message: 'Hello from API Workbench!',
-        timestamp: new Date().toISOString(),
-        developer: 'Full-Stack Workbench User',
-      },
-      null,
-      2
-    ),
-  },
-  {
-    id: 'local-health',
-    name: 'Local FastAPI Health Check',
-    method: 'GET',
-    url: 'http://127.0.0.1:8000/api/v1/health',
-    params: [],
-    headers: [],
-    bodyType: 'none',
-    body: '',
-  },
-];
-
-const QUICK_COUNT_OPTIONS = [1, 5, 10, 25, 50, 100];
 
 function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
   const { user } = useAuth();
@@ -96,13 +40,13 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading');
   const [backendLatency, setBackendLatency] = useState<number | null>(null);
 
-  // Request Builder state
+  // Request Builder state (Clean default GET endpoint)
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [url, setUrl] = useState<string>('https://jsonplaceholder.typicode.com/posts/1');
-  const [activeTab, setActiveTab] = useState<'params' | 'headers' | 'body'>('params');
+  const [activeTab, setActiveTab] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
   const [params, setParams] = useState<KeyValuePair[]>([]);
   const [headers, setHeaders] = useState<KeyValuePair[]>([
-    { id: 'h_default', key: 'Accept', value: 'application/json', enabled: true },
+    { id: 'h_default', key: 'Accept', value: 'application/json', description: '', enabled: true },
   ]);
   const [bodyType, setBodyType] = useState<BodyType>('none');
   const [body, setBody] = useState<string>('');
@@ -114,9 +58,23 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
   const [response, setResponse] = useState<WorkbenchResponse | null>(null);
   const [batchResponse, setBatchResponse] = useState<BatchWorkbenchResponse | null>(null);
 
+  // Reset to a new clean request
+  const handleNewRequest = () => {
+    setUrl('');
+    setMethod('GET');
+    setParams([]);
+    setHeaders([{ id: `h_${Date.now()}`, key: 'Accept', value: 'application/json', description: '', enabled: true }]);
+    setBodyType('none');
+    setBody('');
+    setRequestCount(1);
+    setResponse(null);
+    setBatchResponse(null);
+    setActiveTab('params');
+    setCurrentView('workbench');
+  };
+
   // Helper to extract an API Key from current headers or query params
   const detectCurrentApiKey = (): string | null => {
-    // 1. Check headers for X-API-Key, api-key, apikey, Authorization (Bearer ... or direct), x-api-token
     for (const h of headers) {
       if (h.enabled && h.key.trim() && h.value.trim()) {
         const k = h.key.trim().toLowerCase();
@@ -139,7 +97,6 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
         }
       }
     }
-    // 2. Check query params for api_key, apikey, key, token
     for (const p of params) {
       if (p.enabled && p.key.trim() && p.value.trim()) {
         const k = p.key.trim().toLowerCase();
@@ -161,7 +118,6 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
       setResponse(null);
       setBatchResponse(null);
 
-      // If saved API has an API key, load it into headers
       if (openData.has_api_key && openData.api_key) {
         const existingKeyIndex = headers.findIndex((h) => {
           const k = h.key.trim().toLowerCase();
@@ -213,30 +169,6 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
     checkBackend();
   }, [checkBackend]);
 
-  // Load a quick preset
-  const handleLoadPreset = (preset: QuickPreset) => {
-    setMethod(preset.method);
-    setUrl(preset.url);
-    setParams(preset.params ? [...preset.params] : []);
-    setHeaders(
-      preset.headers && preset.headers.length > 0
-        ? [...preset.headers]
-        : [{ id: `h_${Date.now()}`, key: 'Accept', value: 'application/json', enabled: true }]
-    );
-    setBodyType(preset.bodyType || 'none');
-    setBody(preset.body || '');
-    if (preset.requestCount !== undefined) {
-      setRequestCount(preset.requestCount);
-    }
-    if (preset.bodyType && preset.bodyType !== 'none') {
-      setActiveTab('body');
-    } else if (preset.params && preset.params.length > 0) {
-      setActiveTab('params');
-    } else {
-      setActiveTab('headers');
-    }
-  };
-
   const handleSetCount = (val: number) => {
     if (isNaN(val)) {
       setRequestCount(1);
@@ -248,29 +180,31 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
 
   // Test mock endpoint inside Workbench
   const handleTestInWorkbench = (mock: MockEndpoint) => {
-    const fullMockUrl = mock.fullUrl || `http://127.0.0.1:8000${mock.mockUrl}`;
-    setMethod(mock.method);
+    const fullMockUrl = `http://127.0.0.1:8000/mock/${mock.path.startsWith('/') ? mock.path.slice(1) : mock.path}`;
     setUrl(fullMockUrl);
-    setRequestCount(1);
+    setMethod(mock.method);
     setParams([]);
-    setHeaders([
-      { id: 'h_accept', key: 'Accept', value: 'application/json', enabled: true },
-    ]);
-    if (mock.method !== 'GET' && mock.method !== 'HEAD') {
-      setBodyType('none');
-      setBody('');
-    }
+    setHeaders([{ id: 'h_default', key: 'Accept', value: 'application/json', enabled: true }]);
+    setBodyType('none');
+    setBody('');
+    setRequestCount(1);
     setResponse(null);
     setBatchResponse(null);
     setCurrentView('workbench');
+    setActiveTab('params');
+    setSaveToast(`Configured Mock Endpoint "${mock.name}" in API Tester.`);
+    setTimeout(() => setSaveToast(null), 3000);
   };
 
-  // Dispatch HTTP request (single or multi-run benchmark)
+  // Execute request
   const handleSendRequest = async () => {
-    if (!url.trim()) return;
+    if (!url.trim() || isSending) return;
 
     setIsSending(true);
-    const req: WorkbenchRequest = {
+    setResponse(null);
+    setBatchResponse(null);
+
+    const payload: WorkbenchRequest = {
       method,
       url: url.trim(),
       params,
@@ -282,30 +216,23 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
     };
 
     try {
-      if (requestCount > 1) {
-        // Multi-request Benchmark mode
-        setResponse(null);
-        const batch = await api.dispatchBenchmarkRequest(req);
-        setBatchResponse(batch);
+      if (requestCount === 1) {
+        const res = await api.dispatchHttpRequest(payload);
+        setResponse(res);
       } else {
-        // Single-request normal mode
-        setBatchResponse(null);
-        const resp = await api.dispatchHttpRequest(req);
-        setResponse(resp);
+        const batchRes = await api.dispatchBenchmarkRequest(payload);
+        setBatchResponse(batchRes);
       }
     } catch (err: any) {
-      if (requestCount > 1) {
-        setBatchResponse(null);
-      }
       setResponse({
         statusCode: 0,
-        statusText: 'Client Error',
+        statusText: 'Connection Error',
         headers: {},
         data: null,
         isJson: false,
         sizeBytes: 0,
         elapsedMs: 0,
-        error: err.message || 'Failed to dispatch request',
+        error: err.message || 'Network request failed. Ensure target endpoint is reachable.',
       });
     } finally {
       setIsSending(false);
@@ -318,131 +245,210 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
     }
   };
 
+  // Keyboard shortcut: Ctrl+Enter (or Cmd+Enter) anywhere in workspace to Send
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSendRequest();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  });
+
   const enabledParamsCount = params.filter((p) => p.enabled && p.key.trim()).length;
   const enabledHeadersCount = headers.filter((h) => h.enabled && h.key.trim()).length;
 
   return (
-    <div className="app-container">
-      {/* Navigation Header */}
-      <header className="navbar">
-        <div className="brand-nav-group">
-          <div className="brand-wrapper" onClick={() => setCurrentView('workbench')} style={{ cursor: 'pointer' }}>
-            <div className="brand-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    <div className="wb-app-shell">
+      {/* 1. Left Professional Developer Sidebar */}
+      <aside className="wb-app-sidebar">
+        <div className="wb-sidebar-top-section">
+          {/* Workspace Title & Brand */}
+          <div className="wb-workspace-header">
+            <div className="wb-workspace-logo-dot">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#1860ec" />
+                <path d="M12 5L13.5 10.5L19 12L13.5 13.5L12 19L10.5 13.5L5 12L10.5 10.5L12 5Z" fill="white" />
               </svg>
             </div>
-            <span className="brand-title">API Workbench</span>
-            <span className="badge-tag">@{user?.username}</span>
+            <div className="wb-workspace-meta">
+              <span className="wb-workspace-title">
+                {user?.name ? `${user.name} Workspace` : 'API Workbench'}
+              </span>
+              <span className="wb-workspace-badge-plan">Active Workspace</span>
+            </div>
           </div>
 
-          {/* App Navigation Switcher */}
-          <nav className="nav-view-switcher">
+          {/* New Request Button */}
+          <button
+            type="button"
+            className="wb-sidebar-btn-new"
+            onClick={handleNewRequest}
+            title="Start a new clean API request"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>New Request</span>
+          </button>
+
+          {/* Sidebar Nav Items */}
+          <nav className="wb-sidebar-nav">
             <button
               type="button"
-              className={`nav-view-btn ${currentView === 'workbench' ? 'active' : ''}`}
+              className={`wb-sidebar-item ${currentView === 'workbench' ? 'active' : ''}`}
               onClick={() => setCurrentView('workbench')}
             >
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
               </svg>
               <span>API Tester</span>
             </button>
 
             <button
               type="button"
-              className={`nav-view-btn ${currentView === 'saved-apis' ? 'active' : ''}`}
+              className={`wb-sidebar-item ${currentView === 'saved-apis' ? 'active' : ''}`}
               onClick={() => setCurrentView('saved-apis')}
             >
-              <span style={{ fontSize: '1rem' }}>🗂️</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
               <span>My APIs</span>
-              {savedApiCount > 0 && <span className="nav-tab-badge">{savedApiCount}</span>}
+              {savedApiCount > 0 && <span className="wb-sidebar-count">{savedApiCount}</span>}
             </button>
 
             <button
               type="button"
-              className={`nav-view-btn ${currentView === 'mock-server' ? 'active' : ''}`}
+              className={`wb-sidebar-item ${currentView === 'mock-server' ? 'active' : ''}`}
               onClick={() => setCurrentView('mock-server')}
             >
-              <span style={{ fontSize: '1rem' }}>🎭</span>
-              <span>Mock API Server</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+              <span>Mock Server</span>
             </button>
           </nav>
         </div>
 
-        <div className="navbar-right-group">
+        {/* Sidebar Bottom Section */}
+        <div className="wb-sidebar-bottom-section">
+          <a
+            href="http://127.0.0.1:8000/docs"
+            target="_blank"
+            rel="noreferrer"
+            className="wb-sidebar-footer-link"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            <span>Swagger API Docs</span>
+          </a>
+
+          <button
+            type="button"
+            className="wb-sidebar-footer-link"
+            onClick={() => setProfileModalOpen(true)}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            <span>Account Settings</span>
+          </button>
+
           {onGoToLanding && (
             <button
               type="button"
-              className="btn-secondary-sm"
+              className="wb-sidebar-footer-link"
               onClick={onGoToLanding}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-              title="View Public Landing Page"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
               <span>Landing Page</span>
             </button>
           )}
-
-          <UserNav onOpenProfileModal={() => setProfileModalOpen(true)} />
-
-          <a
-            href="http://127.0.0.1:8000/docs"
-            target="_blank"
-            rel="noreferrer"
-            className="btn-secondary-sm"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-          >
-            Swagger Docs ↗
-          </a>
-
-          <div className="status-indicator">
-            {backendStatus === 'loading' && (
-              <div className="status-pill loading">
-                <span className="pulse-dot"></span>
-                FastAPI Connecting...
-              </div>
-            )}
-            {backendStatus === 'healthy' && (
-              <div className="status-pill healthy" onClick={checkBackend} style={{ cursor: 'pointer' }} title="Click to re-ping">
-                <span className="pulse-dot"></span>
-                FastAPI Ready {backendLatency !== null && `(${backendLatency}ms)`}
-              </div>
-            )}
-            {backendStatus === 'error' && (
-              <div className="status-pill error" onClick={checkBackend} style={{ cursor: 'pointer' }} title="Click to retry">
-                <span className="pulse-dot"></span>
-                FastAPI Offline
-              </div>
-            )}
-          </div>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content Area */}
-      <main className="main-content">
-        {/* VIEW 1: My Saved APIs */}
+      {/* 2. Main Content Workspace */}
+      <main className="wb-app-main">
+        {/* Top Header Bar */}
+        <header className="wb-app-topbar">
+          <div className="wb-topbar-title-block">
+            <h1 className="wb-topbar-heading">
+              {currentView === 'workbench'
+                ? 'API Tester'
+                : currentView === 'saved-apis'
+                ? 'My APIs'
+                : 'Mock Server'}
+            </h1>
+            <span className="wb-topbar-tagline">
+              {currentView === 'workbench'
+                ? 'HTTP Request & Benchmark Testing Environment'
+                : currentView === 'saved-apis'
+                ? 'Manage and load saved endpoints'
+                : 'Simulate custom mock APIs with dynamic delays'}
+            </span>
+          </div>
+
+          <div className="wb-topbar-actions">
+            {/* Live Backend Connection Indicator */}
+            <div
+              className={`wb-health-pill ${backendStatus === 'error' ? 'error' : ''}`}
+              onClick={checkBackend}
+              title="Click to check backend status"
+            >
+              <span className="wb-health-dot" />
+              <span>
+                {backendStatus === 'healthy'
+                  ? `FastAPI Online ${backendLatency !== null ? `(${backendLatency}ms)` : ''}`
+                  : backendStatus === 'loading'
+                  ? 'Connecting...'
+                  : 'FastAPI Offline'}
+              </span>
+            </div>
+
+            {/* User Profile & Account Dropdown */}
+            <UserNav onOpenProfileModal={() => setProfileModalOpen(true)} />
+          </div>
+        </header>
+
+        {/* Saved APIs View */}
         {currentView === 'saved-apis' && (
-          <SavedApiManager
-            onOpenInTester={handleOpenSavedApi}
-            onCountChange={setSavedApiCount}
-          />
+          <div className="wb-view-container">
+            <SavedApiManager
+              onOpenInTester={handleOpenSavedApi}
+              onCountChange={setSavedApiCount}
+            />
+          </div>
         )}
 
-        {/* VIEW 2: Mock API Server */}
+        {/* Mock Server View */}
         {currentView === 'mock-server' && (
-          <MockManager onTestInWorkbench={handleTestInWorkbench} />
+          <div className="wb-view-container">
+            <MockManager onTestInWorkbench={handleTestInWorkbench} />
+          </div>
         )}
 
-        {/* VIEW 3: API Workbench (Request Builder + Response Viewer) */}
+        {/* API Tester View (Unified Request Bar + Split Workspace) */}
         {currentView === 'workbench' && (
-          <>
+          <div className="wb-tester-workspace">
             {saveToast && (
-              <div className="auth-alert success" style={{ marginBottom: '1rem' }}>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <div className="wb-toast-banner">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
@@ -450,48 +456,14 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
               </div>
             )}
 
-            {/* Quick Presets Bar */}
-            <div className="presets-container">
-              <span className="presets-label">Quick Presets:</span>
-              {QUICK_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  className="preset-pill"
-                  onClick={() => handleLoadPreset(preset)}
-                >
-                  <span
-                    className="preset-method-tag"
-                    style={{
-                      color:
-                        preset.method === 'GET'
-                          ? 'var(--method-get)'
-                          : preset.method === 'POST'
-                          ? 'var(--method-post)'
-                          : 'var(--method-put)',
-                      background:
-                        preset.method === 'GET'
-                          ? 'rgba(16, 185, 129, 0.15)'
-                          : preset.method === 'POST'
-                          ? 'rgba(59, 130, 246, 0.15)'
-                          : 'rgba(245, 158, 11, 0.15)',
-                    }}
-                  >
-                    {preset.method}
-                  </span>
-                  <span>{preset.name}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Request Builder Card */}
-            <div className="glass-card request-bar-card">
-              {/* Method + URL + Count + Send + Save Input Row */}
-              <div className="request-input-row">
+            {/* UNIFIED REQUEST BAR: Method ▾ | URL Input | Runs (1x) | Save API | Send ✈ */}
+            <div className="wb-unified-request-bar">
+              {/* Method Dropdown */}
+              <div className="wb-method-select-wrap">
                 <select
                   value={method}
                   onChange={(e) => setMethod(e.target.value as HttpMethod)}
-                  className={`method-select ${method.toLowerCase()}`}
+                  className={`wb-method-native-select ${method.toLowerCase()}`}
                 >
                   <option value="GET">GET</option>
                   <option value="POST">POST</option>
@@ -501,150 +473,131 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
                   <option value="HEAD">HEAD</option>
                   <option value="OPTIONS">OPTIONS</option>
                 </select>
+              </div>
 
+              {/* URL Input */}
+              <div className="wb-url-input-wrap">
                 <input
                   type="text"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   onKeyDown={handleKeyDownUrl}
-                  placeholder="https://api.example.com/v1/resource or http://127.0.0.1:8000/mock/..."
-                  className="url-input"
+                  placeholder="https://api.example.com/v1/endpoint"
+                  className="wb-url-native-input"
+                  spellCheck={false}
+                  autoComplete="off"
                 />
-
-                {/* Request Count Control */}
-                <div className="request-count-wrapper" title="Configure number of requests to execute (1-100)">
-                  <span className="count-label">Runs:</span>
-                  <div className="count-stepper">
-                    <button
-                      type="button"
-                      className="count-step-btn"
-                      onClick={() => handleSetCount(requestCount - 1)}
-                      disabled={requestCount <= 1 || isSending}
-                      title="Decrease requests"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={requestCount}
-                      onChange={(e) => handleSetCount(parseInt(e.target.value, 10))}
-                      className="count-number-input"
-                      disabled={isSending}
-                    />
-                    <button
-                      type="button"
-                      className="count-step-btn"
-                      onClick={() => handleSetCount(requestCount + 1)}
-                      disabled={requestCount >= 100 || isSending}
-                      title="Increase requests"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                {/* Save API Button */}
-                <button
-                  type="button"
-                  className="btn-save-api"
-                  onClick={() => setSaveApiModalOpen(true)}
-                  disabled={!url.trim()}
-                  title="Save this API configuration to My APIs"
-                >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                    <polyline points="17 21 17 13 7 13 7 21" />
-                    <polyline points="7 3 7 8 15 8" />
-                  </svg>
-                  <span>Save API</span>
-                </button>
-
-                {/* Send Button */}
-                <button
-                  type="button"
-                  className={`btn-send ${requestCount > 1 ? 'benchmark-mode' : ''}`}
-                  onClick={handleSendRequest}
-                  disabled={isSending || !url.trim()}
-                >
-                  {isSending ? (
-                    <>
-                      <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
-                      <span>{requestCount > 1 ? `Executing ${requestCount}x...` : 'Sending...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <line x1="22" y1="2" x2="11" y2="13" />
-                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                      </svg>
-                      <span>{requestCount > 1 ? `Run (${requestCount}x)` : 'Send'}</span>
-                    </>
-                  )}
-                </button>
               </div>
 
-              {/* Quick Count Selector Row & Benchmark Notice */}
-              <div className="count-toolbar">
-                <div className="count-chips-group">
-                  <span className="count-toolbar-label">Request Count:</span>
-                  {QUICK_COUNT_OPTIONS.map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      className={`count-chip ${requestCount === num ? 'active' : ''}`}
-                      onClick={() => handleSetCount(num)}
-                      disabled={isSending}
-                    >
-                      {num === 1 ? '1 (Single)' : `${num} requests`}
-                    </button>
-                  ))}
-                </div>
+              {/* Runs Selector (1 to 100) */}
+              <div className="wb-runs-control" title="Number of parallel request executions (1–100)">
+                <span className="wb-runs-label">Runs:</span>
+                <select
+                  value={requestCount}
+                  onChange={(e) => handleSetCount(parseInt(e.target.value, 10))}
+                  className="wb-runs-select"
+                  disabled={isSending}
+                >
+                  <option value={1}>1 (Single)</option>
+                  <option value={5}>5 (Benchmark)</option>
+                  <option value={10}>10 (Benchmark)</option>
+                  <option value={25}>25 (Benchmark)</option>
+                  <option value={50}>50 (Benchmark)</option>
+                  <option value={100}>100 (Benchmark)</option>
+                </select>
+              </div>
 
-                {requestCount > 1 && (
-                  <div className="benchmark-badge-indicator">
-                    <span className="benchmark-dot"></span>
-                    <span>Benchmark Mode ({requestCount} runs)</span>
-                  </div>
+              {/* Save API Button */}
+              <button
+                type="button"
+                className="wb-btn-save-req"
+                onClick={() => setSaveApiModalOpen(true)}
+                disabled={!url.trim()}
+                title="Save this API configuration"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                <span>Save</span>
+              </button>
+
+              {/* Send Button */}
+              <button
+                type="button"
+                className={`wb-btn-send-req ${requestCount > 1 ? 'bench' : ''}`}
+                onClick={handleSendRequest}
+                disabled={isSending || !url.trim()}
+              >
+                {isSending ? (
+                  <>
+                    <div className="wb-btn-spinner" />
+                    <span>{requestCount > 1 ? `Executing ${requestCount}x...` : 'Sending...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                    <span>{requestCount > 1 ? `Run (${requestCount}x)` : 'Send'}</span>
+                  </>
                 )}
-              </div>
+              </button>
+            </div>
 
-              {/* Workbench Tabs (Params, Headers, Body) */}
-              <div>
-                <div className="workbench-tabs">
+            {/* SPLIT WORKSPACE: Left Request Configuration + Right Response Inspector */}
+            <div className="wb-workspace-split-panes">
+              {/* Left Column: Request Configuration */}
+              <div className="wb-request-config-pane">
+                {/* Clean Subtabs Bar: Params | Headers | Body | Auth */}
+                <div className="wb-config-tabs-bar">
                   <button
                     type="button"
-                    className={`tab-nav-item ${activeTab === 'params' ? 'active' : ''}`}
+                    className={`wb-config-tab ${activeTab === 'params' ? 'active' : ''}`}
                     onClick={() => setActiveTab('params')}
                   >
-                    Params {enabledParamsCount > 0 && <span className="tab-counter">{enabledParamsCount}</span>}
+                    Params
+                    {enabledParamsCount > 0 && <span className="wb-tab-badge">{enabledParamsCount}</span>}
                   </button>
+
                   <button
                     type="button"
-                    className={`tab-nav-item ${activeTab === 'headers' ? 'active' : ''}`}
+                    className={`wb-config-tab ${activeTab === 'headers' ? 'active' : ''}`}
                     onClick={() => setActiveTab('headers')}
                   >
-                    Headers {enabledHeadersCount > 0 && <span className="tab-counter">{enabledHeadersCount}</span>}
+                    Headers
+                    {enabledHeadersCount > 0 && <span className="wb-tab-badge">{enabledHeadersCount}</span>}
                   </button>
+
                   <button
                     type="button"
-                    className={`tab-nav-item ${activeTab === 'body' ? 'active' : ''}`}
+                    className={`wb-config-tab ${activeTab === 'body' ? 'active' : ''}`}
                     onClick={() => setActiveTab('body')}
                   >
-                    Body {bodyType !== 'none' && <span className="tab-counter">{bodyType}</span>}
+                    Body
+                    {bodyType !== 'none' && <span className="wb-tab-badge">{bodyType}</span>}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`wb-config-tab ${activeTab === 'auth' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('auth')}
+                  >
+                    Auth
                   </button>
                 </div>
 
-                {/* Tab Contents */}
-                <div style={{ paddingTop: '0.25rem' }}>
+                {/* Subtab Contents */}
+                <div className="wb-config-body-viewport">
                   {activeTab === 'params' && (
                     <KeyValueEditor
                       items={params}
                       onChange={setParams}
-                      keyPlaceholder="parameter_name"
-                      valuePlaceholder="value"
-                      title="Query Parameters"
+                      keyPlaceholder="Parameter name"
+                      valuePlaceholder="Value"
+                      descPlaceholder="Description (Optional)"
                     />
                   )}
 
@@ -652,9 +605,9 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
                     <KeyValueEditor
                       items={headers}
                       onChange={setHeaders}
-                      keyPlaceholder="Header-Name"
-                      valuePlaceholder="value"
-                      title="Request Headers"
+                      keyPlaceholder="Header name"
+                      valuePlaceholder="Header value"
+                      descPlaceholder="Description (Optional)"
                     />
                   )}
 
@@ -666,22 +619,48 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
                       onBodyChange={setBody}
                     />
                   )}
+
+                  {activeTab === 'auth' && (
+                    <KeyValueEditor
+                      items={headers.filter(
+                        (h) =>
+                          h.key.toLowerCase().includes('auth') ||
+                          h.key.toLowerCase().includes('key') ||
+                          h.key.toLowerCase().includes('token')
+                      )}
+                      onChange={(authItems) => {
+                        const nonAuth = headers.filter(
+                          (h) =>
+                            !h.key.toLowerCase().includes('auth') &&
+                            !h.key.toLowerCase().includes('key') &&
+                            !h.key.toLowerCase().includes('token')
+                        );
+                        setHeaders([...nonAuth, ...authItems]);
+                      }}
+                      keyPlaceholder="Authorization / X-API-Key"
+                      valuePlaceholder="Bearer token or API Key"
+                      descPlaceholder="Description"
+                    />
+                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Response Viewer Section */}
-            <ResponseViewer
-              response={response}
-              batchResponse={batchResponse}
-              requestCount={requestCount}
-              isLoading={isSending}
-            />
-          </>
+              {/* Right Column: Response Inspector */}
+              <div className="wb-response-pane-wrap">
+                <ResponseViewer
+                  response={response}
+                  batchResponse={batchResponse}
+                  requestCount={requestCount}
+                  isLoading={isSending}
+                  onSaveClick={() => setSaveApiModalOpen(true)}
+                />
+              </div>
+            </div>
+          </div>
         )}
       </main>
 
-      {/* Profile Modal */}
+      {/* User Profile Modal */}
       <UserProfileModal
         isOpen={profileModalOpen}
         onClose={() => setProfileModalOpen(false)}
@@ -696,14 +675,9 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
         onSaved={(saved) => {
           setSavedApiCount((prev) => prev + 1);
           setSaveToast(`API "${saved.name}" was saved successfully to My APIs!`);
-          setTimeout(() => setSaveToast(null), 4000);
+          setTimeout(() => setSaveToast(null), 3500);
         }}
       />
-
-      {/* Footer */}
-      <footer className="footer">
-        API Workbench &bull; Practical Full-Stack Developer Tooling (React + FastAPI)
-      </footer>
     </div>
   );
 }
