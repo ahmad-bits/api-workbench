@@ -68,120 +68,96 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content save-api-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="modal-title-group">
-            <span className="modal-icon">✨</span>
-            <h2 className="modal-title">Add New API Configuration</h2>
+    <div className="wb-modal-backdrop" onClick={onClose}>
+      <div className="wb-modal-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="wb-modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '1.1rem' }}>✨</span>
+            <h3 className="wb-modal-title">Add Saved API</h3>
           </div>
-          <button type="button" className="btn-close-modal" onClick={onClose} title="Close">
-            &times;
+          <button
+            type="button"
+            className="wb-mock-btn-close"
+            onClick={onClose}
+            title="Close"
+          >
+            ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="save-api-form">
-          {error && (
-            <div className="auth-alert error" style={{ marginBottom: '1rem' }}>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
+        <form onSubmit={handleSubmit}>
+          <div className="wb-modal-body">
+            {error && (
+              <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '0.65rem 0.85rem', borderRadius: '8px', fontSize: '0.8rem' }}>
+                {error}
+              </div>
+            )}
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="add-api-name">
-              API Name <span style={{ color: 'var(--accent-danger)' }}>*</span>
-            </label>
-            <input
-              id="add-api-name"
-              ref={inputRef}
-              type="text"
-              className="form-input"
-              placeholder="e.g. OpenAI Chat API, Stripe Billing, GitHub GraphQL"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (error) setError(null);
-              }}
-              disabled={isSubmitting}
-              maxLength={120}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="add-api-url">
-              API URL <span style={{ color: 'var(--accent-danger)' }}>*</span>
-            </label>
-            <input
-              id="add-api-url"
-              type="text"
-              className="form-input"
-              placeholder="https://api.example.com/v1/resource"
-              value={url}
-              onChange={(e) => {
-                setUrl(e.target.value);
-                if (error) setError(null);
-              }}
-              disabled={isSubmitting}
-              maxLength={1000}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <div className="form-label-row">
-              <label className="form-label" htmlFor="add-api-key">
-                API Key (Optional)
-              </label>
-              <span className="form-label-hint">Encrypted with AES-128</span>
-            </div>
-            <div className="input-with-icon">
-              <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+            <div className="wb-form-field">
+              <label className="wb-form-label">API Name <span style={{ color: '#dc2626' }}>*</span></label>
               <input
-                id="add-api-key"
-                type={showPassword ? 'text' : 'password'}
-                className="form-input"
-                placeholder="Optional API key (e.g. sk_live_..., Bearer token, api_token)"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                ref={inputRef}
+                type="text"
+                className="wb-form-input"
+                placeholder="e.g. User Authentication, Orders API"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (error) setError(null);
+                }}
                 disabled={isSubmitting}
+                required
               />
-              <button
-                type="button"
-                className="password-toggle-btn"
-                onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? 'Hide key' : 'Show key'}
-              >
-                {showPassword ? (
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </button>
             </div>
-            <span className="form-label-hint" style={{ fontSize: '0.74rem' }}>
-              🔒 Never stored as plain text. Automatically loaded into tester when opened.
-            </span>
+
+            <div className="wb-form-field">
+              <label className="wb-form-label">API Endpoint URL <span style={{ color: '#dc2626' }}>*</span></label>
+              <input
+                type="text"
+                className="wb-form-input"
+                placeholder="https://api.example.com/v1/auth/login"
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (error) setError(null);
+                }}
+                disabled={isSubmitting}
+                style={{ fontFamily: 'JetBrains Mono', fontSize: '0.825rem' }}
+                required
+              />
+            </div>
+
+            <div className="wb-form-field">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="wb-form-label" style={{ margin: 0 }}>API Key (Optional)</label>
+                <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Encrypted with AES-128</span>
+              </div>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="wb-form-input"
+                  placeholder="Optional token / key (e.g. sk_live_...)"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  disabled={isSubmitting}
+                  style={{ paddingRight: '2.5rem', fontFamily: 'JetBrains Mono' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ position: 'absolute', right: '0.65rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                  title={showPassword ? 'Hide key' : 'Show key'}
+                >
+                  {showPassword ? '👁️' : '🔒'}
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="modal-actions-row">
+          <div className="wb-modal-footer">
             <button
               type="button"
-              className="btn-secondary"
+              className="wb-btn-mock-cancel"
               onClick={onClose}
               disabled={isSubmitting}
             >
@@ -189,17 +165,10 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
             </button>
             <button
               type="submit"
-              className="btn-primary"
+              className="wb-btn-mock-save"
               disabled={isSubmitting || !name.trim() || !url.trim()}
             >
-              {isSubmitting ? (
-                <>
-                  <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></div>
-                  <span>Adding API...</span>
-                </>
-              ) : (
-                <span>Save API</span>
-              )}
+              {isSubmitting ? 'Saving...' : 'Add API'}
             </button>
           </div>
         </form>

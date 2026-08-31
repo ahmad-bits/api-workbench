@@ -385,17 +385,13 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
 
       {/* 2. Main Content Workspace */}
       <main className="wb-app-main">
-        {/* Top Header Bar (Shown on API Tester and Saved APIs) */}
-        {currentView !== 'mock-server' && (
+        {/* Top Header Bar (Shown only on API Tester) */}
+        {currentView === 'workbench' && (
           <header className="wb-app-topbar">
             <div className="wb-topbar-title-block">
-              <h1 className="wb-topbar-heading">
-                {currentView === 'workbench' ? 'API Tester' : 'My APIs'}
-              </h1>
+              <h1 className="wb-topbar-heading">API Tester</h1>
               <span className="wb-topbar-tagline">
-                {currentView === 'workbench'
-                  ? 'HTTP Request & Benchmark Testing Environment'
-                  : 'Manage and load saved endpoints'}
+                HTTP Request & Benchmark Testing Environment
               </span>
             </div>
 
@@ -424,12 +420,10 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
 
         {/* Saved APIs View */}
         {currentView === 'saved-apis' && (
-          <div className="wb-view-container">
-            <SavedApiManager
-              onOpenInTester={handleOpenSavedApi}
-              onCountChange={setSavedApiCount}
-            />
-          </div>
+          <SavedApiManager
+            onOpenInTester={handleOpenSavedApi}
+            onCountChange={setSavedApiCount}
+          />
         )}
 
         {/* Mock Server View */}
