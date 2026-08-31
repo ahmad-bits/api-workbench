@@ -2,9 +2,27 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 
-export const AuthPage: React.FC = () => {
+export interface AuthPageProps {
+  initialMode?: 'login' | 'register';
+  onBackToHome?: () => void;
+}
+
+export const AuthPage: React.FC<AuthPageProps> = ({
+  initialMode = 'login',
+  onBackToHome,
+}) => {
   const { login, requestOtp, verifyOtp, resendOtp, error: authError, clearError } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+
+  // Sync mode if initialMode prop changes
+  useEffect(() => {
+    setMode(initialMode);
+    setRegisterStep('form');
+    setOtp('');
+    setLocalError(null);
+    setSuccessInfo(null);
+    clearError();
+  }, [initialMode]);
 
   // Step 1: 'form' | Step 2: 'verify' (for registration)
   const [registerStep, setRegisterStep] = useState<'form' | 'verify'>('form');
@@ -215,15 +233,58 @@ export const AuthPage: React.FC = () => {
 
   return (
     <div className="auth-page-wrapper">
+      {onBackToHome && (
+        <button
+          type="button"
+          onClick={onBackToHome}
+          style={{
+            position: 'absolute',
+            top: '1.5rem',
+            left: '1.5rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            color: 'var(--text-secondary, #94a3b8)',
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            padding: '0.45rem 0.85rem',
+            borderRadius: '8px',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+          }}
+          title="Return to Landing Page"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          <span>Back to Home</span>
+        </button>
+      )}
+
       <div className="auth-page-card">
         {/* Brand Header */}
         <div className="auth-page-header">
-          <div className="brand-icon auth-brand-icon">
+          <div
+            className="brand-icon auth-brand-icon"
+            onClick={onBackToHome}
+            style={onBackToHome ? { cursor: 'pointer' } : undefined}
+            title={onBackToHome ? 'Go to Home' : undefined}
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
           </div>
-          <h1 className="auth-page-title">API Workbench</h1>
+          <h1
+            className="auth-page-title"
+            onClick={onBackToHome}
+            style={onBackToHome ? { cursor: 'pointer' } : undefined}
+            title={onBackToHome ? 'Go to Home' : undefined}
+          >
+            API Workbench
+          </h1>
           <p className="auth-page-tagline">
             Professional developer workbench for API testing, benchmarks, and mock servers
           </p>

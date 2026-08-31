@@ -10,6 +10,7 @@ import { ResponseViewer } from './components/ResponseViewer';
 import { MockManager } from './components/mock/MockManager';
 import { SavedApiManager } from './components/saved/SavedApiManager';
 import { SaveApiModal } from './components/saved/SaveApiModal';
+import { LandingPage } from './components/landing/LandingPage';
 import type {
   HttpMethod,
   BodyType,
@@ -77,7 +78,7 @@ const QUICK_PRESETS: QuickPreset[] = [
 
 const QUICK_COUNT_OPTIONS = [1, 5, 10, 25, 50, 100];
 
-function WorkbenchDashboard() {
+function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
   const { user } = useAuth();
 
   // Navigation View: 'workbench' | 'saved-apis' | 'mock-server'
@@ -370,6 +371,22 @@ function WorkbenchDashboard() {
         </div>
 
         <div className="navbar-right-group">
+          {onGoToLanding && (
+            <button
+              type="button"
+              className="btn-secondary-sm"
+              onClick={onGoToLanding}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+              title="View Public Landing Page"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              <span>Landing Page</span>
+            </button>
+          )}
+
           <UserNav onOpenProfileModal={() => setProfileModalOpen(true)} />
 
           <a
@@ -692,7 +709,15 @@ function WorkbenchDashboard() {
 }
 
 function MainApp() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [appView, setAppView] = useState<'landing' | 'login' | 'register' | 'workbench'>('landing');
+
+  // When user successfully logs in, take them to workbench
+  useEffect(() => {
+    if (isAuthenticated) {
+      setAppView('workbench');
+    }
+  }, [isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -703,11 +728,41 @@ function MainApp() {
     );
   }
 
+  // Unauthenticated visitor routing
   if (!isAuthenticated) {
-    return <AuthPage />;
+    if (appView === 'login' || appView === 'register') {
+      return (
+        <AuthPage
+          initialMode={appView}
+          onBackToHome={() => setAppView('landing')}
+        />
+      );
+    }
+
+    return (
+      <LandingPage
+        onLoginClick={() => setAppView('login')}
+        onSignUpClick={() => setAppView('register')}
+        onWorkbenchClick={() => setAppView('login')}
+        isAuthenticated={false}
+      />
+    );
   }
 
-  return <WorkbenchDashboard />;
+  // Authenticated user routing
+  if (appView === 'landing') {
+    return (
+      <LandingPage
+        onLoginClick={() => setAppView('workbench')}
+        onSignUpClick={() => setAppView('workbench')}
+        onWorkbenchClick={() => setAppView('workbench')}
+        isAuthenticated={true}
+        userName={user?.name || user?.username}
+      />
+    );
+  }
+
+  return <WorkbenchDashboard onGoToLanding={() => setAppView('landing')} />;
 }
 
 export function App() {
