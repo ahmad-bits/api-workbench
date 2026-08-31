@@ -385,46 +385,42 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
 
       {/* 2. Main Content Workspace */}
       <main className="wb-app-main">
-        {/* Top Header Bar */}
-        <header className="wb-app-topbar">
-          <div className="wb-topbar-title-block">
-            <h1 className="wb-topbar-heading">
-              {currentView === 'workbench'
-                ? 'API Tester'
-                : currentView === 'saved-apis'
-                ? 'My APIs'
-                : 'Mock Server'}
-            </h1>
-            <span className="wb-topbar-tagline">
-              {currentView === 'workbench'
-                ? 'HTTP Request & Benchmark Testing Environment'
-                : currentView === 'saved-apis'
-                ? 'Manage and load saved endpoints'
-                : 'Simulate custom mock APIs with dynamic delays'}
-            </span>
-          </div>
-
-          <div className="wb-topbar-actions">
-            {/* Live Backend Connection Indicator */}
-            <div
-              className={`wb-health-pill ${backendStatus === 'error' ? 'error' : ''}`}
-              onClick={checkBackend}
-              title="Click to check backend status"
-            >
-              <span className="wb-health-dot" />
-              <span>
-                {backendStatus === 'healthy'
-                  ? `FastAPI Online ${backendLatency !== null ? `(${backendLatency}ms)` : ''}`
-                  : backendStatus === 'loading'
-                  ? 'Connecting...'
-                  : 'FastAPI Offline'}
+        {/* Top Header Bar (Shown on API Tester and Saved APIs) */}
+        {currentView !== 'mock-server' && (
+          <header className="wb-app-topbar">
+            <div className="wb-topbar-title-block">
+              <h1 className="wb-topbar-heading">
+                {currentView === 'workbench' ? 'API Tester' : 'My APIs'}
+              </h1>
+              <span className="wb-topbar-tagline">
+                {currentView === 'workbench'
+                  ? 'HTTP Request & Benchmark Testing Environment'
+                  : 'Manage and load saved endpoints'}
               </span>
             </div>
 
-            {/* User Profile & Account Dropdown */}
-            <UserNav onOpenProfileModal={() => setProfileModalOpen(true)} />
-          </div>
-        </header>
+            <div className="wb-topbar-actions">
+              {/* Live Backend Connection Indicator */}
+              <div
+                className={`wb-health-pill ${backendStatus === 'error' ? 'error' : ''}`}
+                onClick={checkBackend}
+                title="Click to check backend status"
+              >
+                <span className="wb-health-dot" />
+                <span>
+                  {backendStatus === 'healthy'
+                    ? `FastAPI Online ${backendLatency !== null ? `(${backendLatency}ms)` : ''}`
+                    : backendStatus === 'loading'
+                    ? 'Connecting...'
+                    : 'FastAPI Offline'}
+                </span>
+              </div>
+
+              {/* User Profile & Account Dropdown */}
+              <UserNav onOpenProfileModal={() => setProfileModalOpen(true)} />
+            </div>
+          </header>
+        )}
 
         {/* Saved APIs View */}
         {currentView === 'saved-apis' && (
@@ -438,9 +434,7 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
 
         {/* Mock Server View */}
         {currentView === 'mock-server' && (
-          <div className="wb-view-container">
-            <MockManager onTestInWorkbench={handleTestInWorkbench} />
-          </div>
+          <MockManager onTestInWorkbench={handleTestInWorkbench} />
         )}
 
         {/* API Tester View (Unified Request Bar + Split Workspace) */}

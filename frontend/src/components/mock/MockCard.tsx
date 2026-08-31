@@ -3,6 +3,8 @@ import type { MockEndpoint } from '../../types/mock';
 
 interface MockCardProps {
   mock: MockEndpoint;
+  isSelected?: boolean;
+  onSelect: (mock: MockEndpoint) => void;
   onEdit: (mock: MockEndpoint) => void;
   onDelete: (id: string) => void;
   onTestInWorkbench: (mock: MockEndpoint) => void;
@@ -10,13 +12,14 @@ interface MockCardProps {
 
 export const MockCard: React.FC<MockCardProps> = ({
   mock,
+  isSelected,
+  onSelect,
   onEdit,
   onDelete,
   onTestInWorkbench,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const fullUrl = mock.fullUrl || `http://127.0.0.1:8000${mock.mockUrl}`;
 
@@ -24,166 +27,208 @@ export const MockCard: React.FC<MockCardProps> = ({
     e.stopPropagation();
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    setMenuOpen(false);
     if (window.confirm(`Are you sure you want to delete mock endpoint '${mock.method} ${mock.path}'?`)) {
-      setIsDeleting(true);
-      try {
-        await onDelete(mock.id);
-      } finally {
-        setIsDeleting(false);
-      }
+      await onDelete(mock.id);
     }
   };
 
-  const getStatusClass = (code: number) => {
+  const getStatusPillClass = (code: number) => {
     if (code >= 200 && code < 300) return 'status-2xx';
     if (code >= 300 && code < 400) return 'status-3xx';
     if (code >= 400 && code < 500) return 'status-4xx';
     return 'status-5xx';
   };
 
-  const getMethodClass = (method: string) => {
-    return `method-tag method-${method.toLowerCase()}`;
+  const getStatusLabel = (code: number) => {
+    if (code === 200) return '200 OK';
+    if (code === 201) return '201 Created';
+    if (code === 204) return '204 No Content';
+    if (code === 400) return '400 Bad Req';
+    if (code === 401) return '401 Unauth';
+    if (code === 404) return '404 Not Found';
+    if (code === 500) return '500 Error';
+    return `${code}`;
   };
 
   return (
-    <div className="mock-card glass-card">
-      {/* Top Header */}
-      <div className="mock-card-header">
-        <div className="mock-card-title-group">
-          <span className={getMethodClass(mock.method)}>{mock.method}</span>
-          <span className="mock-path" title={mock.path}>
-            {mock.path}
-          </span>
-          <span className={`status-tag ${getStatusClass(mock.statusCode)}`}>
-            {mock.statusCode}
-          </span>
-        </div>
+    <div
+      className={`wb-mock-card-item ${isSelected ? 'selected' : ''}`}
+      onClick={() => onSelect(mock)}
+    >
+      {/* Top Row: Title + Status Pill + Menu */}
+      <div className="wb-mock-card-top">
+        <h4 className="wb-mock-card-name">{mock.name || `${mock.method} ${mock.path}`}</h4>
 
-        <div className="mock-card-meta">
-          <span className="mock-hit-badge" title="Total times this mock endpoint was called">
-            ⚡ {mock.callCount} hit{mock.callCount !== 1 ? 's' : ''}
+        <div className="wb-mock-card-top-right">
+          <span className={`wb-mock-status-pill ${getStatusPillClass(mock.statusCode)}`}>
+            {getStatusLabel(mock.statusCode)}
           </span>
+
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className="wb-mock-menu-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen(!menuOpen);
+              }}
+              title="Options"
+            >
+              ⋮
+            </button>
+
+            {menuOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '100%',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.1)',
+                  zIndex: 20,
+                  minWidth: '150px',
+                  padding: '0.35rem 0',
+                }}
+              >
+                <button
+                  type="button"
+                  style={{
+                    width: '100%',
+                    padding: '0.45rem 0.85rem',
+                    textAlign: 'left',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    onEdit(mock);
+                  }}
+                >
+                  <span>✏️</span>
+                  <span>Edit Mock</span>
+                </button>
+
+                <button
+                  type="button"
+                  style={{
+                    width: '100%',
+                    padding: '0.45rem 0.85rem',
+                    textAlign: 'left',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    color: '#1860ec',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    onTestInWorkbench(mock);
+                  }}
+                >
+                  <span>⚡</span>
+                  <span>Test in Tester</span>
+                </button>
+
+                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '0.25rem 0' }} />
+
+                <button
+                  type="button"
+                  style={{
+                    width: '100%',
+                    padding: '0.45rem 0.85rem',
+                    textAlign: 'left',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    color: '#dc2626',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                  }}
+                  onClick={handleDelete}
+                >
+                  <span>🗑️</span>
+                  <span>Delete Mock</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Name / Description */}
-      {mock.name && mock.name !== `${mock.method} ${mock.path}` && (
-        <div className="mock-name-label">{mock.name}</div>
-      )}
-      {mock.description && (
-        <div className="mock-desc-label">{mock.description}</div>
-      )}
+      {/* Method + Path Row */}
+      <div className="wb-mock-route-row">
+        <span className={`wb-mock-method-badge ${mock.method.toLowerCase()}`}>
+          {mock.method}
+        </span>
+        <span className="wb-mock-route-path">{mock.path}</span>
+      </div>
 
-      {/* Generated Mock URL Bar */}
-      <div className="mock-url-box">
-        <span className="mock-url-prefix">Mock URL:</span>
-        <code className="mock-url-text" title={fullUrl}>
+      {/* URL Box Row */}
+      <div className="wb-mock-url-box">
+        <span className="wb-mock-url-text" title={fullUrl}>
           {fullUrl}
-        </code>
+        </span>
         <button
           type="button"
-          className={`btn-copy-url ${copied ? 'copied' : ''}`}
+          className={`wb-mock-btn-copy ${copied ? 'copied' : ''}`}
           onClick={handleCopyUrl}
-          title="Copy Mock URL to clipboard"
+          title="Copy simulated URL"
         >
           {copied ? (
-            <>
-              <span className="copy-check">✓</span>
-              <span>Copied!</span>
-            </>
+            <span>✓ Copied</span>
           ) : (
             <>
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              <span>Copy URL</span>
+              <span>Copy</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Card Actions Bar */}
-      <div className="mock-card-actions">
-        <div className="left-actions">
-          <button
-            type="button"
-            className="btn-test-workbench"
-            onClick={() => onTestInWorkbench(mock)}
-            title="Load in Workbench and execute request"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
-            Test in Workbench
-          </button>
+      {/* Bottom Action Strip */}
+      <div className="wb-mock-card-actions-bar">
+        <button
+          type="button"
+          className="wb-mock-btn-test"
+          onClick={(e) => {
+            e.stopPropagation();
+            onTestInWorkbench(mock);
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+          <span>Test in API Tester</span>
+        </button>
 
-          <button
-            type="button"
-            className="btn-preview-toggle"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? '▲ Hide Response' : '▼ Preview Response'}
-          </button>
-        </div>
-
-        <div className="right-actions">
-          <button
-            type="button"
-            className="btn-action-icon edit"
-            onClick={() => onEdit(mock)}
-            title="Edit mock endpoint"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            Edit
-          </button>
-
-          <button
-            type="button"
-            className="btn-action-icon delete"
-            onClick={handleDelete}
-            disabled={isDeleting}
-            title="Delete mock endpoint"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            Delete
-          </button>
-        </div>
+        <span style={{ fontSize: '0.725rem', color: '#94a3b8' }}>
+          {mock.callCount || 0} calls
+        </span>
       </div>
-
-      {/* Expandable Preview Area */}
-      {expanded && (
-        <div className="mock-preview-drawer">
-          <div className="preview-section-title">Configured Response Body:</div>
-          <div className="code-viewer-container preview-code-container">
-            <pre className="code-content">{mock.responseBody || '(Empty body)'}</pre>
-          </div>
-
-          {Object.keys(mock.responseHeaders || {}).length > 0 && (
-            <div style={{ marginTop: '0.75rem' }}>
-              <div className="preview-section-title">Response Headers:</div>
-              <div className="headers-preview-pills">
-                {Object.entries(mock.responseHeaders).map(([k, v]) => (
-                  <span key={k} className="header-preview-pill">
-                    <strong>{k}:</strong> {v}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
