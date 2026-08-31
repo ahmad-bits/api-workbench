@@ -483,6 +483,109 @@ export class ApiClient {
     return await response.json();
   }
 
+  async requestPasswordResetOtp(usernameOrEmail: string): Promise<OtpInitiateResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/forgot-password/request-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        username_or_email: usernameOrEmail.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Failed to request password reset code.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Failed to request password reset code.' && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Request failed (HTTP ${response.status})`);
+      }
+    }
+    return await response.json();
+  }
+
+  async verifyPasswordResetOtp(email: string, otp: string): Promise<{message: string, reset_token: string}> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/forgot-password/verify-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        otp: otp.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Invalid verification code.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Invalid verification code.' && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Verification failed (HTTP ${response.status})`);
+      }
+    }
+    return await response.json();
+  }
+
+  async resetPassword(email: string, resetToken: string, newPassword: string): Promise<{message: string}> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/forgot-password/reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        reset_token: resetToken,
+        new_password: newPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Failed to reset password.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Failed to reset password.' && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Reset failed (HTTP ${response.status})`);
+      }
+    }
+    return await response.json();
+  }
+
+  async resendPasswordResetOtp(email: string): Promise<OtpResendResponse> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/auth/forgot-password/resend-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || 'Failed to resend verification code.');
+      } catch (e: any) {
+        if (e.message && e.message !== 'Failed to resend verification code.' && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Resend failed (HTTP ${response.status})`);
+      }
+    }
+    return await response.json();
+  }
+
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
     const response = await this.fetchWithHandling(`${this.baseUrl}/auth/register`, {
       method: 'POST',

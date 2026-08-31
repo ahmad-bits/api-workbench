@@ -161,6 +161,84 @@ def register(
     )
 
 
+from app.schemas.auth import (
+    ForgotPasswordRequest,
+    VerifyPasswordResetOtpRequest,
+    VerifyPasswordResetOtpResponse,
+    ResetPasswordRequest
+)
+from app.services import password_reset_service
+
+@router.post(
+    "/forgot-password/request-otp",
+    response_model=OtpInitiateResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Request Password Reset OTP",
+    description="Request a verification code to reset user password.",
+)
+def request_password_reset_otp(
+    req: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Send an OTP code for password reset."""
+    result = password_reset_service.request_password_reset_otp(db=db, identifier=req.username_or_email)
+    return OtpInitiateResponse(**result)
+
+
+@router.post(
+    "/forgot-password/verify-otp",
+    response_model=VerifyPasswordResetOtpResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Verify Password Reset OTP",
+    description="Verify the OTP and receive a temporary reset token.",
+)
+def verify_password_reset_otp(
+    req: VerifyPasswordResetOtpRequest,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Verify OTP and return a reset token."""
+    reset_token = password_reset_service.verify_password_reset_otp(db=db, email=req.email, otp=req.otp)
+    return VerifyPasswordResetOtpResponse(
+        message="OTP verified successfully. Please proceed to reset your password.",
+        reset_token=reset_token
+    )
+
+
+@router.post(
+    "/forgot-password/reset",
+    status_code=status.HTTP_200_OK,
+    summary="Reset Password",
+    description="Set a new password using the temporary reset token.",
+)
+def reset_password(
+    req: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Reset the user password."""
+    password_reset_service.reset_password(
+        db=db,
+        email=req.email,
+        reset_token=req.reset_token,
+        new_password=req.new_password
+    )
+    return {"message": "Password has been successfully reset. You can now log in with your new password."}
+
+
+@router.post(
+    "/forgot-password/resend-otp",
+    response_model=OtpResendResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Resend Password Reset OTP",
+    description="Request a new OTP verification code for password reset.",
+)
+def resend_password_reset_otp(
+    req: OtpResendRequest,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Resend a new OTP code for password reset."""
+    result = password_reset_service.resend_password_reset_otp(db=db, email=req.email)
+    return OtpResendResponse(**result)
+
 
 @router.get(
     "/me",

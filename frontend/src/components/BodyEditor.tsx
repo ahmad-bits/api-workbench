@@ -112,11 +112,6 @@ export const BodyEditor: React.FC<BodyEditorProps> = ({
             value={body}
             onChange={handleBodyChange}
             onKeyDown={handleKeyDown}
-            placeholder={
-              bodyType === 'json'
-                ? '{\n  "key": "value"\n}'
-                : 'Enter raw request body...'
-            }
             rows={14}
             spellCheck={false}
           />

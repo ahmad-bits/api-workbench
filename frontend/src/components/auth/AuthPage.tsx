@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './auth.css';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../services/api';
 
 export interface AuthPageProps {
   initialMode?: 'login' | 'register';
@@ -12,13 +13,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 }) => {
   const navigate = useNavigate();
   const { login, requestOtp, verifyOtp, resendOtp, error: authError, clearError } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(initialMode);
 
   // Sync mode if initialMode prop changes
   useEffect(() => {
     setMode(initialMode);
     setRegisterStep('form');
+    setForgotPasswordStep('form');
     setOtp('');
+    setResetToken('');
     setLocalError(null);
     setSuccessInfo(null);
     clearError();
@@ -38,6 +41,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   // OTP State
   const [otp, setOtp] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<'form' | 'verify' | 'reset'>('form');
   const [resendCooldown, setResendCooldown] = useState<number>(0);
   const [isResending, setIsResending] = useState<boolean>(false);
   const [successInfo, setSuccessInfo] = useState<string | null>(null);
@@ -63,26 +68,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   }, [registerStep]);
 
-  const handleSwitchMode = (newMode: 'login' | 'register') => {
+  const handleSwitchMode = (newMode: 'login' | 'register' | 'forgot_password') => {
     setMode(newMode);
     setRegisterStep('form');
+    setForgotPasswordStep('form');
     setOtp('');
+    setResetToken('');
     setLocalError(null);
     setSuccessInfo(null);
     clearError();
   };
 
-  const handleFillDemo = (userType: 'ahmad' | 'demo') => {
-    if (userType === 'ahmad') {
-      setUsernameOrEmail('ahmad');
-      setPassword('Password123!');
-    } else {
-      setUsernameOrEmail('demo.developer');
-      setPassword('DemoWorkbench123!');
-    }
-    setLocalError(null);
-    clearError();
-  };
+
 
   // Step 1: Initiate registration and send OTP
   const handleInitiateRegistration = async (e: React.FormEvent) => {
@@ -180,6 +177,106 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
+  // Forgot Password flow handlers
+  const handleForgotPasswordClick = () => {
+    if (!usernameOrEmail.trim()) {
+      setLocalError('Please enter your username or email address above first to reset your password.');
+      return;
+    }
+    setLocalError(null);
+    clearError();
+    handleSwitchMode('forgot_password');
+  };
+
+  const handleInitiateForgotPassword = async () => {
+    setLocalError(null);
+    setSuccessInfo(null);
+    clearError();
+    setIsSubmitting(true);
+    try {
+      const resp = await api.requestPasswordResetOtp(usernameOrEmail);
+      setEmail(resp.email);
+      setForgotPasswordStep('verify');
+      setResendCooldown(resp.resend_cooldown_seconds || 60);
+      setSuccessInfo(`Verification code sent to ${resp.email}.`);
+    } catch (err: any) {
+      setLocalError(err.message || 'Operation failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyForgotPasswordOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+    clearError();
+
+    const cleanOtp = otp.trim();
+    if (cleanOtp.length < 6) {
+      setLocalError('Verification code must be 6 digits.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const resp = await api.verifyPasswordResetOtp(email, cleanOtp);
+      setResetToken(resp.reset_token);
+      setForgotPasswordStep('reset');
+      setSuccessInfo(resp.message);
+      setOtp('');
+    } catch (err: any) {
+      setLocalError(err.message || 'Verification failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+    clearError();
+
+    if (password.length < 6) {
+      setLocalError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setLocalError('Passwords do not match.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const resp = await api.resetPassword(email, resetToken, password);
+      setSuccessInfo(resp.message);
+      setTimeout(() => {
+        handleSwitchMode('login');
+      }, 2500);
+    } catch (err: any) {
+      setLocalError(err.message || 'Failed to reset password.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendForgotPasswordOtp = async () => {
+    if (resendCooldown > 0 || isResending) return;
+    setLocalError(null);
+    setSuccessInfo(null);
+    clearError();
+    setIsResending(true);
+
+    try {
+      const resp = await api.resendPasswordResetOtp(email);
+      setResendCooldown(resp.resend_cooldown_seconds || 60);
+      setSuccessInfo(`A fresh verification code has been sent to ${resp.email}.`);
+    } catch (err: any) {
+      setLocalError(err.message || 'Failed to resend code.');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   // Login handler
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,18 +309,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   return (
     <div className="wb-auth-page-root">
-      {/* Floating Back to Home Button */}
-      <button
-          type="button"
-          className="wb-auth-back-btn"
-          onClick={() => navigate('/')}
-          title="Return to Landing Page"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          <span>Back to Home</span>
-        </button>
+
 
       {/* 2-Column Split Modal Card matching Figma Design */}
       <div className="wb-auth-card-split">
@@ -306,6 +392,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <h1 className="wb-auth-form-title">
               {mode === 'login'
                 ? 'Welcome back'
+                : mode === 'forgot_password'
+                ? 'Reset Password'
                 : registerStep === 'verify'
                 ? 'Verify Email'
                 : 'Create an account'}
@@ -313,6 +401,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <p className="wb-auth-form-subtitle">
               {mode === 'login'
                 ? 'Sign in to access your workspace.'
+                : mode === 'forgot_password'
+                ? 'Recover access to your account'
                 : registerStep === 'verify'
                 ? `Enter the code sent to ${email}`
                 : 'Sign up to start building and testing APIs.'}
@@ -353,7 +443,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="login-email"
                     type="text"
                     className="wb-auth-input"
-                    placeholder="developer@techcorp.com"
+
                     value={usernameOrEmail}
                     onChange={(e) => setUsernameOrEmail(e.target.value)}
                     autoComplete="username"
@@ -371,9 +461,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <button
                     type="button"
                     className="wb-auth-forgot-link"
-                    onClick={() => {
-                      setLocalError('For password reset, please contact your workspace admin.');
-                    }}
+                    onClick={handleForgotPasswordClick}
                   >
                     Forgot?
                   </button>
@@ -383,7 +471,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="login-password"
                     type={showPassword ? 'text' : 'password'}
                     className="wb-auth-input"
-                    placeholder="••••••••"
+
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
@@ -439,26 +527,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </button>
               </div>
 
-              {/* Quick Demo Presets */}
-              <div className="wb-auth-presets-box">
-                <span className="wb-auth-presets-label">Quick Demo Presets</span>
-                <div className="wb-auth-presets-row">
-                  <button
-                    type="button"
-                    className="wb-auth-preset-chip"
-                    onClick={() => handleFillDemo('ahmad')}
-                  >
-                    ⚡ Fill 'ahmad'
-                  </button>
-                  <button
-                    type="button"
-                    className="wb-auth-preset-chip"
-                    onClick={() => handleFillDemo('demo')}
-                  >
-                    ⚡ Fill 'demo.developer'
-                  </button>
-                </div>
-              </div>
+
             </form>
           )}
 
@@ -474,7 +543,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-name"
                     type="text"
                     className="wb-auth-input"
-                    placeholder="Alex Developer"
+
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="name"
@@ -493,7 +562,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-username"
                     type="text"
                     className="wb-auth-input"
-                    placeholder="alex_dev"
+
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     autoComplete="username"
@@ -512,7 +581,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-email"
                     type="email"
                     className="wb-auth-input"
-                    placeholder="developer@techcorp.com"
+
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
@@ -531,7 +600,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-password"
                     type={showPassword ? 'text' : 'password'}
                     className="wb-auth-input"
-                    placeholder="•••••••• (min 6 chars)"
+
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
@@ -550,7 +619,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-confirm-password"
                     type={showPassword ? 'text' : 'password'}
                     className="wb-auth-input"
-                    placeholder="••••••••"
+
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     autoComplete="new-password"
@@ -611,7 +680,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     autoComplete="one-time-code"
                     maxLength={6}
                     className="wb-otp-digit-input"
-                    placeholder="••••••"
                     value={otp}
                     onChange={(e) => {
                       const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
@@ -668,6 +736,194 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </button>
               </div>
             </div>
+          )}
+
+          {/* VIEW 4: Forgot Password - Request OTP */}
+          {mode === 'forgot_password' && forgotPasswordStep === 'form' && (
+            <div className="wb-auth-form">
+              <div className="wb-auth-field" style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <p style={{ color: '#8b949e', marginBottom: '16px', fontSize: '14px' }}>
+                  We will send a password reset code to the email associated with:
+                </p>
+                <div style={{ padding: '12px', background: '#0d1117', border: '1px solid #30363d', borderRadius: '6px', color: '#c9d1d9', fontWeight: 'bold' }}>
+                  {usernameOrEmail}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="wb-auth-submit-btn"
+                onClick={handleInitiateForgotPassword}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span>Sending Code...</span>
+                ) : (
+                  <span>Send Verification Code</span>
+                )}
+              </button>
+              
+              <div className="wb-auth-switch-text" style={{ marginTop: '16px' }}>
+                <button
+                  type="button"
+                  className="wb-auth-switch-link"
+                  onClick={() => handleSwitchMode('login')}
+                >
+                  &larr; Back to Sign In
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW 5: Forgot Password - Verify OTP */}
+          {mode === 'forgot_password' && forgotPasswordStep === 'verify' && (
+            <div className="wb-otp-box">
+              <div className="wb-otp-badge">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                <span>Password Reset Verification</span>
+              </div>
+
+              <form onSubmit={handleVerifyForgotPasswordOtp} className="wb-auth-form">
+                <div className="wb-auth-field">
+                  <label className="wb-auth-label" htmlFor="forgot-otp-input" style={{ textAlign: 'center' }}>
+                    Enter 6-Digit Code
+                  </label>
+                  <input
+                    id="forgot-otp-input"
+                    ref={otpInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    className="wb-otp-digit-input"
+                    value={otp}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                      setOtp(val);
+                      if (localError) setLocalError(null);
+                    }}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="wb-auth-submit-btn"
+                  disabled={isSubmitting || otp.length < 6}
+                >
+                  {isSubmitting ? (
+                    <span>Verifying...</span>
+                  ) : (
+                    <span>Verify Code &rarr;</span>
+                  )}
+                </button>
+              </form>
+
+              <div className="wb-otp-actions">
+                <button
+                  type="button"
+                  className="wb-otp-link"
+                  onClick={handleResendForgotPasswordOtp}
+                  disabled={resendCooldown > 0 || isResending}
+                >
+                  {isResending ? (
+                    'Resending...'
+                  ) : resendCooldown > 0 ? (
+                    `Resend in ${resendCooldown}s`
+                  ) : (
+                    'Resend Code'
+                  )}
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  className="wb-otp-link"
+                  onClick={() => {
+                    setForgotPasswordStep('form');
+                    setLocalError(null);
+                    setSuccessInfo(null);
+                    clearError();
+                  }}
+                >
+                  Back
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW 6: Forgot Password - Reset Password */}
+          {mode === 'forgot_password' && forgotPasswordStep === 'reset' && (
+            <form onSubmit={handleResetPasswordSubmit} className="wb-auth-form">
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="reset-new-password">
+                  New Password
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="reset-new-password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="wb-auth-input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={isSubmitting}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="wb-auth-eye-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="reset-confirm-password">
+                  Confirm New Password
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="reset-confirm-password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="wb-auth-input"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="wb-auth-submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span>Saving...</span>
+                ) : (
+                  <span>Save New Password</span>
+                )}
+              </button>
+            </form>
           )}
         </div>
       </div>

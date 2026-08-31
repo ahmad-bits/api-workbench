@@ -219,7 +219,6 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
                 <div className="wb-resp-headers-filter-row">
                   <input
                     type="text"
-                    placeholder="Filter response headers..."
                     value={headerFilter}
                     onChange={(e) => setHeaderFilter(e.target.value)}
                     className="wb-headers-filter-input"

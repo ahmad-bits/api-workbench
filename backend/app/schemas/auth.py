@@ -106,3 +106,43 @@ class OtpResendResponse(BaseModel):
     resend_cooldown_seconds: int = Field(60, description="Cooldown seconds before another code can be requested")
     expires_in_minutes: int = Field(10, description="Minutes until code expires")
 
+
+class ForgotPasswordRequest(BaseModel):
+    """Payload to request a password reset OTP."""
+    username_or_email: str = Field(..., description="Registered username or email address")
+
+    @field_validator("username_or_email")
+    @classmethod
+    def validate_identifier(cls, v: str) -> str:
+        clean = v.strip()
+        if not clean:
+            raise ValueError("Please provide a username or email address.")
+        return clean
+
+
+class VerifyPasswordResetOtpRequest(BaseModel):
+    """Payload to verify password reset OTP."""
+    email: EmailStr = Field(..., description="Email address for the password reset")
+    otp: str = Field(..., min_length=4, max_length=10, description="6-digit verification code")
+
+    @field_validator("otp")
+    @classmethod
+    def validate_otp(cls, v: str) -> str:
+        clean = v.strip()
+        if not clean:
+            raise ValueError("Verification code is required.")
+        return clean
+
+
+class VerifyPasswordResetOtpResponse(BaseModel):
+    """Response returned after successfully verifying reset OTP."""
+    message: str = Field(..., description="Status message")
+    reset_token: str = Field(..., description="Temporary token used to authorize the actual password reset")
+
+
+class ResetPasswordRequest(BaseModel):
+    """Payload to finalize password reset."""
+    email: EmailStr = Field(..., description="Email address for the password reset")
+    reset_token: str = Field(..., description="Temporary reset token obtained from OTP verification")
+    new_password: str = Field(..., min_length=6, max_length=128, description="New password")
+

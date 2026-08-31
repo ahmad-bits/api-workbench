@@ -279,7 +279,6 @@ export const MockModal: React.FC<MockModalProps> = ({
               <label className="form-label">Mock Name (Optional)</label>
               <input
                 type="text"
-                placeholder="e.g. Users List, Checkout API"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="form-input"
@@ -313,7 +312,6 @@ export const MockModal: React.FC<MockModalProps> = ({
                 <span className="path-prefix">/mock/{user?.username || 'username'}</span>
                 <input
                   type="text"
-                  placeholder="/users or /api/v1/orders"
                   value={path}
                   onChange={(e) => setPath(e.target.value)}
                   className="form-input path-input"
@@ -429,7 +427,6 @@ export const MockModal: React.FC<MockModalProps> = ({
               <textarea
                 value={responseBody}
                 onChange={(e) => setResponseBody(e.target.value)}
-                placeholder='Enter response JSON e.g. {"success": true}'
                 className={`form-textarea body-textarea ${jsonError ? 'textarea-error' : ''}`}
                 rows={8}
                 spellCheck={false}
@@ -484,7 +481,6 @@ export const MockModal: React.FC<MockModalProps> = ({
                             type="text"
                             value={h.key}
                             onChange={(e) => handleUpdateHeader(h.id, 'key', e.target.value)}
-                            placeholder="Content-Type"
                             className="kv-input"
                           />
                         </td>
@@ -493,7 +489,6 @@ export const MockModal: React.FC<MockModalProps> = ({
                             type="text"
                             value={h.value}
                             onChange={(e) => handleUpdateHeader(h.id, 'value', e.target.value)}
-                            placeholder="application/json"
                             className="kv-input"
                           />
                         </td>
@@ -527,7 +522,6 @@ export const MockModal: React.FC<MockModalProps> = ({
             <label className="form-label">Notes / Description (Optional)</label>
             <input
               type="text"
-              placeholder="e.g. For checkout integration tests"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="form-input"

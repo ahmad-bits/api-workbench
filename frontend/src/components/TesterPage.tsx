@@ -80,7 +80,6 @@ export function TesterPage() {
               value={wb.url}
               onChange={(e) => wb.setUrl(e.target.value)}
               onKeyDown={wb.handleKeyDownUrl}
-              placeholder="https://api.example.com/v1/endpoint"
               className="wb-url-native-input"
               spellCheck={false}
               autoComplete="off"
@@ -193,9 +192,6 @@ export function TesterPage() {
                 <KeyValueEditor
                   items={wb.params}
                   onChange={wb.setParams}
-                  keyPlaceholder="Parameter name"
-                  valuePlaceholder="Value"
-                  descPlaceholder="Description (Optional)"
                 />
               )}
 
@@ -203,9 +199,6 @@ export function TesterPage() {
                 <KeyValueEditor
                   items={wb.headers}
                   onChange={wb.setHeaders}
-                  keyPlaceholder="Header name"
-                  valuePlaceholder="Header value"
-                  descPlaceholder="Description (Optional)"
                 />
               )}
 
@@ -235,9 +228,6 @@ export function TesterPage() {
                     );
                     wb.setHeaders([...nonAuth, ...authItems]);
                   }}
-                  keyPlaceholder="Authorization / X-API-Key"
-                  valuePlaceholder="Bearer token or API Key"
-                  descPlaceholder="Description"
                 />
               )}
             </div>

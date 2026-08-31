@@ -63,3 +63,23 @@ export interface OtpResendResponse {
   expires_in_minutes: number;
 }
 
+export interface ForgotPasswordRequest {
+  username_or_email: string;
+}
+
+export interface VerifyPasswordResetOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyPasswordResetOtpResponse {
+  message: string;
+  reset_token: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  reset_token: string;
+  new_password: string;
+}
+

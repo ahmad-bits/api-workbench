@@ -185,7 +185,6 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
               </span>
               <input
                 type="text"
-                placeholder="Search mocks by name or path..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="wb-mock-search-input"

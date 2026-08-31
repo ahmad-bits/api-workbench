@@ -4,18 +4,12 @@ import type { KeyValuePair } from '../types/workbench';
 interface KeyValueEditorProps {
   items: KeyValuePair[];
   onChange: (items: KeyValuePair[]) => void;
-  keyPlaceholder?: string;
-  valuePlaceholder?: string;
-  descPlaceholder?: string;
   title?: string;
 }
 
 export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
   items,
   onChange,
-  keyPlaceholder = 'Key',
-  valuePlaceholder = 'Value',
-  descPlaceholder = 'Description',
 }) => {
   const handleItemChange = (id: string, field: keyof KeyValuePair, value: any) => {
     const updated = items.map((item) => {
@@ -104,7 +98,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
                     <input
                       type="text"
                       value={item.key}
-                      placeholder={keyPlaceholder}
                       onChange={(e) => handleItemChange(item.id, 'key', e.target.value)}
                       className="wb-table-input key-input"
                       spellCheck={false}
@@ -114,7 +107,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
                     <input
                       type="text"
                       value={item.value}
-                      placeholder={valuePlaceholder}
                       onChange={(e) => handleItemChange(item.id, 'value', e.target.value)}
                       className="wb-table-input val-input"
                       spellCheck={false}
@@ -124,7 +116,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
                     <input
                       type="text"
                       value={item.description || ''}
-                      placeholder={descPlaceholder}
                       onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
                       className="wb-table-input desc-input"
                       spellCheck={false}

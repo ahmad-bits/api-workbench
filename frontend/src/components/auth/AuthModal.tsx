@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../services/api';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,8 +14,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode = 'login',
 }) => {
   const { login, requestOtp, verifyOtp, resendOtp, error: authError, clearError } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(initialMode);
   const [registerStep, setRegisterStep] = useState<'form' | 'verify'>('form');
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<'form' | 'verify' | 'reset'>('form');
 
   // Form states
   const [name, setName] = useState('');
@@ -27,6 +29,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   // OTP states
   const [otp, setOtp] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [resendCooldown, setResendCooldown] = useState<number>(0);
   const [isResending, setIsResending] = useState<boolean>(false);
   const [successInfo, setSuccessInfo] = useState<string | null>(null);
@@ -77,22 +80,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleTabSwitch = (newMode: 'login' | 'register') => {
+  const handleTabSwitch = (newMode: 'login' | 'register' | 'forgot_password') => {
     setMode(newMode);
     setRegisterStep('form');
+    setForgotPasswordStep('form');
     setOtp('');
+    setResetToken('');
     setLocalError(null);
     setSuccessInfo(null);
-    clearError();
-  };
-
-  const handleFillDemo = () => {
-    setUsernameOrEmail('ahmad');
-    setPassword('Password123!');
-    setName('Ahmad Developer');
-    setUsername('ahmad');
-    setEmail('ahmad@workbench.dev');
-    setLocalError(null);
     clearError();
   };
 
@@ -217,6 +212,105 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  const handleForgotPasswordClick = () => {
+    if (!usernameOrEmail.trim()) {
+      setLocalError('Please enter your username or email address above first to reset your password.');
+      return;
+    }
+    setLocalError(null);
+    clearError();
+    handleTabSwitch('forgot_password');
+  };
+
+  const handleInitiateForgotPassword = async () => {
+    setLocalError(null);
+    setSuccessInfo(null);
+    clearError();
+    setIsSubmitting(true);
+    try {
+      const resp = await api.requestPasswordResetOtp(usernameOrEmail);
+      setEmail(resp.email);
+      setForgotPasswordStep('verify');
+      setResendCooldown(resp.resend_cooldown_seconds || 60);
+      setSuccessInfo(`Verification code sent to ${resp.email}.`);
+    } catch (err: any) {
+      setLocalError(err.message || 'Operation failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyForgotPasswordOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+    clearError();
+
+    const cleanOtp = otp.trim();
+    if (cleanOtp.length < 6) {
+      setLocalError('Verification code must be 6 digits.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const resp = await api.verifyPasswordResetOtp(email, cleanOtp);
+      setResetToken(resp.reset_token);
+      setForgotPasswordStep('reset');
+      setSuccessInfo(resp.message);
+      setOtp('');
+    } catch (err: any) {
+      setLocalError(err.message || 'Verification failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+    clearError();
+
+    if (password.length < 6) {
+      setLocalError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setLocalError('Passwords do not match.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const resp = await api.resetPassword(email, resetToken, password);
+      setSuccessInfo(resp.message);
+      setTimeout(() => {
+        handleTabSwitch('login');
+      }, 2500);
+    } catch (err: any) {
+      setLocalError(err.message || 'Failed to reset password.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendForgotPasswordOtp = async () => {
+    if (resendCooldown > 0 || isResending) return;
+    setLocalError(null);
+    setSuccessInfo(null);
+    clearError();
+    setIsResending(true);
+
+    try {
+      const resp = await api.resendPasswordResetOtp(email);
+      setResendCooldown(resp.resend_cooldown_seconds || 60);
+      setSuccessInfo(`A fresh verification code has been sent to ${resp.email}.`);
+    } catch (err: any) {
+      setLocalError(err.message || 'Failed to resend code.');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const displayedError = localError || authError;
 
   return (
@@ -240,6 +334,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <h2 className="modal-title">
                 {mode === 'login'
                   ? 'Welcome Back'
+                  : mode === 'forgot_password'
+                  ? 'Reset Password'
                   : registerStep === 'verify'
                   ? 'Verify Your Email'
                   : 'Create an Account'}
@@ -247,6 +343,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <p className="modal-subtitle">
                 {mode === 'login'
                   ? 'Sign in to access your secure API developer environment'
+                  : mode === 'forgot_password'
+                  ? 'Recover access to your account'
                   : registerStep === 'verify'
                   ? `Enter the 6-digit code sent to ${email}`
                   : 'Get started with powerful API testing and mock servers'}
@@ -263,8 +361,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Switcher (Visible when not in verify step) */}
-        {registerStep === 'form' && (
+        {/* Tab Switcher (Visible when not in verify step and not in forgot password) */}
+        {mode !== 'forgot_password' && registerStep === 'form' && (
           <div className="auth-tabs">
             <button
               type="button"
@@ -322,7 +420,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   id="auth-identifier"
                   type="text"
                   className="form-input"
-                  placeholder="Username or email address"
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   autoComplete="username"
@@ -337,6 +434,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <label className="form-label" htmlFor="auth-password">
                   Password
                 </label>
+                <button
+                  type="button"
+                  className="btn-link-action"
+                  onClick={handleForgotPasswordClick}
+                  style={{ fontSize: '12px' }}
+                >
+                  Forgot Password?
+                </button>
               </div>
               <div className="input-with-icon">
                 <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -347,7 +452,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   id="auth-password"
                   type={showPassword ? 'text' : 'password'}
                   className="form-input"
-                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
@@ -392,23 +496,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </form>
         )}
 
-        {/* Quick Demo Fill Helper */}
-        {mode === 'login' && (
-          <div className="auth-footer-helpers">
-            <div className="auth-divider">
-              <span>or test quickly</span>
-            </div>
-
-            <button
-              type="button"
-              className="btn-demo-fill"
-              onClick={handleFillDemo}
-            >
-              ⚡ Quick-fill Demo Account
-            </button>
-          </div>
-        )}
-
         {/* VIEW 2: Register Step 1 Form */}
         {mode === 'register' && registerStep === 'form' && (
           <form onSubmit={handleInitiateRegistration} className="auth-form">
@@ -425,7 +512,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   id="register-name"
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Ahmad Developer"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
@@ -451,7 +537,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   id="register-username"
                   type="text"
                   className="form-input"
-                  placeholder="e.g. ahmad"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
@@ -474,7 +559,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   id="register-email"
                   type="email"
                   className="form-input"
-                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
@@ -500,7 +584,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   id="register-password"
                   type={showPassword ? 'text' : 'password'}
                   className="form-input"
-                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
@@ -541,7 +624,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   id="register-confirm-password"
                   type={showPassword ? 'text' : 'password'}
                   className="form-input"
-                  placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   autoComplete="new-password"
@@ -585,7 +667,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     autoComplete="one-time-code"
                     maxLength={6}
                     className="otp-digit-input"
-                    placeholder="••••••"
                     value={otp}
                     onChange={(e) => {
                       const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
@@ -649,6 +730,212 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
           </div>
+        )}
+
+        {/* VIEW 4: Forgot Password - Request OTP */}
+        {mode === 'forgot_password' && forgotPasswordStep === 'form' && (
+          <div className="auth-form">
+            <div className="form-group" style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <p style={{ color: '#8b949e', marginBottom: '16px' }}>
+                We will send a password reset code to the email associated with:
+              </p>
+              <div style={{ padding: '12px', background: '#0d1117', border: '1px solid #30363d', borderRadius: '6px', color: '#c9d1d9', fontWeight: 'bold' }}>
+                {usernameOrEmail}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="btn-auth-submit"
+              onClick={handleInitiateForgotPassword}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
+                  <span>Sending Code...</span>
+                </>
+              ) : (
+                <span>Send Verification Code</span>
+              )}
+            </button>
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <button
+                type="button"
+                className="btn-link-action"
+                onClick={() => handleTabSwitch('login')}
+              >
+                &larr; Back to Sign In
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 5: Forgot Password - Verify OTP */}
+        {mode === 'forgot_password' && forgotPasswordStep === 'verify' && (
+          <div className="otp-verification-container">
+            <form onSubmit={handleVerifyForgotPasswordOtp} className="auth-form">
+              <div className="form-group">
+                <label className="form-label" htmlFor="forgot-otp-input" style={{ textAlign: 'center', display: 'block' }}>
+                  Enter 6-Digit Verification Code
+                </label>
+                <div className="otp-input-wrapper">
+                  <input
+                    id="forgot-otp-input"
+                    ref={otpInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    className="otp-digit-input"
+                    value={otp}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                      setOtp(val);
+                      if (localError) setLocalError(null);
+                    }}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+                <span className="otp-expiry-hint">
+                  ⏱️ Code expires in 10 minutes
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                className="btn-auth-submit"
+                disabled={isSubmitting || otp.length < 6}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
+                    <span>Verifying Code...</span>
+                  </>
+                ) : (
+                  <span>Verify Code</span>
+                )}
+              </button>
+            </form>
+
+            <div className="otp-actions-row">
+              <button
+                type="button"
+                className="btn-link-action"
+                onClick={handleResendForgotPasswordOtp}
+                disabled={resendCooldown > 0 || isResending}
+              >
+                {isResending ? (
+                  'Resending code...'
+                ) : resendCooldown > 0 ? (
+                  <span>Resend code in <strong>{resendCooldown}s</strong></span>
+                ) : (
+                  '🔄 Resend Code'
+                )}
+              </button>
+
+              <span className="action-separator">&bull;</span>
+
+              <button
+                type="button"
+                className="btn-link-action"
+                onClick={() => {
+                  setForgotPasswordStep('form');
+                  setLocalError(null);
+                  setSuccessInfo(null);
+                  clearError();
+                }}
+              >
+                &larr; Back
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 6: Forgot Password - Reset Password */}
+        {mode === 'forgot_password' && forgotPasswordStep === 'reset' && (
+          <form onSubmit={handleResetPasswordSubmit} className="auth-form">
+            <div className="form-group">
+              <div className="form-label-row">
+                <label className="form-label" htmlFor="reset-new-password">
+                  New Password
+                </label>
+                <span className="form-label-hint">Min. 6 characters</span>
+              </div>
+              <div className="input-with-icon">
+                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <input
+                  id="reset-new-password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="reset-confirm-password">
+                Confirm New Password
+              </label>
+              <div className="input-with-icon">
+                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <input
+                  id="reset-confirm-password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn-auth-submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <span>Save New Password</span>
+              )}
+            </button>
+          </form>
         )}
       </div>
     </div>

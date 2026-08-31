@@ -226,7 +226,6 @@ export const AccountSettingsPage: React.FC = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         disabled={!isEditing}
-                        placeholder="Jane Doe"
                         required
                       />
                     </div>
@@ -241,7 +240,6 @@ export const AccountSettingsPage: React.FC = () => {
                       value={username.startsWith('@') ? username : `@${username}`}
                       onChange={(e) => setUsername(e.target.value.replace(/^@/, ''))}
                       disabled={!isEditing}
-                      placeholder="@username"
                       required
                     />
                   </div>
@@ -255,7 +253,6 @@ export const AccountSettingsPage: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={!isEditing}
-                      placeholder="user@example.com"
                       required
                     />
                   </div>
@@ -291,7 +288,6 @@ export const AccountSettingsPage: React.FC = () => {
                           className="wb-field-input"
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          placeholder="••••••••"
                         />
                       </div>
 
@@ -302,7 +298,6 @@ export const AccountSettingsPage: React.FC = () => {
                           className="wb-field-input"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="At least 6 characters"
                         />
                       </div>
 
@@ -313,7 +308,6 @@ export const AccountSettingsPage: React.FC = () => {
                           className="wb-field-input"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Repeat new password"
                         />
                       </div>
                     </div>

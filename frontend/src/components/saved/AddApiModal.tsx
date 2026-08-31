@@ -99,7 +99,6 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
                 ref={inputRef}
                 type="text"
                 className="wb-form-input"
-                placeholder="e.g. User Authentication, Orders API"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -115,7 +114,6 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
               <input
                 type="text"
                 className="wb-form-input"
-                placeholder="https://api.example.com/v1/auth/login"
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value);
@@ -136,7 +134,6 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
                 <input
                   type={showPassword ? 'text' : 'password'}
                   className="wb-form-input"
-                  placeholder="Optional token / key (e.g. sk_live_...)"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   disabled={isSubmitting}

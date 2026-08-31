@@ -82,7 +82,6 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
               </svg>
               <input
                 type="text"
-                placeholder="Search workspaces..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="wb-workspace-search-input"

@@ -357,7 +357,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 id="current-pw"
                 type="password"
                 className="form-input"
-                placeholder="Enter current password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 disabled={isChangingPassword}
@@ -376,7 +375,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 id="new-pw"
                 type="password"
                 className="form-input"
-                placeholder="Enter new strong password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={isChangingPassword}
@@ -392,7 +390,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 id="confirm-new-pw"
                 type="password"
                 className="form-input"
-                placeholder="Re-enter new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isChangingPassword}
@@ -418,7 +415,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             {deleteErrorMsg && (
               <div className="auth-alert error">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
@@ -451,7 +448,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   id="delete-confirm-input"
                   type="text"
                   className="form-input danger-input"
-                  placeholder="Type DELETE"
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
                   disabled={isDeleting}

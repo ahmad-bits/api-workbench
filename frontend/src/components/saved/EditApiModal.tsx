@@ -137,7 +137,6 @@ export const EditApiModal: React.FC<EditApiModalProps> = ({
                 <input
                   type={showPassword ? 'text' : 'password'}
                   className="wb-form-input"
-                  placeholder={apiItem.has_api_key ? 'Enter new key to replace existing' : 'Optional API key'}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   disabled={isSubmitting}

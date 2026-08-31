@@ -98,7 +98,6 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
               ref={inputRef}
               type="text"
               className="form-input"
-              placeholder="e.g. Stripe Charges, GitHub User API, Weather Service"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);

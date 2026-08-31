@@ -163,7 +163,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
             </span>
             <input
               type="text"
-              placeholder="Search APIs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="wb-saved-search-input"

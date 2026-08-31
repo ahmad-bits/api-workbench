@@ -222,7 +222,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
           <div className="wb-bench-headers-search">
             <input
               type="text"
-              placeholder="Filter headers..."
               value={headerFilter}
               onChange={(e) => onHeaderFilterChange(e.target.value)}
               className="wb-bench-search-input"

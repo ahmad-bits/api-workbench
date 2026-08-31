@@ -206,7 +206,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="User Profile Mock"
             className="wb-form-input"
           />
         </div>
@@ -236,7 +235,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
                 type="text"
                 value={path}
                 onChange={(e) => setPath(e.target.value)}
-                placeholder="/api/v1/users/{id}"
                 className="wb-form-input"
                 style={{ fontFamily: 'JetBrains Mono', fontSize: '0.825rem' }}
                 required
@@ -276,7 +274,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
                   type="text"
                   value={h.key}
                   onChange={(e) => handleUpdateHeader(h.id, 'key', e.target.value)}
-                  placeholder="Content-Type"
                   className="wb-form-input"
                   style={{ padding: '0.5rem 0.65rem', fontSize: '0.8rem', fontFamily: 'JetBrains Mono' }}
                 />
@@ -285,7 +282,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
                   type="text"
                   value={h.value}
                   onChange={(e) => handleUpdateHeader(h.id, 'value', e.target.value)}
-                  placeholder="application/json"
                   className="wb-form-input"
                   style={{ padding: '0.5rem 0.65rem', fontSize: '0.8rem', fontFamily: 'JetBrains Mono' }}
                 />
