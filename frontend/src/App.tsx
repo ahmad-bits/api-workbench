@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthPage } from './components/auth/AuthPage';
 import { UserProfileModal } from './components/auth/UserProfileModal';
 import { UserNav } from './components/auth/UserNav';
+import { AccountSettingsPage } from './components/auth/AccountSettingsPage';
 import { KeyValueEditor } from './components/KeyValueEditor';
 import { BodyEditor } from './components/BodyEditor';
 import { ResponseViewer } from './components/ResponseViewer';
@@ -25,8 +26,8 @@ import type { MockEndpoint } from './types/mock';
 function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
   const { user } = useAuth();
 
-  // Navigation View: 'workbench' | 'saved-apis' | 'mock-server'
-  const [currentView, setCurrentView] = useState<'workbench' | 'saved-apis' | 'mock-server'>('workbench');
+  // Navigation View: 'workbench' | 'saved-apis' | 'mock-server' | 'account-settings'
+  const [currentView, setCurrentView] = useState<'workbench' | 'saved-apis' | 'mock-server' | 'account-settings'>('workbench');
 
   // Saved APIs & Save Modal State
   const [saveApiModalOpen, setSaveApiModalOpen] = useState<boolean>(false);
@@ -333,7 +334,19 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
                 <line x1="8" y1="21" x2="16" y2="21" />
                 <line x1="12" y1="17" x2="12" y2="21" />
               </svg>
-              <span>Mock Server</span>
+              <span>Mock APIs</span>
+            </button>
+
+            <button
+              type="button"
+              className={`wb-sidebar-item ${currentView === 'account-settings' ? 'active' : ''}`}
+              onClick={() => setCurrentView('account-settings')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span>Account Settings</span>
             </button>
           </nav>
         </div>
@@ -352,20 +365,8 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
               <line x1="16" y1="13" x2="8" y2="13" />
               <line x1="16" y1="17" x2="8" y2="17" />
             </svg>
-            <span>Swagger API Docs</span>
+            <span>Documentation</span>
           </a>
-
-          <button
-            type="button"
-            className="wb-sidebar-footer-link"
-            onClick={() => setProfileModalOpen(true)}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-            <span>Account Settings</span>
-          </button>
 
           {onGoToLanding && (
             <button
@@ -374,10 +375,11 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
               onClick={onGoToLanding}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
-              <span>Landing Page</span>
+              <span>Support</span>
             </button>
           )}
         </div>
@@ -413,7 +415,7 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
               </div>
 
               {/* User Profile & Account Dropdown */}
-              <UserNav onOpenProfileModal={() => setProfileModalOpen(true)} />
+              <UserNav onOpenProfileModal={() => setCurrentView('account-settings')} />
             </div>
           </header>
         )}
@@ -429,6 +431,11 @@ function WorkbenchDashboard({ onGoToLanding }: { onGoToLanding?: () => void }) {
         {/* Mock Server View */}
         {currentView === 'mock-server' && (
           <MockManager onTestInWorkbench={handleTestInWorkbench} />
+        )}
+
+        {/* Account Settings View */}
+        {currentView === 'account-settings' && (
+          <AccountSettingsPage />
         )}
 
         {/* API Tester View (Unified Request Bar + Split Workspace) */}

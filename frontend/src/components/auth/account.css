@@ -1,0 +1,459 @@
+/* ==========================================================================
+   API Workbench - Account Settings Page (Figma Accurate Layout)
+   Theme: Crisp Blue & White Modern Palette (#1860ec, #ffffff, #f8fafc, #0f172a)
+   ========================================================================== */
+
+.wb-account-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #f8fafc;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   1. Top Header Bar
+   ========================================================================== */
+
+.wb-account-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem 1.15rem 2rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  gap: 1.5rem;
+}
+
+.wb-account-title-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.wb-account-heading {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.wb-account-subheading {
+  font-size: 0.825rem;
+  color: #64748b;
+  margin: 0.15rem 0 0 0;
+}
+
+.wb-btn-logout-pill {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 0.45rem 1.15rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.wb-btn-logout-pill:hover {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+/* ==========================================================================
+   2. Main Workspace (2-Column Scrollable Grid)
+   ========================================================================== */
+
+.wb-account-content-viewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem 2.5rem 2rem;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.wb-account-grid {
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   3. Left Column: Profile Details & Danger Zone
+   ========================================================================== */
+
+.wb-account-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* Profile Details Card */
+.wb-profile-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.wb-profile-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.wb-profile-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.wb-btn-edit-toggle {
+  background: none;
+  border: none;
+  color: #1860ec;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  font-family: inherit;
+}
+
+.wb-btn-edit-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Avatar + Name Row */
+.wb-avatar-name-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.wb-avatar-circle-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1860ec, #3b82f6);
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(24, 96, 236, 0.25);
+  flex-shrink: 0;
+}
+
+.wb-avatar-edit-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.7rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.wb-name-field-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wb-field-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.wb-field-input {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.wb-field-input:focus {
+  border-color: #1860ec;
+  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.1);
+}
+
+.wb-field-input:disabled {
+  background-color: #f8fafc;
+  color: #334155;
+  cursor: default;
+}
+
+.wb-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Security / Password section */
+.wb-password-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.15rem;
+}
+
+.wb-btn-save-profile {
+  background-color: #1860ec;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 10px rgba(24, 96, 236, 0.25);
+  font-family: inherit;
+  align-self: flex-start;
+}
+
+.wb-btn-save-profile:hover {
+  background-color: #124ec6;
+  box-shadow: 0 5px 14px rgba(24, 96, 236, 0.35);
+}
+
+/* Danger Zone Section */
+.wb-danger-zone-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wb-danger-zone-label {
+  font-size: 0.725rem;
+  font-weight: 800;
+  color: #dc2626;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.wb-danger-card {
+  background-color: #ffffff;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow: 0 1px 4px rgba(220, 38, 38, 0.04);
+}
+
+.wb-danger-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.wb-danger-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.wb-danger-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.wb-btn-danger-pill {
+  background-color: #ffffff;
+  border: 1px solid #ef4444;
+  border-radius: 9999px;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.wb-btn-danger-pill:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+/* ==========================================================================
+   4. Right Column: Account Information Card
+   ========================================================================== */
+
+.wb-account-info-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.wb-account-info-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.wb-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wb-info-lbl {
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.wb-account-id-box {
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.825rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.wb-plan-badge-pill {
+  align-self: flex-start;
+  background-color: #dbeafe;
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wb-member-since-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   5. Account Footer
+   ========================================================================== */
+
+.wb-account-page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 3rem;
+  font-size: 0.775rem;
+  color: #94a3b8;
+  max-width: 1150px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.wb-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.wb-footer-links a {
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.wb-footer-links a:hover {
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .wb-account-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .wb-account-topbar {
+    padding: 1rem;
+  }
+
+  .wb-account-content-viewport {
+    padding: 1rem;
+  }
+
+  .wb-danger-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .wb-account-page-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+}
