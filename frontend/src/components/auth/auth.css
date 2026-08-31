@@ -1,0 +1,561 @@
+/* ==========================================================================
+   API Workbench - Figma-Accurate Split Auth Page Styles
+   Theme: Crisp Light Modern Palette, 2-Column Split Modal Card
+   Typography: Plus Jakarta Sans / Inter / JetBrains Mono
+   ========================================================================== */
+
+.wb-auth-page-root {
+  --wb-auth-blue: #1860ec;
+  --wb-auth-blue-hover: #124ec6;
+  --wb-auth-blue-soft: #eff6ff;
+  --wb-auth-text-dark: #0f172a;
+  --wb-auth-text-body: #475569;
+  --wb-auth-text-muted: #64748b;
+  --wb-auth-border: #e2e8f0;
+  --wb-auth-border-focus: #93c5fd;
+
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  background-color: #f1f5f9;
+  background-image: 
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(24, 96, 236, 0.06), transparent),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(59, 130, 246, 0.05), transparent);
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--wb-auth-text-dark);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.wb-auth-page-root * {
+  box-sizing: border-box;
+}
+
+/* Floating Back Button */
+.wb-auth-back-btn {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--wb-auth-text-body);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--wb-auth-border);
+  padding: 0.5rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 50;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.wb-auth-back-btn:hover {
+  background: #ffffff;
+  color: var(--wb-auth-blue);
+  border-color: var(--wb-auth-blue);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(24, 96, 236, 0.12);
+}
+
+/* Main 2-Column Split Modal Card */
+.wb-auth-card-split {
+  width: 100%;
+  max-width: 980px;
+  min-height: 580px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid var(--wb-auth-border);
+  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.12), 0 0 1px rgba(0, 0, 0, 0.06);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  overflow: hidden;
+  animation: authCardEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes authCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   Left Column: Branding & Feature Graphic
+   ========================================================================== */
+
+.wb-auth-left-col {
+  background: linear-gradient(145deg, #f8fbff 0%, #edf4fe 100%);
+  border-right: 1px solid var(--wb-auth-border);
+  padding: 2.75rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Concentric Background Circles */
+.wb-auth-circle-bg {
+  position: absolute;
+  top: 45%;
+  left: 30%;
+  transform: translate(-50%, -50%);
+  width: 520px;
+  height: 520px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.wb-auth-circle-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(24, 96, 236, 0.1);
+}
+
+.wb-auth-circle-ring.ring-1 {
+  width: 220px;
+  height: 220px;
+}
+
+.wb-auth-circle-ring.ring-2 {
+  width: 360px;
+  height: 360px;
+}
+
+.wb-auth-circle-ring.ring-3 {
+  width: 500px;
+  height: 500px;
+  border-color: rgba(24, 96, 236, 0.05);
+}
+
+/* Top Left Brand Link */
+.wb-auth-brand-box {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  position: relative;
+  z-index: 2;
+}
+
+.wb-auth-brand-logo {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wb-auth-brand-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--wb-auth-text-dark);
+  letter-spacing: -0.02em;
+}
+
+/* Middle Tilted Code Mockup Card */
+.wb-auth-middle-graphic {
+  position: relative;
+  z-index: 2;
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+}
+
+.wb-auth-code-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  transform: rotate(-5deg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.725rem;
+  line-height: 1.45;
+  color: var(--wb-auth-text-dark);
+  max-width: 250px;
+  transition: transform 0.3s ease;
+}
+
+.wb-auth-code-card:hover {
+  transform: rotate(-3deg) scale(1.02);
+}
+
+.wb-code-req-line {
+  font-weight: 700;
+  color: var(--wb-auth-blue);
+  margin-bottom: 0.2rem;
+}
+
+.wb-code-auth-line {
+  color: var(--wb-auth-text-muted);
+  font-size: 0.675rem;
+  margin-bottom: 0.4rem;
+}
+
+.wb-code-body-line {
+  color: #0f172a;
+}
+
+/* Bottom Left Headline & Subtitle */
+.wb-auth-bottom-content {
+  position: relative;
+  z-index: 2;
+}
+
+.wb-auth-main-headline {
+  font-size: 1.95rem;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.03em;
+  color: var(--wb-auth-text-dark);
+  margin: 0 0 0.75rem 0;
+}
+
+.wb-auth-sub-description {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--wb-auth-text-muted);
+  margin: 0;
+  max-width: 360px;
+}
+
+/* ==========================================================================
+   Right Column: Auth Form
+   ========================================================================== */
+
+.wb-auth-right-col {
+  background: #ffffff;
+  padding: 3rem 2.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.wb-auth-form-header {
+  margin-bottom: 1.75rem;
+}
+
+.wb-auth-form-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--wb-auth-text-dark);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem 0;
+}
+
+.wb-auth-form-subtitle {
+  font-size: 0.9rem;
+  color: var(--wb-auth-text-muted);
+  margin: 0;
+}
+
+/* Form Styles */
+.wb-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.wb-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.wb-auth-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wb-auth-label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.wb-auth-forgot-link {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--wb-auth-blue);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  font-family: inherit;
+}
+
+.wb-auth-forgot-link:hover {
+  color: var(--wb-auth-blue-hover);
+  text-decoration: underline;
+}
+
+.wb-auth-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.wb-auth-input {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid var(--wb-auth-border);
+  border-radius: 12px;
+  padding: 0.725rem 1rem;
+  font-size: 0.9rem;
+  color: var(--wb-auth-text-dark);
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.wb-auth-input:focus {
+  border-color: var(--wb-auth-blue);
+  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.12);
+}
+
+.wb-auth-input::placeholder {
+  color: #9ca3af;
+}
+
+.wb-auth-eye-btn {
+  position: absolute;
+  right: 0.85rem;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.wb-auth-eye-btn:hover {
+  color: var(--wb-auth-text-dark);
+}
+
+/* Submit Action Button */
+.wb-auth-submit-btn {
+  margin-top: 0.5rem;
+  background-color: var(--wb-auth-blue);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.8rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(24, 96, 236, 0.28);
+}
+
+.wb-auth-submit-btn:hover:not(:disabled) {
+  background-color: var(--wb-auth-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(24, 96, 236, 0.35);
+}
+
+.wb-auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Bottom Switch Row */
+.wb-auth-switch-text {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--wb-auth-text-muted);
+  margin-top: 1.5rem;
+}
+
+.wb-auth-switch-link {
+  background: none;
+  border: none;
+  color: var(--wb-auth-blue);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.wb-auth-switch-link:hover {
+  text-decoration: underline;
+}
+
+/* Quick Presets / Helpers */
+.wb-auth-presets-box {
+  margin-top: 1.25rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wb-auth-presets-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.wb-auth-presets-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.wb-auth-preset-chip {
+  background-color: #f8fafc;
+  border: 1px solid var(--wb-auth-border);
+  color: #475569;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wb-auth-preset-chip:hover {
+  background-color: #eff6ff;
+  border-color: var(--wb-auth-blue);
+  color: var(--wb-auth-blue);
+}
+
+/* Alerts */
+.wb-auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.wb-auth-alert.error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.wb-auth-alert.success {
+  background-color: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+/* OTP Verification UI */
+.wb-otp-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.wb-otp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: #eff6ff;
+  color: var(--wb-auth-blue);
+  font-size: 0.775rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  margin: 0 auto;
+}
+
+.wb-otp-digit-input {
+  width: 100%;
+  max-width: 240px;
+  margin: 0 auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-align: center;
+  padding: 0.6rem 0.5rem;
+  background: #ffffff;
+  border: 2px solid var(--wb-auth-border);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.wb-otp-digit-input:focus {
+  border-color: var(--wb-auth-blue);
+  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.15);
+}
+
+.wb-otp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.825rem;
+}
+
+.wb-otp-link {
+  background: none;
+  border: none;
+  color: var(--wb-auth-blue);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.wb-otp-link:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+
+@media (max-width: 860px) {
+  .wb-auth-card-split {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    min-height: auto;
+  }
+
+  .wb-auth-left-col {
+    display: none;
+  }
+
+  .wb-auth-right-col {
+    padding: 2.25rem 1.75rem;
+  }
+}

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import './auth.css';
 import { useAuth } from '../../context/AuthContext';
-import { api } from '../../services/api';
 
 export interface AuthPageProps {
   initialMode?: 'login' | 'register';
@@ -22,14 +22,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setLocalError(null);
     setSuccessInfo(null);
     clearError();
-  }, [initialMode]);
+  }, [initialMode, clearError]);
 
   // Step 1: 'form' | Step 2: 'verify' (for registration)
   const [registerStep, setRegisterStep] = useState<'form' | 'verify'>('form');
-
-  // Backend connection state
-  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
-  const [backendLatency, setBackendLatency] = useState<number | null>(null);
 
   // Form states
   const [name, setName] = useState('');
@@ -67,23 +63,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   }, [registerStep]);
 
-  const checkHealth = useCallback(async () => {
-    setBackendStatus('checking');
-    try {
-      const { latencyMs } = await api.checkHealth();
-      setBackendLatency(latencyMs);
-      setBackendStatus('online');
-    } catch {
-      setBackendStatus('offline');
-      setBackendLatency(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkHealth();
-  }, [checkHealth]);
-
-  const handleTabSwitch = (newMode: 'login' | 'register') => {
+  const handleSwitchMode = (newMode: 'login' | 'register') => {
     setMode(newMode);
     setRegisterStep('form');
     setOtp('');
@@ -174,7 +154,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setIsSubmitting(true);
     try {
       await verifyOtp(email.trim().toLowerCase(), cleanOtp);
-      // AuthContext will automatically transition to logged in view
     } catch (err: any) {
       setLocalError(err.message || 'Verification failed. Please check the code and try again.');
     } finally {
@@ -232,460 +211,400 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const displayedError = localError || authError;
 
   return (
-    <div className="auth-page-wrapper">
+    <div className="wb-auth-page-root">
+      {/* Floating Back to Home Button */}
       {onBackToHome && (
         <button
           type="button"
+          className="wb-auth-back-btn"
           onClick={onBackToHome}
-          style={{
-            position: 'absolute',
-            top: '1.5rem',
-            left: '1.5rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            color: 'var(--text-secondary, #94a3b8)',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            padding: '0.45rem 0.85rem',
-            borderRadius: '8px',
-            fontSize: '0.85rem',
-            fontWeight: 500,
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            zIndex: 10,
-          }}
           title="Return to Landing Page"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="15 18 9 12 15 6" />
           </svg>
           <span>Back to Home</span>
         </button>
       )}
 
-      <div className="auth-page-card">
-        {/* Brand Header */}
-        <div className="auth-page-header">
-          <div
-            className="brand-icon auth-brand-icon"
-            onClick={onBackToHome}
-            style={onBackToHome ? { cursor: 'pointer' } : undefined}
-            title={onBackToHome ? 'Go to Home' : undefined}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
+      {/* 2-Column Split Modal Card matching Figma Design */}
+      <div className="wb-auth-card-split">
+        {/* Left Column: Branding, Decorative Circles, Code Preview, Headline */}
+        <div className="wb-auth-left-col">
+          {/* Decorative Concentric Rings */}
+          <div className="wb-auth-circle-bg">
+            <div className="wb-auth-circle-ring ring-1" />
+            <div className="wb-auth-circle-ring ring-2" />
+            <div className="wb-auth-circle-ring ring-3" />
           </div>
-          <h1
-            className="auth-page-title"
+
+          {/* Top Brand Info */}
+          <div
+            className="wb-auth-brand-box"
             onClick={onBackToHome}
             style={onBackToHome ? { cursor: 'pointer' } : undefined}
-            title={onBackToHome ? 'Go to Home' : undefined}
           >
-            API Workbench
-          </h1>
-          <p className="auth-page-tagline">
-            Professional developer workbench for API testing, benchmarks, and mock servers
-          </p>
+            <div className="wb-auth-brand-logo">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <rect width="24" height="24" rx="6" fill="#1860ec" />
+                <path
+                  d="M7 8.5L11 12L7 15.5"
+                  stroke="white"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <line
+                  x1="13"
+                  y1="16"
+                  x2="17"
+                  y2="16"
+                  stroke="white"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <span className="wb-auth-brand-name">API Workbench</span>
+          </div>
 
-          {/* Backend Status Indicator */}
-          <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'center' }}>
-            {backendStatus === 'checking' && (
-              <div className="status-pill loading" style={{ fontSize: '0.78rem', padding: '0.2rem 0.65rem' }}>
-                <span className="pulse-dot"></span>
-                FastAPI Connecting...
+          {/* Middle Floating Code Mockup */}
+          <div className="wb-auth-middle-graphic">
+            <div className="wb-auth-code-card">
+              <div className="wb-code-req-line">GET /v1/users/profile</div>
+              <div className="wb-code-auth-line">Authorization: Bearer ***</div>
+              <div className="wb-code-body-line">&#123;</div>
+              <div className="wb-code-body-line" style={{ paddingLeft: '0.65rem' }}>
+                <span style={{ color: '#0284c7' }}>"status"</span>: <span style={{ color: '#15803d' }}>"success"</span>,
               </div>
-            )}
-            {backendStatus === 'online' && (
-              <div
-                className="status-pill healthy"
-                onClick={checkHealth}
-                style={{ cursor: 'pointer', fontSize: '0.78rem', padding: '0.2rem 0.65rem' }}
-                title="Backend server connected (Click to re-ping)"
-              >
-                <span className="pulse-dot"></span>
-                FastAPI Backend Online {backendLatency !== null && `(${backendLatency}ms)`}
+              <div className="wb-code-body-line" style={{ paddingLeft: '0.65rem' }}>
+                <span style={{ color: '#0284c7' }}>"data"</span>: &#123;
               </div>
-            )}
-            {backendStatus === 'offline' && (
-              <div
-                className="status-pill error"
-                onClick={checkHealth}
-                style={{ cursor: 'pointer', fontSize: '0.78rem', padding: '0.2rem 0.65rem' }}
-                title="Click to retry connecting to backend"
-              >
-                <span className="pulse-dot"></span>
-                FastAPI Offline (Click to Retry)
+              <div className="wb-code-body-line" style={{ paddingLeft: '1.25rem' }}>
+                <span style={{ color: '#0284c7' }}>"role"</span>: <span style={{ color: '#15803d' }}>"engineer"</span>
               </div>
-            )}
+              <div className="wb-code-body-line" style={{ paddingLeft: '0.65rem' }}>&#125;</div>
+              <div className="wb-code-body-line">&#125;</div>
+            </div>
+          </div>
+
+          {/* Bottom Headline & Tagline */}
+          <div className="wb-auth-bottom-content">
+            <h2 className="wb-auth-main-headline">
+              Build faster,
+              <br />
+              scale better.
+            </h2>
+            <p className="wb-auth-sub-description">
+              The ultimate toolset for designing, testing, and managing your APIs in a high-performance environment.
+            </p>
           </div>
         </div>
 
-        {/* Offline Warning Banner */}
-        {backendStatus === 'offline' && (
-          <div className="auth-alert error" style={{ marginBottom: '1rem', textAlign: 'left', lineHeight: '1.45' }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: '2px' }}>
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-            <div>
-              <strong>FastAPI Backend is Offline:</strong>
-              <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', opacity: 0.9 }}>
-                Start the backend in terminal: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 5px', borderRadius: '4px' }}>cd backend && venv\Scripts\uvicorn app.main:app --port 8000</code>
-              </div>
-              <button
-                type="button"
-                onClick={checkHealth}
-                className="btn-secondary-sm"
-                style={{ marginTop: '0.5rem', padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
-              >
-                🔄 Recheck Connection
-              </button>
+        {/* Right Column: Form (Login, Register, OTP) */}
+        <div className="wb-auth-right-col">
+          {/* Header */}
+          <div className="wb-auth-form-header">
+            <h1 className="wb-auth-form-title">
+              {mode === 'login'
+                ? 'Welcome back'
+                : registerStep === 'verify'
+                ? 'Verify Email'
+                : 'Create an account'}
+            </h1>
+            <p className="wb-auth-form-subtitle">
+              {mode === 'login'
+                ? 'Sign in to access your workspace.'
+                : registerStep === 'verify'
+                ? `Enter the code sent to ${email}`
+                : 'Sign up to start building and testing APIs.'}
+            </p>
+          </div>
+
+          {/* Alerts */}
+          {displayedError && (
+            <div className="wb-auth-alert error">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{displayedError}</span>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tab Switcher (Visible on Login and Register Step 1) */}
-        {registerStep === 'form' && (
-          <div className="auth-tabs">
-            <button
-              type="button"
-              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-              onClick={() => handleTabSwitch('login')}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
-              onClick={() => handleTabSwitch('register')}
-            >
-              Create Account
-            </button>
-          </div>
-        )}
-
-        {/* Error Alert */}
-        {displayedError && (
-          <div className="auth-alert error">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <span>{displayedError}</span>
-          </div>
-        )}
-
-        {/* Success Alert */}
-        {successInfo && !displayedError && (
-          <div className="auth-alert success" style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.3)', color: '#34d399' }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-            <span>{successInfo}</span>
-          </div>
-        )}
-
-        {/* VIEW 1: Sign In Form */}
-        {mode === 'login' && (
-          <form onSubmit={handleLoginSubmit} className="auth-form">
-            <div className="form-group">
-              <label className="form-label" htmlFor="login-identifier">
-                Username or Email
-              </label>
-              <div className="input-with-icon">
-                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                <input
-                  id="login-identifier"
-                  type="text"
-                  className="form-input"
-                  placeholder="Username or name@example.com"
-                  value={usernameOrEmail}
-                  onChange={(e) => setUsernameOrEmail(e.target.value)}
-                  autoComplete="username"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
+          {successInfo && !displayedError && (
+            <div className="wb-auth-alert success">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <span>{successInfo}</span>
             </div>
+          )}
 
-            <div className="form-group">
-              <div className="form-label-row">
-                <label className="form-label" htmlFor="login-password">
-                  Password
+          {/* VIEW 1: Login Form */}
+          {mode === 'login' && (
+            <form onSubmit={handleLoginSubmit} className="wb-auth-form">
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="login-email">
+                  Email
                 </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="login-email"
+                    type="text"
+                    className="wb-auth-input"
+                    placeholder="developer@techcorp.com"
+                    value={usernameOrEmail}
+                    onChange={(e) => setUsernameOrEmail(e.target.value)}
+                    autoComplete="username"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
               </div>
-              <div className="input-with-icon">
-                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                <input
-                  id="login-password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="form-input"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  disabled={isSubmitting}
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowPassword(!showPassword)}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? (
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
 
-            <button
-              type="submit"
-              className="btn-auth-submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
+              <div className="wb-auth-field">
+                <div className="wb-auth-label-row">
+                  <label className="wb-auth-label" htmlFor="login-password">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    className="wb-auth-forgot-link"
+                    onClick={() => {
+                      setLocalError('For password reset, please contact your workspace admin.');
+                    }}
+                  >
+                    Forgot?
+                  </button>
+                </div>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="wb-auth-input"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    disabled={isSubmitting}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="wb-auth-eye-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="wb-auth-submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
                   <span>Signing in...</span>
-                </>
-              ) : (
-                <span>Sign In to API Workbench</span>
-              )}
-            </button>
-          </form>
-        )}
-
-        {/* Quick Demo Helper */}
-        {mode === 'login' && (
-          <div className="auth-footer-helpers">
-            <div className="auth-divider">
-              <span>Quick Login Presets</span>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                type="button"
-                className="btn-demo-fill"
-                onClick={() => handleFillDemo('ahmad')}
-              >
-                ⚡ Fill 'ahmad' Demo
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </>
+                )}
               </button>
-              <button
-                type="button"
-                className="btn-demo-fill"
-                onClick={() => handleFillDemo('demo')}
-              >
-                ⚡ Fill 'demo.developer'
-              </button>
-            </div>
-          </div>
-        )}
 
-        {/* VIEW 2: Registration Step 1 — Account Details Form */}
-        {mode === 'register' && registerStep === 'form' && (
-          <form onSubmit={handleInitiateRegistration} className="auth-form">
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-name">
-                Full Name
-              </label>
-              <div className="input-with-icon">
-                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                <input
-                  id="reg-name"
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Ahmad Developer"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  autoComplete="name"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <div className="form-label-row">
-                <label className="form-label" htmlFor="reg-username">
-                  Unique Username
-                </label>
-                <span className="form-label-hint">Used in /mock/username/...</span>
-              </div>
-              <div className="input-with-icon">
-                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94" />
-                </svg>
-                <input
-                  id="reg-username"
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. ahmad"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="username"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-email">
-                Email Address
-              </label>
-              <div className="input-with-icon">
-                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
-                <input
-                  id="reg-email"
-                  type="email"
-                  className="form-input"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <div className="form-label-row">
-                <label className="form-label" htmlFor="auth-password">
-                  Password
-                </label>
-                <span className="form-label-hint">Min. 6 characters</span>
-              </div>
-              <div className="input-with-icon">
-                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                <input
-                  id="auth-password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="form-input"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={isSubmitting}
-                  required
-                />
+              <div className="wb-auth-switch-text">
+                Don't have an account?{' '}
                 <button
                   type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowPassword(!showPassword)}
-                  title={showPassword ? 'Hide password' : 'Show password'}
+                  className="wb-auth-switch-link"
+                  onClick={() => handleSwitchMode('register')}
                 >
-                  {showPassword ? (
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
+                  Sign up
                 </button>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-confirm-password">
-                Confirm Password
-              </label>
-              <div className="input-with-icon">
-                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                <input
-                  id="reg-confirm-password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="form-input"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={isSubmitting}
-                  required
-                />
+              {/* Quick Demo Presets */}
+              <div className="wb-auth-presets-box">
+                <span className="wb-auth-presets-label">Quick Demo Presets</span>
+                <div className="wb-auth-presets-row">
+                  <button
+                    type="button"
+                    className="wb-auth-preset-chip"
+                    onClick={() => handleFillDemo('ahmad')}
+                  >
+                    ⚡ Fill 'ahmad'
+                  </button>
+                  <button
+                    type="button"
+                    className="wb-auth-preset-chip"
+                    onClick={() => handleFillDemo('demo')}
+                  >
+                    ⚡ Fill 'demo.developer'
+                  </button>
+                </div>
               </div>
-            </div>
+            </form>
+          )}
 
-            <button
-              type="submit"
-              className="btn-auth-submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
-                  <span>Sending Verification Code...</span>
-                </>
-              ) : (
-                <span>Continue &rarr; Verify Email</span>
-              )}
-            </button>
-          </form>
-        )}
+          {/* VIEW 2: Sign Up (Register Step 1) */}
+          {mode === 'register' && registerStep === 'form' && (
+            <form onSubmit={handleInitiateRegistration} className="wb-auth-form">
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="reg-name">
+                  Full Name
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="reg-name"
+                    type="text"
+                    className="wb-auth-input"
+                    placeholder="Alex Developer"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              </div>
 
-        {/* VIEW 3: Registration Step 2 — OTP Verification Screen */}
-        {mode === 'register' && registerStep === 'verify' && (
-          <div className="otp-verification-container">
-            {/* Step Header */}
-            <div className="otp-step-header">
-              <div className="otp-badge">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="reg-username">
+                  Username
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="reg-username"
+                    type="text"
+                    className="wb-auth-input"
+                    placeholder="alex_dev"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    autoComplete="username"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="reg-email">
+                  Email Address
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="reg-email"
+                    type="email"
+                    className="wb-auth-input"
+                    placeholder="developer@techcorp.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="reg-password">
+                  Password
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="reg-password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="wb-auth-input"
+                    placeholder="•••••••• (min 6 chars)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="wb-auth-field">
+                <label className="wb-auth-label" htmlFor="reg-confirm-password">
+                  Confirm Password
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="reg-confirm-password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="wb-auth-input"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="wb-auth-submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span>Sending code...</span>
+                ) : (
+                  <>
+                    <span>Continue → Verify Email</span>
+                  </>
+                )}
+              </button>
+
+              <div className="wb-auth-switch-text">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  className="wb-auth-switch-link"
+                  onClick={() => handleSwitchMode('login')}
+                >
+                  Sign in
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* VIEW 3: OTP Verification Screen */}
+          {mode === 'register' && registerStep === 'verify' && (
+            <div className="wb-otp-box">
+              <div className="wb-otp-badge">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
-                <span>Step 2 of 2 &bull; Email Verification</span>
+                <span>Email Verification</span>
               </div>
-              <h2 className="otp-title">Check Your Email</h2>
-              <p className="otp-description">
-                We've sent a 6-digit verification code to:
-                <br />
-                <strong className="otp-email-highlight">{email}</strong>
-              </p>
-            </div>
 
-            <form onSubmit={handleVerifyOtp} className="auth-form">
-              <div className="form-group">
-                <label className="form-label" htmlFor="otp-input" style={{ textAlign: 'center', display: 'block' }}>
-                  Enter 6-Digit Verification Code
-                </label>
-                <div className="otp-input-wrapper">
+              <form onSubmit={handleVerifyOtp} className="wb-auth-form">
+                <div className="wb-auth-field">
+                  <label className="wb-auth-label" htmlFor="otp-input" style={{ textAlign: 'center' }}>
+                    Enter 6-Digit Code
+                  </label>
                   <input
                     id="otp-input"
                     ref={otpInputRef}
@@ -693,7 +612,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     maxLength={6}
-                    className="otp-digit-input"
+                    className="wb-otp-digit-input"
                     placeholder="••••••"
                     value={otp}
                     onChange={(e) => {
@@ -705,61 +624,54 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     required
                   />
                 </div>
-                <span className="otp-expiry-hint">
-                  ⏱️ Code expires in 10 minutes &bull; Check your <strong>Spam/Junk</strong> folder if not in inbox
-                </span>
+
+                <button
+                  type="submit"
+                  className="wb-auth-submit-btn"
+                  disabled={isSubmitting || otp.length < 6}
+                >
+                  {isSubmitting ? (
+                    <span>Verifying...</span>
+                  ) : (
+                    <span>Verify & Create Account →</span>
+                  )}
+                </button>
+              </form>
+
+              <div className="wb-otp-actions">
+                <button
+                  type="button"
+                  className="wb-otp-link"
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0 || isResending}
+                >
+                  {isResending ? (
+                    'Resending...'
+                  ) : resendCooldown > 0 ? (
+                    `Resend in ${resendCooldown}s`
+                  ) : (
+                    'Resend Code'
+                  )}
+                </button>
+
+                <span>•</span>
+
+                <button
+                  type="button"
+                  className="wb-otp-link"
+                  onClick={() => {
+                    setRegisterStep('form');
+                    setLocalError(null);
+                    setSuccessInfo(null);
+                    clearError();
+                  }}
+                >
+                  Change Email
+                </button>
               </div>
-
-              <button
-                type="submit"
-                className="btn-auth-submit"
-                disabled={isSubmitting || otp.length < 6}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
-                    <span>Verifying Code & Creating Account...</span>
-                  </>
-                ) : (
-                  <span>Verify Email & Create Account</span>
-                )}
-              </button>
-            </form>
-
-            {/* OTP Footer Actions: Resend Code and Back to Edit */}
-            <div className="otp-actions-row">
-              <button
-                type="button"
-                className="btn-link-action"
-                onClick={handleResendOtp}
-                disabled={resendCooldown > 0 || isResending}
-              >
-                {isResending ? (
-                  'Resending code...'
-                ) : resendCooldown > 0 ? (
-                  <span>Resend code in <strong>{resendCooldown}s</strong></span>
-                ) : (
-                  '🔄 Resend Code'
-                )}
-              </button>
-
-              <span className="action-separator">&bull;</span>
-
-              <button
-                type="button"
-                className="btn-link-action"
-                onClick={() => {
-                  setRegisterStep('form');
-                  setLocalError(null);
-                  setSuccessInfo(null);
-                  clearError();
-                }}
-              >
-                ✏️ Change Email / Edit Info
-              </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
