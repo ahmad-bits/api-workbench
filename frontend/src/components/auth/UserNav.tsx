@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 interface UserNavProps {
-  onOpenProfileModal: () => void;
+  onOpenProfileModal?: () => void;
 }
 
 export const UserNav: React.FC<UserNavProps> = ({ onOpenProfileModal }) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +80,11 @@ export const UserNav: React.FC<UserNavProps> = ({ onOpenProfileModal }) => {
             className="user-dropdown-item"
             onClick={() => {
               setDropdownOpen(false);
-              onOpenProfileModal();
+              if (onOpenProfileModal) {
+                onOpenProfileModal();
+              } else {
+                navigate('/settings');
+              }
             }}
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
@@ -96,6 +102,7 @@ export const UserNav: React.FC<UserNavProps> = ({ onOpenProfileModal }) => {
             onClick={() => {
               setDropdownOpen(false);
               logout();
+              navigate('/');
             }}
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">

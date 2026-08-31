@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './auth.css';
 import { useAuth } from '../../context/AuthContext';
 
 export interface AuthPageProps {
   initialMode?: 'login' | 'register';
-  onBackToHome?: () => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({
   initialMode = 'login',
-  onBackToHome,
 }) => {
+  const navigate = useNavigate();
   const { login, requestOtp, verifyOtp, resendOtp, error: authError, clearError } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
 
@@ -213,11 +213,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   return (
     <div className="wb-auth-page-root">
       {/* Floating Back to Home Button */}
-      {onBackToHome && (
-        <button
+      <button
           type="button"
           className="wb-auth-back-btn"
-          onClick={onBackToHome}
+          onClick={() => navigate('/')}
           title="Return to Landing Page"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -225,7 +224,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </svg>
           <span>Back to Home</span>
         </button>
-      )}
 
       {/* 2-Column Split Modal Card matching Figma Design */}
       <div className="wb-auth-card-split">
@@ -241,8 +239,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           {/* Top Brand Info */}
           <div
             className="wb-auth-brand-box"
-            onClick={onBackToHome}
-            style={onBackToHome ? { cursor: 'pointer' } : undefined}
+            onClick={() => navigate('/')}
+            style={{ cursor: 'pointer' }}
           >
             <div className="wb-auth-brand-logo">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
