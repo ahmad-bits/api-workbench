@@ -1,6 +1,7 @@
 import json
 import uuid
 from typing import Dict, List, Optional, Tuple, Any
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.mock import MockEndpoint
@@ -78,23 +79,42 @@ class DatabaseMockService:
         self, db: Session, user: User, data: MockEndpointCreate
     ) -> MockEndpointResponse:
         """Create and persist a new mock endpoint for the authenticated user."""
+        clean_method = data.method.upper().strip()
+        clean_path = data.path.strip()
+        if not clean_path.startswith("/"):
+            clean_path = f"/{clean_path}"
+        if len(clean_path) > 1 and clean_path.endswith("/"):
+            clean_path = clean_path.rstrip("/")
+
+        # Check for existing duplicate mock endpoint in this user's account
+        existing = (
+            db.query(MockEndpoint)
+            .filter(
+                MockEndpoint.user_id == user.id,
+                MockEndpoint.method == clean_method,
+                MockEndpoint.path == clean_path,
+            )
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"A mock endpoint with method '{clean_method}' and path '{clean_path}' already exists in your account.",
+            )
+
         mock_id = uuid.uuid4().hex[:8]
         # Ensure ID is unique in table
         while db.query(MockEndpoint).filter(MockEndpoint.id == mock_id).first():
             mock_id = uuid.uuid4().hex[:8]
 
-        name = data.name.strip() if data.name and data.name.strip() else f"{data.method} {data.path}"
+        name = data.name.strip() if data.name and data.name.strip() else f"{clean_method} {clean_path}"
         headers_str = json.dumps(data.response_headers or {"Content-Type": "application/json"})
-
-        clean_path = data.path.strip()
-        if not clean_path.startswith("/"):
-            clean_path = f"/{clean_path}"
 
         db_mock = MockEndpoint(
             id=mock_id,
             user_id=user.id,
             name=name,
-            method=data.method.upper().strip(),
+            method=clean_method,
             path=clean_path,
             status_code=data.status_code,
             response_headers=headers_str,
@@ -121,15 +141,34 @@ class DatabaseMockService:
         if not db_mock:
             return None
 
+        target_method = data.method.upper().strip() if data.method is not None else db_mock.method
+        target_path = data.path.strip() if data.path is not None else db_mock.path
+        if not target_path.startswith("/"):
+            target_path = f"/{target_path}"
+        if len(target_path) > 1 and target_path.endswith("/"):
+            target_path = target_path.rstrip("/")
+
+        if target_method != db_mock.method or target_path != db_mock.path:
+            existing = (
+                db.query(MockEndpoint)
+                .filter(
+                    MockEndpoint.user_id == user.id,
+                    MockEndpoint.id != mock_id,
+                    MockEndpoint.method == target_method,
+                    MockEndpoint.path == target_path,
+                )
+                .first()
+            )
+            if existing:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"A mock endpoint with method '{target_method}' and path '{target_path}' already exists in your account.",
+                )
+
         if data.name is not None:
             db_mock.name = data.name.strip()
-        if data.method is not None:
-            db_mock.method = data.method.upper().strip()
-        if data.path is not None:
-            clean_path = data.path.strip()
-            if not clean_path.startswith("/"):
-                clean_path = f"/{clean_path}"
-            db_mock.path = clean_path
+        db_mock.method = target_method
+        db_mock.path = target_path
         if data.status_code is not None:
             db_mock.status_code = data.status_code
         if data.response_headers is not None:

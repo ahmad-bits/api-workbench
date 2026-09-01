@@ -299,12 +299,16 @@ export class ApiClient {
 
     if (!response.ok) {
       const errorText = await response.text();
+      let errorMsg = `Failed to create mock: HTTP ${response.status}`;
       try {
         const errorJson = JSON.parse(errorText);
-        throw new Error(errorJson.detail || `Failed to create mock: HTTP ${response.status}`);
+        if (errorJson.detail) {
+          errorMsg = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
+        }
       } catch {
-        throw new Error(errorText || `Failed to create mock: HTTP ${response.status}`);
+        if (errorText) errorMsg = errorText;
       }
+      throw new Error(errorMsg);
     }
 
     const result = await response.json();
@@ -334,12 +338,16 @@ export class ApiClient {
 
     if (!response.ok) {
       const errorText = await response.text();
+      let errorMsg = `Failed to update mock: HTTP ${response.status}`;
       try {
         const errorJson = JSON.parse(errorText);
-        throw new Error(errorJson.detail || `Failed to update mock: HTTP ${response.status}`);
+        if (errorJson.detail) {
+          errorMsg = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
+        }
       } catch {
-        throw new Error(errorText || `Failed to update mock: HTTP ${response.status}`);
+        if (errorText) errorMsg = errorText;
       }
+      throw new Error(errorMsg);
     }
 
     const result = await response.json();

@@ -90,7 +90,33 @@ def test_mock_api_lifecycle_and_scoping(client):
     assert mock_data["username"] == "ahmad"
     assert mock_data["mock_url"] == "/mock/ahmad/users"
 
-    # 4. Ahmad lists his mocks -> 1 mock found
+    # 4. Ahmad tries to create DUPLICATE Mock API: GET /users -> 409 Conflict
+    dup_res = client.post(
+        "/api/v1/mocks",
+        headers={"Authorization": f"Bearer {ahmad_token}"},
+        json=mock_payload,
+    )
+    assert dup_res.status_code == 409
+    assert "already exists in your account" in dup_res.json()["detail"]
+
+    # 5. Sarah creates the EXACT SAME Mock API: GET /users -> 201 Created (allowed for different user)
+    sarah_create_res = client.post(
+        "/api/v1/mocks",
+        headers={"Authorization": f"Bearer {sarah_token}"},
+        json={
+            "name": "Sarah's Team Users",
+            "method": "GET",
+            "path": "/users",
+            "status_code": 200,
+            "response_body": json.dumps([{"id": 2, "name": "Sarah"}]),
+            "response_type": "json",
+        },
+    )
+    assert sarah_create_res.status_code == 201
+    assert sarah_create_res.json()["username"] == "sarah"
+    assert sarah_create_res.json()["mock_url"] == "/mock/sarah/users"
+
+    # 6. Ahmad lists his mocks -> 1 mock found
     ahmad_list = client.get(
         "/api/v1/mocks",
         headers={"Authorization": f"Bearer {ahmad_token}"},
@@ -98,34 +124,42 @@ def test_mock_api_lifecycle_and_scoping(client):
     assert ahmad_list.status_code == 200
     assert len(ahmad_list.json()) == 1
 
-    # 5. Sarah lists her mocks -> 0 mocks found (strict isolation)
+    # 7. Sarah lists her mocks -> 1 mock found (her own)
     sarah_list = client.get(
         "/api/v1/mocks",
         headers={"Authorization": f"Bearer {sarah_token}"},
     )
     assert sarah_list.status_code == 200
-    assert len(sarah_list.json()) == 0
+    assert len(sarah_list.json()) == 1
 
-    # 6. Sarah attempts to delete Ahmad's mock -> 404 Not Found in her account
+    # 8. Sarah attempts to delete Ahmad's mock -> 404 Not Found in her account
     sarah_del = client.delete(
         f"/api/v1/mocks/{mock_id}",
         headers={"Authorization": f"Bearer {sarah_token}"},
     )
     assert sarah_del.status_code == 404
 
-    # 7. PUBLIC EXECUTION WITHOUT AUTH: Anyone can send requests to /mock/ahmad/users
-    public_res = client.get("/mock/ahmad/users")
-    assert public_res.status_code == 200
-    assert public_res.json() == [{"id": 1, "name": "Ahmad"}]
-    assert public_res.headers["x-custom"] == "Ahmad-Mock"
+    # 9. PUBLIC EXECUTION WITHOUT AUTH: Both users' endpoints work independently
+    ahmad_public = client.get("/mock/ahmad/users")
+    assert ahmad_public.status_code == 200
+    assert ahmad_public.json() == [{"id": 1, "name": "Ahmad"}]
+    assert ahmad_public.headers["x-custom"] == "Ahmad-Mock"
 
-    # 8. Ahmad deletes his account permanently
+    sarah_public = client.get("/mock/sarah/users")
+    assert sarah_public.status_code == 200
+    assert sarah_public.json() == [{"id": 2, "name": "Sarah"}]
+
+    # 10. Ahmad deletes his account permanently
     del_acc = client.delete(
         "/api/v1/auth/me",
         headers={"Authorization": f"Bearer {ahmad_token}"},
     )
     assert del_acc.status_code == 200
 
-    # 9. After account deletion, the public mock endpoint /mock/ahmad/users returns 404
+    # 11. After Ahmad's deletion, Ahmad's endpoint is 404, but Sarah's endpoint still works
     public_after_del = client.get("/mock/ahmad/users")
     assert public_after_del.status_code == 404
+
+    sarah_still_works = client.get("/mock/sarah/users")
+    assert sarah_still_works.status_code == 200
+    assert sarah_still_works.json() == [{"id": 2, "name": "Sarah"}]

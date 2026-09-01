@@ -1,8 +1,9 @@
 /* ==========================================================================
-   API Workbench - Mock API Engine (Figma Accurate Design)
-   Theme: Crisp Blue & White Modern Palette (#1860ec, #ffffff, #f8fafc, #0f172a)
+   API Workbench — Mock API Engine
+   Theme: Blue + White (#1860ec / #2563eb, #ffffff, #f8fafc, #0f172a)
    ========================================================================== */
 
+/* Root Container */
 .wb-mock-engine-root {
   display: flex;
   flex-direction: column;
@@ -13,18 +14,18 @@
 }
 
 /* ==========================================================================
-   1. Mock Top Header
+   1. Top Header
    ========================================================================== */
 
 .wb-mock-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 2rem 1.15rem 2rem;
+  padding: 1.15rem 1.75rem;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .wb-mock-title-block {
@@ -33,69 +34,64 @@
 }
 
 .wb-mock-heading {
-  font-size: 1.45rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.02em;
   margin: 0;
 }
 
 .wb-mock-subheading {
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   color: #64748b;
-  margin: 0.15rem 0 0 0;
+  margin: 0.1rem 0 0 0;
 }
 
 .wb-mock-topbar-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .wb-btn-create-mock-primary {
-  background-color: #1860ec;
+  background-color: #2563eb;
   color: #ffffff;
   border: none;
-  border-radius: 9999px;
-  padding: 0.65rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 700;
+  border-radius: 6px;
+  padding: 0.5rem 1.15rem;
+  font-size: 0.825rem;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(24, 96, 236, 0.25);
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
   font-family: inherit;
 }
 
 .wb-btn-create-mock-primary:hover {
-  background-color: #124ec6;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(24, 96, 236, 0.35);
-}
-
-.wb-btn-create-mock-primary:active {
-  transform: translateY(0);
+  background-color: #1d4ed8;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
 }
 
 /* ==========================================================================
-   2. Main Workspace (2-Column Scrollable Grid)
+   2. Main Workspace
    ========================================================================== */
 
 .wb-mock-workspace-scrollable {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 2rem 2.5rem 2rem;
+  padding: 1.25rem 1.75rem 2rem 1.75rem;
   min-height: 0;
 }
 
 .wb-mock-workspace-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.75rem;
+  gap: 1.5rem;
   align-items: start;
-  max-width: 1440px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -105,13 +101,13 @@
 }
 
 /* ==========================================================================
-   3. Left Column: Mock Endpoints List
+   3. Left Column: Endpoint List
    ========================================================================== */
 
 .wb-mock-list-column {
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 0.75rem;
 }
 
 /* Search Bar */
@@ -120,16 +116,16 @@
   align-items: center;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 0.75rem 1.15rem;
-  gap: 0.75rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  border-radius: 6px;
+  padding: 0.55rem 0.85rem;
+  gap: 0.6rem;
 }
 
 .wb-mock-search-icon {
   color: #94a3b8;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .wb-mock-search-input {
@@ -137,7 +133,7 @@
   border: none;
   background: transparent;
   outline: none;
-  font-size: 0.875rem;
+  font-size: 0.825rem;
   color: #0f172a;
   font-family: inherit;
 }
@@ -153,7 +149,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  padding: 0.2rem;
+  padding: 0.15rem;
   border-radius: 4px;
   transition: color 0.15s ease;
 }
@@ -162,119 +158,59 @@
   color: #0f172a;
 }
 
-/* Mock Card */
+/* ==========================================================================
+   3a. Mock Endpoint Card
+   ========================================================================== */
+
 .wb-mock-card-item {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.25rem 1.4rem;
+  border-radius: 8px;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-  transition: all 0.2s ease;
-  position: relative;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
 }
 
 .wb-mock-card-item:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
 }
 
 .wb-mock-card-item.selected {
-  border-color: #1860ec;
-  box-shadow: 0 0 0 2px rgba(24, 96, 236, 0.15), 0 4px 12px rgba(24, 96, 236, 0.08);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
 }
 
-/* Card Header */
-.wb-mock-card-top {
+/* Card Main Content */
+.wb-mock-card-main {
+  padding: 0.85rem 1rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.wb-mock-card-name {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
-.wb-mock-card-top-right {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-/* Status Code Pill */
-.wb-mock-status-pill {
-  font-size: 0.725rem;
-  font-weight: 700;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  display: inline-flex;
-  align-items: center;
-}
-
-.wb-mock-status-pill.status-2xx {
-  background-color: #d1fae5;
-  color: #059669;
-}
-
-.wb-mock-status-pill.status-4xx {
-  background-color: #fee2e2;
-  color: #dc2626;
-}
-
-.wb-mock-status-pill.status-5xx {
-  background-color: #fff1f2;
-  color: #e11d48;
-}
-
-.wb-mock-status-pill.status-3xx {
-  background-color: #dbeafe;
-  color: #2563eb;
-}
-
-.wb-mock-menu-btn {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 0.2rem 0.35rem;
-  font-size: 1.15rem;
-  line-height: 1;
-  border-radius: 4px;
-}
-
-.wb-mock-menu-btn:hover {
-  color: #0f172a;
-  background-color: #f1f5f9;
-}
-
-/* Method + Path Row */
+/* Route Row: Method badge + Path + Status */
 .wb-mock-route-row {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.6rem;
 }
 
 .wb-mock-method-badge {
-  font-size: 0.725rem;
-  font-weight: 800;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.02em;
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  text-transform: uppercase;
 }
 
 .wb-mock-method-badge.get {
-  background-color: #d1fae5;
-  color: #059669;
+  background-color: #dcfce7;
+  color: #16a34a;
 }
 
 .wb-mock-method-badge.post {
@@ -287,111 +223,203 @@
   color: #d97706;
 }
 
-.wb-mock-method-badge.delete {
-  background-color: #fee2e2;
-  color: #dc2626;
-}
-
 .wb-mock-method-badge.patch {
   background-color: #ede9fe;
   color: #7c3aed;
 }
 
-.wb-mock-route-path {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #334155;
-  font-family: 'JetBrains Mono', monospace;
+.wb-mock-method-badge.delete {
+  background-color: #fee2e2;
+  color: #dc2626;
 }
 
-/* URL Box Row */
-.wb-mock-url-box {
-  background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
-  border-radius: 8px;
-  padding: 0.55rem 0.85rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.wb-mock-url-text {
-  font-size: 0.775rem;
-  font-family: 'JetBrains Mono', monospace;
+.wb-mock-method-badge.head,
+.wb-mock-method-badge.options {
+  background-color: #f1f5f9;
   color: #475569;
+}
+
+.wb-mock-route-path {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: var(--wb-font-mono, 'JetBrains Mono', monospace);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-mock-status-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.wb-mock-status-pill.status-2xx {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.wb-mock-status-pill.status-3xx {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.wb-mock-status-pill.status-4xx {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.wb-mock-status-pill.status-5xx {
+  background-color: #fff1f2;
+  color: #e11d48;
+}
+
+/* URL display */
+.wb-mock-url-display {
+  font-size: 0.725rem;
+  color: #64748b;
+  font-family: var(--wb-font-mono, 'JetBrains Mono', monospace);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.wb-mock-btn-copy {
-  background-color: #e2e8f0;
-  border: 1px solid #cbd5e1;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+/* Card Name (subtitle below route) */
+.wb-mock-card-name {
+  font-size: 0.775rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Card Actions Footer */
+.wb-mock-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.6rem 0.85rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.wb-mock-action-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #475569;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
   transition: all 0.15s ease;
-  flex-shrink: 0;
   font-family: inherit;
 }
 
-.wb-mock-btn-copy:hover {
-  background-color: #cbd5e1;
-  color: #0f172a;
+.wb-mock-action-btn:hover {
+  background-color: #eff6ff;
+  color: #1d4ed8;
 }
 
-.wb-mock-btn-copy.copied {
-  background-color: #d1fae5;
-  color: #059669;
-  border-color: #a7f3d0;
+.wb-mock-action-btn.action-copy.copied {
+  color: #16a34a;
+  background-color: #dcfce7;
 }
 
-/* Card Actions */
-.wb-mock-card-actions-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 0.65rem;
+.wb-mock-action-btn.action-delete:hover {
+  color: #dc2626;
+  background-color: #fef2f2;
 }
 
-.wb-mock-btn-test {
-  background: none;
-  border: none;
-  color: #1860ec;
+.wb-mock-card-call-count {
   font-size: 0.775rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0;
+  font-weight: 500;
+  color: #64748b;
+  margin-left: auto;
 }
 
-.wb-mock-btn-test:hover {
-  text-decoration: underline;
+/* Empty State */
+.wb-mock-empty-state {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.wb-mock-empty-title {
+  font-size: 0.9rem;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  font-weight: 600;
+}
+
+.wb-mock-empty-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 1rem 0;
+}
+
+/* Error State */
+.wb-mock-error-state {
+  padding: 1.25rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+}
+
+.wb-mock-error-state p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.825rem;
+}
+
+.wb-mock-error-retry {
+  margin-top: 0.5rem;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+/* Loading */
+.wb-mock-loading-state {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.825rem;
 }
 
 /* ==========================================================================
-   4. Right Column: Edit Mock / Create Mock Pane
+   4. Right Column: Editor Pane
    ========================================================================== */
 
 .wb-mock-editor-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  gap: 1.15rem;
+  padding: 1.25rem;
+  gap: 1rem;
+  animation: wbMockFadeIn 0.2s ease-out;
+}
+
+@keyframes wbMockFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Editor Header */
@@ -399,19 +427,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .wb-mock-editor-title-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .wb-mock-editor-title {
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: #0f172a;
   margin: 0;
 }
@@ -420,9 +448,9 @@
   background: none;
   border: none;
   color: #94a3b8;
-  font-size: 1.2rem;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.25rem;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -435,71 +463,103 @@
   background-color: #f1f5f9;
 }
 
-/* Form Fields */
+/* Form */
 .wb-mock-form {
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 1rem;
 }
 
 .wb-form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .wb-form-label {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .wb-form-input {
   width: 100%;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.85rem;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.825rem;
   color: #0f172a;
   outline: none;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   font-family: inherit;
 }
 
 .wb-form-input:focus {
-  border-color: #1860ec;
-  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.wb-form-input.mono {
+  font-family: var(--wb-font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.8rem;
 }
 
 .wb-form-row-2 {
   display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 0.75rem;
+  grid-template-columns: 120px 1fr;
+  gap: 0.65rem;
+}
+
+.wb-form-row-2-equal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
 }
 
 .wb-form-select {
+  width: 100%;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.65rem 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 700;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.825rem;
+  font-weight: 600;
   color: #0f172a;
   outline: none;
-  font-family: 'JetBrains Mono', monospace;
   cursor: pointer;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 0.55rem auto;
+  padding-right: 2rem;
 }
 
 .wb-form-select:focus {
-  border-color: #1860ec;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Error banner */
+.wb-mock-error-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
 }
 
 /* Headers Section */
 .wb-mock-headers-section {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .wb-mock-headers-header {
@@ -511,10 +571,11 @@
 .wb-btn-add-header-link {
   background: none;
   border: none;
-  color: #1860ec;
+  color: #2563eb;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .wb-btn-add-header-link:hover {
@@ -524,98 +585,138 @@
 .wb-mock-header-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr auto;
-  gap: 0.5rem;
+  gap: 0.4rem;
   align-items: center;
 }
 
 .wb-mock-header-colon {
   color: #94a3b8;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.8rem;
 }
 
 .wb-btn-remove-hdr {
   background: none;
   border: none;
   color: #94a3b8;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.15rem;
   line-height: 1;
+  border-radius: 3px;
 }
 
 .wb-btn-remove-hdr:hover {
   color: #ef4444;
+  background-color: #fef2f2;
 }
 
-/* Response Body Code Area */
+/* OPTIONS: Allowed Methods */
+.wb-mock-allowed-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wb-mock-method-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.wb-mock-method-checkbox input[type="checkbox"] {
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.wb-mock-method-checkbox-label {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Response Body */
 .wb-mock-body-textarea {
   width: 100%;
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.85rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-family: var(--wb-font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.775rem;
   line-height: 1.5;
   color: #0f172a;
   outline: none;
   resize: vertical;
-  min-height: 200px;
+  min-height: 180px;
 }
 
 .wb-mock-body-textarea:focus {
   background-color: #ffffff;
-  border-color: #1860ec;
-  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
-/* Editor Footer Actions */
+.wb-mock-json-error {
+  font-size: 0.725rem;
+  color: #dc2626;
+  margin-top: 0.15rem;
+}
+
+/* Editor Footer */
 .wb-mock-editor-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #f1f5f9;
+  gap: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 .wb-btn-mock-cancel {
   background: none;
-  border: none;
-  color: #2563eb;
-  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.55rem 1rem;
-  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-family: inherit;
+  transition: all 0.12s ease;
 }
 
 .wb-btn-mock-cancel:hover {
-  background-color: #eff6ff;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 .wb-btn-mock-save {
-  background-color: #1860ec;
+  background-color: #2563eb;
   color: #ffffff;
   border: none;
-  border-radius: 9999px;
-  padding: 0.65rem 1.6rem;
-  font-size: 0.875rem;
-  font-weight: 700;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.825rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 10px rgba(24, 96, 236, 0.25);
+  transition: all 0.15s ease;
   font-family: inherit;
 }
 
 .wb-btn-mock-save:hover {
-  background-color: #124ec6;
-  box-shadow: 0 5px 14px rgba(24, 96, 236, 0.35);
+  background-color: #1d4ed8;
+}
+
+.wb-btn-mock-save:disabled,
+.wb-btn-mock-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ==========================================================================
-   Responsive Adaptations
+   5. Responsive
    ========================================================================== */
 
 @media (max-width: 1080px) {

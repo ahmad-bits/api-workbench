@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { MockEndpoint } from '../../types/mock';
 import { useConfirm } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
@@ -23,26 +23,42 @@ export const MockCard: React.FC<MockCardProps> = ({
   const confirm = useConfirm();
   const toast = useToast();
   const [copied, setCopied] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const copyTimeoutRef = useRef<number | null>(null);
 
   const fullUrl = mock.fullUrl || `http://127.0.0.1:8000${mock.mockUrl}`;
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const handleCopyUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
-    toast.info('Simulated Mock URL copied to clipboard.');
-    setTimeout(() => setCopied(false), 1500);
+    toast.info('Mock URL copied to clipboard.');
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = window.setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit(mock);
+  };
+
+  const handleTest = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTestInWorkbench(mock);
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setMenuOpen(false);
     const confirmed = await confirm({
       title: 'Delete Mock Endpoint',
-      message: `Are you sure you want to delete mock endpoint '${mock.method} ${mock.path}'?`,
-      details: 'This will permanently remove the simulated route. Any test clients relying on it will receive 404 Not Found.',
-      confirmText: 'Delete Mock',
+      message: `Delete "${mock.method} ${mock.path}"?`,
+      details: 'This will permanently remove the endpoint. Clients relying on it will receive 404.',
+      confirmText: 'Delete',
       cancelText: 'Cancel',
       variant: 'danger',
     });
@@ -58,187 +74,80 @@ export const MockCard: React.FC<MockCardProps> = ({
     return 'status-5xx';
   };
 
-  const getStatusLabel = (code: number) => {
-    if (code === 200) return '200 OK';
-    if (code === 201) return '201 Created';
-    if (code === 204) return '204 No Content';
-    if (code === 400) return '400 Bad Req';
-    if (code === 401) return '401 Unauth';
-    if (code === 404) return '404 Not Found';
-    if (code === 500) return '500 Error';
-    return `${code}`;
-  };
-
   return (
     <div
       className={`wb-mock-card-item ${isSelected ? 'selected' : ''}`}
       onClick={() => onSelect(mock)}
     >
-      {/* Top Row: Title + Status Pill + Menu */}
-      <div className="wb-mock-card-top">
-        <h4 className="wb-mock-card-name">{mock.name || `${mock.method} ${mock.path}`}</h4>
-
-        <div className="wb-mock-card-top-right">
-          <span className={`wb-mock-status-pill ${getStatusPillClass(mock.statusCode)}`}>
-            {getStatusLabel(mock.statusCode)}
+      {/* Main Content */}
+      <div className="wb-mock-card-main">
+        {/* Route: Method + Path + Status */}
+        <div className="wb-mock-route-row">
+          <span className={`wb-mock-method-badge ${mock.method.toLowerCase()}`}>
+            {mock.method}
           </span>
+          <span className="wb-mock-route-path">{mock.path}</span>
+          <span className={`wb-mock-status-pill ${getStatusPillClass(mock.statusCode)}`}>
+            {mock.statusCode}
+          </span>
+        </div>
 
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              className="wb-mock-menu-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpen(!menuOpen);
-              }}
-              title="Options"
-            >
-              ⋮
-            </button>
-
-            {menuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '100%',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.1)',
-                  zIndex: 20,
-                  minWidth: '150px',
-                  padding: '0.35rem 0',
-                }}
-              >
-                <button
-                  type="button"
-                  style={{
-                    width: '100%',
-                    padding: '0.45rem 0.85rem',
-                    textAlign: 'left',
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '0.8rem',
-                    color: '#334155',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(false);
-                    onEdit(mock);
-                  }}
-                >
-                  <span>✏️</span>
-                  <span>Edit Mock</span>
-                </button>
-
-                <button
-                  type="button"
-                  style={{
-                    width: '100%',
-                    padding: '0.45rem 0.85rem',
-                    textAlign: 'left',
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '0.8rem',
-                    color: '#1860ec',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(false);
-                    onTestInWorkbench(mock);
-                  }}
-                >
-                  <span>⚡</span>
-                  <span>Test in Tester</span>
-                </button>
-
-                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '0.25rem 0' }} />
-
-                <button
-                  type="button"
-                  style={{
-                    width: '100%',
-                    padding: '0.45rem 0.85rem',
-                    textAlign: 'left',
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '0.8rem',
-                    color: '#dc2626',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                  }}
-                  onClick={handleDelete}
-                >
-                  <span>🗑️</span>
-                  <span>Delete Mock</span>
-                </button>
-              </div>
-            )}
-          </div>
+        {/* URL */}
+        <div className="wb-mock-url-display" title={fullUrl}>
+          {fullUrl}
         </div>
       </div>
 
-      {/* Method + Path Row */}
-      <div className="wb-mock-route-row">
-        <span className={`wb-mock-method-badge ${mock.method.toLowerCase()}`}>
-          {mock.method}
-        </span>
-        <span className="wb-mock-route-path">{mock.path}</span>
-      </div>
+      {/* Actions */}
+      <div className="wb-mock-card-actions">
+        <button type="button" className="wb-mock-action-btn action-edit" onClick={handleEdit} title="Edit endpoint">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          <span>Edit</span>
+        </button>
 
-      {/* URL Box Row */}
-      <div className="wb-mock-url-box">
-        <span className="wb-mock-url-text" title={fullUrl}>
-          {fullUrl}
-        </span>
+        <button type="button" className="wb-mock-action-btn action-test" onClick={handleTest} title="Test in API Tester">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          <span>Test</span>
+        </button>
+
         <button
           type="button"
-          className={`wb-mock-btn-copy ${copied ? 'copied' : ''}`}
+          className={`wb-mock-action-btn action-copy ${copied ? 'copied' : ''}`}
           onClick={handleCopyUrl}
-          title="Copy simulated URL"
+          title="Copy URL"
         >
           {copied ? (
-            <span>✓ Copied</span>
+            <>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Copied</span>
+            </>
           ) : (
             <>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
               <span>Copy</span>
             </>
           )}
         </button>
-      </div>
 
-      {/* Bottom Action Strip */}
-      <div className="wb-mock-card-actions-bar">
-        <button
-          type="button"
-          className="wb-mock-btn-test"
-          onClick={(e) => {
-            e.stopPropagation();
-            onTestInWorkbench(mock);
-          }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        <button type="button" className="wb-mock-action-btn action-delete" onClick={handleDelete} title="Delete endpoint">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
           </svg>
-          <span>Test in API Tester</span>
+          <span>Delete</span>
         </button>
 
-        <span style={{ fontSize: '0.725rem', color: '#94a3b8' }}>
+        <span className="wb-mock-card-call-count">
           {mock.callCount || 0} calls
         </span>
       </div>

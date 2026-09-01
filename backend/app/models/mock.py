@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Integer, String, Text, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -15,6 +15,9 @@ def utc_now() -> datetime:
 
 class MockEndpoint(Base):
     __tablename__ = "mock_endpoints"
+    __table_args__ = (
+        UniqueConstraint("user_id", "method", "path", name="uq_user_mock_method_path"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(
