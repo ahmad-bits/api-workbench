@@ -40,8 +40,8 @@ export const LandingPage: React.FC = () => {
 
   const handleLoginClick = () => navigate('/login');
   const handleSignUpClick = () => navigate('/register');
-  const handleWorkbenchClick = () => navigate('/tester');
-  const handleCtaClick = () => isAuthenticated ? navigate('/tester') : navigate('/login');
+  const handleWorkbenchClick = () => navigate('/api-tester');
+  const handleCtaClick = () => isAuthenticated ? navigate('/api-tester') : navigate('/login');
 
   return (
     <div className="wb-landing-root">

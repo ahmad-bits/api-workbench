@@ -1,14 +1,26 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import './landing.css';
 
 interface LandingFooterProps {
   onLoginClick?: () => void;
   onSignUpClick?: () => void;
-  onNavigateSection: (sectionId: string) => void;
+  onNavigateSection?: (sectionId: string) => void;
 }
 
 export const LandingFooter: React.FC<LandingFooterProps> = ({
   onNavigateSection,
 }) => {
+  const navigate = useNavigate();
+
+  const handleNav = (sectionId: string) => {
+    if (onNavigateSection) {
+      onNavigateSection(sectionId);
+    } else {
+      navigate('/#' + sectionId);
+    }
+  };
+
   return (
     <footer className="wb-landing-footer">
       <div className="wb-footer-inner-container">
@@ -36,21 +48,21 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
           <button
             type="button"
             className="wb-footer-link-btn"
-            onClick={() => onNavigateSection('features')}
+            onClick={() => handleNav('features')}
           >
             Privacy Policy
           </button>
           <button
             type="button"
             className="wb-footer-link-btn"
-            onClick={() => onNavigateSection('about')}
+            onClick={() => handleNav('about')}
           >
             Terms of Service
           </button>
           <button
             type="button"
             className="wb-footer-link-btn"
-            onClick={() => onNavigateSection('how-it-works')}
+            onClick={() => handleNav('how-it-works')}
           >
             Pricing
           </button>

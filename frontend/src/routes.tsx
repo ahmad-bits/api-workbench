@@ -30,7 +30,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Wrapper that redirects authenticated users away from login/register to /tester.
+ * Wrapper that redirects authenticated users away from login/register to /api-tester.
  */
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,14 +40,14 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/tester" replace />;
+    return <Navigate to="/api-tester" replace />;
   }
 
   return <>{children}</>;
 }
 
 /**
- * Small component that loads a saved API into the tester and redirects to /tester.
+ * Small component that loads a saved API into the tester and redirects to /api-tester.
  */
 function OpenSavedApiRoute() {
   const { id } = useParams<{ id: string }>();
@@ -57,9 +57,9 @@ function OpenSavedApiRoute() {
   useEffect(() => {
     if (id) {
       wb.handleOpenSavedApi(id).then(() => {
-        // handleOpenSavedApi already navigates to tester via navigateToTester
+        // handleOpenSavedApi already navigates to tester
       }).catch(() => {
-        navigate('/apis', { replace: true });
+        navigate('/my-apis', { replace: true });
       });
     }
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -136,12 +136,33 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/tester" element={<TesterPage />} />
-        <Route path="/apis" element={<SavedApisPage />} />
-        <Route path="/apis/workspace/:slug" element={<SavedApisPage />} />
+        {/* API Tester Routes */}
+        <Route path="/api-tester" element={<TesterPage />} />
+        <Route path="/api-tester/params" element={<TesterPage />} />
+        <Route path="/api-tester/headers" element={<TesterPage />} />
+        <Route path="/api-tester/auth" element={<TesterPage />} />
+        <Route path="/api-tester/body" element={<TesterPage />} />
+        <Route path="/api-tester/response" element={<TesterPage />} />
+
+        {/* Backward Compatibility Aliases for Tester */}
+        <Route path="/tester" element={<Navigate to="/api-tester" replace />} />
+        <Route path="/tester/params" element={<Navigate to="/api-tester/params" replace />} />
+        <Route path="/tester/headers" element={<Navigate to="/api-tester/headers" replace />} />
+        <Route path="/tester/auth" element={<Navigate to="/api-tester/auth" replace />} />
+        <Route path="/tester/body" element={<Navigate to="/api-tester/body" replace />} />
+        <Route path="/tester/response" element={<Navigate to="/api-tester/response" replace />} />
+
+        {/* My APIs Routes */}
         <Route path="/my-apis" element={<SavedApisPage />} />
         <Route path="/my-apis/workspace/:slug" element={<SavedApisPage />} />
+        <Route path="/my-apis/:id" element={<OpenSavedApiRoute />} />
+
+        {/* Backward Compatibility Aliases for APIs */}
+        <Route path="/apis" element={<Navigate to="/my-apis" replace />} />
+        <Route path="/apis/workspace/:slug" element={<SavedApisPage />} />
         <Route path="/apis/:id" element={<OpenSavedApiRoute />} />
+
+        {/* Mock APIs & Settings */}
         <Route path="/mocks" element={<MocksPage />} />
         <Route path="/settings" element={<AccountSettingsPage />} />
       </Route>

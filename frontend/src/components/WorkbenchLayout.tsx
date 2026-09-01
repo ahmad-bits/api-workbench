@@ -13,8 +13,12 @@ export function WorkbenchLayout() {
 
   // Register the navigate-to-tester callback so context actions can navigate
   useEffect(() => {
-    setNavigateToTester(() => navigate('/tester'));
+    setNavigateToTester(() => navigate('/api-tester'));
   }, [navigate, setNavigateToTester]);
+
+  const isTesterRouteActive =
+    location.pathname.startsWith('/api-tester') ||
+    location.pathname.startsWith('/tester');
 
   const isApisRouteActive =
     location.pathname.startsWith('/apis') ||
@@ -29,8 +33,8 @@ export function WorkbenchLayout() {
           {/* Sidebar Nav Items */}
           <nav className="wb-sidebar-nav">
             <NavLink
-              to="/tester"
-              className={({ isActive }) => `wb-sidebar-item ${isActive ? 'active' : ''}`}
+              to="/api-tester"
+              className={() => `wb-sidebar-item ${isTesterRouteActive ? 'active' : ''}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="16 18 22 12 16 6" />
@@ -40,7 +44,7 @@ export function WorkbenchLayout() {
             </NavLink>
 
             <NavLink
-              to="/apis"
+              to="/my-apis"
               className={() => `wb-sidebar-item ${isApisRouteActive ? 'active' : ''}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

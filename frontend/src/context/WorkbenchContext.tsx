@@ -30,6 +30,8 @@ interface WorkbenchContextType {
   setParams: (p: KeyValuePair[]) => void;
   headers: KeyValuePair[];
   setHeaders: (h: KeyValuePair[]) => void;
+  authHeaders: KeyValuePair[];
+  setAuthHeaders: (a: KeyValuePair[]) => void;
   bodyType: BodyType;
   setBodyType: (b: BodyType) => void;
   body: string;
@@ -68,6 +70,7 @@ interface WorkbenchContextType {
   // Computed
   enabledParamsCount: number;
   enabledHeadersCount: number;
+  enabledAuthCount: number;
 
   // Navigation callback — set by consumer to navigate to tester
   navigateToTester: () => void;
@@ -87,7 +90,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [headers, setHeaders] = useState<KeyValuePair[]>([
     { id: 'h_default', key: 'Accept', value: 'application/json', description: '', enabled: true },
   ]);
-  const [bodyType, setBodyType] = useState<BodyType>('none');
+  const [authHeaders, setAuthHeaders] = useState<KeyValuePair[]>([]);
+  const [bodyType, setBodyType] = useState<BodyType>('json');
   const [body, setBody] = useState<string>('');
   const [timeoutSeconds] = useState<number>(30);
   const [requestCount, setRequestCount] = useState<number>(1);
@@ -158,9 +162,9 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const handleNewRequest = () => {
     setUrl('');
     setParams([]);
-    setMethod('GET');
     setHeaders([{ id: `h_${Date.now()}`, key: 'Accept', value: 'application/json', description: '', enabled: true }]);
-    setBodyType('none');
+    setAuthHeaders([]);
+    setBodyType('json');
     setBody('');
     setRequestCount(1);
     setResponse(null);
@@ -170,8 +174,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     toast.info('Cleared workspace for a new API request.');
   };
 
-  // Helper to extract an API Key from current headers or query params
+  // Helper to extract an API Key from current headers, auth rows, or query params
   const detectCurrentApiKey = (): string | null => {
+    // Check auth headers first
+    for (const a of authHeaders) {
+      if (a.enabled && a.key.trim() && a.value.trim()) {
+        return a.value.trim();
+      }
+    }
     for (const h of headers) {
       if (h.enabled && h.key.trim() && h.value.trim()) {
         const k = h.key.trim().toLowerCase();
@@ -216,31 +226,15 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setBatchResponse(null);
 
       if (openData.has_api_key && openData.api_key) {
-        const existingKeyIndex = headers.findIndex((h) => {
-          const k = h.key.trim().toLowerCase();
-          return k === 'x-api-key' || k === 'api-key' || k === 'apikey';
-        });
-
-        if (existingKeyIndex >= 0) {
-          const updated = [...headers];
-          updated[existingKeyIndex] = {
-            ...updated[existingKeyIndex],
+        setAuthHeaders([
+          {
+            id: `auth_${Date.now()}`,
+            key: 'X-API-Key',
             value: openData.api_key,
             enabled: true,
-          };
-          setHeaders(updated);
-        } else {
-          setHeaders([
-            ...headers,
-            {
-              id: `h_key_${Date.now()}`,
-              key: 'X-API-Key',
-              value: openData.api_key,
-              enabled: true,
-            },
-          ]);
-        }
-        setActiveTab('headers');
+          },
+        ]);
+        setActiveTab('auth');
       }
 
       navigateToTester();
@@ -256,7 +250,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     handleUrlChange(fullMockUrl);
     setMethod(mock.method);
     setHeaders([{ id: 'h_default', key: 'Accept', value: 'application/json', enabled: true }]);
-    setBodyType('none');
+    setAuthHeaders([]);
+    setBodyType('json');
     setBody('');
     setRequestCount(1);
     setResponse(null);
@@ -281,11 +276,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // Merge URL and params ensuring no query parameters are duplicated
     const mergedUrl = mergeUrlAndParams(url.trim(), params);
 
+    // Combine standard headers with active auth headers
+    const combinedHeaders = [...headers, ...authHeaders];
+
     const payload: WorkbenchRequest = {
       method,
       url: mergedUrl,
       params,
-      headers,
+      headers: combinedHeaders,
       bodyType,
       body,
       timeoutSeconds,
@@ -343,6 +341,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const enabledParamsCount = params.filter((p) => p.enabled && p.key.trim()).length;
   const enabledHeadersCount = headers.filter((h) => h.enabled && h.key.trim()).length;
+  const enabledAuthCount = authHeaders.filter((a) => a.enabled && a.key.trim()).length;
 
   return (
     <WorkbenchContext.Provider
@@ -352,6 +351,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         activeTab, setActiveTab,
         params, setParams: handleParamsChange,
         headers, setHeaders,
+        authHeaders, setAuthHeaders,
         bodyType, setBodyType,
         body, setBody,
         timeoutSeconds,
@@ -374,6 +374,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         detectCurrentApiKey,
         enabledParamsCount,
         enabledHeadersCount,
+        enabledAuthCount,
         navigateToTester,
         setNavigateToTester,
       }}

@@ -5,8 +5,6 @@ interface BenchmarkViewerProps {
   batchResponse: BatchWorkbenchResponse;
   activeTab: 'stats' | 'body' | 'headers' | 'runs';
   onTabChange: (tab: 'stats' | 'body' | 'headers' | 'runs') => void;
-  headerFilter: string;
-  onHeaderFilterChange: (filter: string) => void;
   onCopy: () => void;
   copied: boolean;
 }
@@ -15,8 +13,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
   batchResponse,
   activeTab,
   onTabChange,
-  headerFilter,
-  onHeaderFilterChange,
   onCopy,
   copied,
 }) => {
@@ -36,46 +32,29 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
   };
 
   const headersList = latestResponse
-    ? Object.entries(latestResponse.headers).filter(([key, val]) => {
-        if (!headerFilter) return true;
-        return (
-          key.toLowerCase().includes(headerFilter.toLowerCase()) ||
-          String(val).toLowerCase().includes(headerFilter.toLowerCase())
-        );
-      })
+    ? Object.entries(latestResponse.headers)
     : [];
 
   return (
     <div className="wb-bench-view">
       {/* Benchmark Summary Metrics Strip */}
       <div className="wb-bench-metrics-strip">
-        <div className="wb-bench-metric-item">
+        <div className="wb-bench-metric-card">
           <span className="wb-bench-lbl">TOTAL RUNS</span>
           <span className="wb-bench-val">{stats.totalRequests}</span>
         </div>
 
-        <div className="wb-bench-divider" />
-
-        <div className="wb-bench-metric-item">
+        <div className="wb-bench-metric-card">
           <span className="wb-bench-lbl">SUCCESS RATE</span>
-          <span
-            className="wb-bench-val"
-            style={{ color: stats.successRate === 100 ? '#10b981' : '#f59e0b' }}
-          >
-            {stats.successRate}%
-          </span>
+          <span className="wb-bench-val success">{stats.successRate}%</span>
         </div>
 
-        <div className="wb-bench-divider" />
-
-        <div className="wb-bench-metric-item">
-          <span className="wb-bench-lbl">AVG TIME</span>
+        <div className="wb-bench-metric-card">
+          <span className="wb-bench-lbl">AVG SPEED</span>
           <span className="wb-bench-val">{stats.avgLatencyMs} ms</span>
         </div>
 
-        <div className="wb-bench-divider" />
-
-        <div className="wb-bench-metric-item">
+        <div className="wb-bench-metric-card">
           <span className="wb-bench-lbl">MIN / MAX</span>
           <span className="wb-bench-val">{stats.minLatencyMs} / {stats.maxLatencyMs} ms</span>
         </div>
@@ -219,14 +198,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
       {/* TAB 4: Sample Headers */}
       {activeTab === 'headers' && (
         <div className="wb-bench-headers-pane">
-          <div className="wb-bench-headers-search">
-            <input
-              type="text"
-              value={headerFilter}
-              onChange={(e) => onHeaderFilterChange(e.target.value)}
-              className="wb-bench-search-input"
-            />
-          </div>
           <table className="wb-bench-headers-table">
             <thead>
               <tr>
