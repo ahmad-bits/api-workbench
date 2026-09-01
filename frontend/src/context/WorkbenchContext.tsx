@@ -2,6 +2,12 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { useToast } from './ToastContext';
+import {
+  splitUrl,
+  buildUrlWithParams,
+  mergeUrlAndParams,
+  syncParamsFromUrl,
+} from '../utils/urlUtils';
 import type {
   HttpMethod,
   BodyType,
@@ -86,6 +92,21 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [timeoutSeconds] = useState<number>(30);
   const [requestCount, setRequestCount] = useState<number>(1);
 
+  // Synchronized URL change handler: updates URL and syncs query params to the Params section
+  const handleUrlChange = useCallback((newUrl: string) => {
+    setUrl(newUrl);
+    setParams((prev) => syncParamsFromUrl(newUrl, prev));
+  }, []);
+
+  // Synchronized Params change handler: updates params and modifies the URL in-place without duplicating keys
+  const handleParamsChange = useCallback((newParams: KeyValuePair[]) => {
+    setParams(newParams);
+    setUrl((prevUrl) => {
+      const { baseUrl, hash } = splitUrl(prevUrl);
+      return buildUrlWithParams(baseUrl, newParams, hash);
+    });
+  }, []);
+
   // Execution & Response state
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<WorkbenchResponse | null>(null);
@@ -136,8 +157,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Reset to a new clean request
   const handleNewRequest = () => {
     setUrl('');
-    setMethod('GET');
     setParams([]);
+    setMethod('GET');
     setHeaders([{ id: `h_${Date.now()}`, key: 'Accept', value: 'application/json', description: '', enabled: true }]);
     setBodyType('none');
     setBody('');
@@ -188,7 +209,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const handleOpenSavedApi = async (apiId: string) => {
     try {
       const openData = await api.getSavedApiToOpen(apiId);
-      setUrl(openData.url);
+      handleUrlChange(openData.url);
       setMethod('GET');
       setRequestCount(1);
       setResponse(null);
@@ -232,9 +253,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Test mock endpoint inside Workbench
   const handleTestInWorkbench = (mock: MockEndpoint) => {
     const fullMockUrl = `http://127.0.0.1:8000/mock/${mock.path.startsWith('/') ? mock.path.slice(1) : mock.path}`;
-    setUrl(fullMockUrl);
+    handleUrlChange(fullMockUrl);
     setMethod(mock.method);
-    setParams([]);
     setHeaders([{ id: 'h_default', key: 'Accept', value: 'application/json', enabled: true }]);
     setBodyType('none');
     setBody('');
@@ -258,9 +278,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setResponse(null);
     setBatchResponse(null);
 
+    // Merge URL and params ensuring no query parameters are duplicated
+    const mergedUrl = mergeUrlAndParams(url.trim(), params);
+
     const payload: WorkbenchRequest = {
       method,
-      url: url.trim(),
+      url: mergedUrl,
       params,
       headers,
       bodyType,
@@ -325,9 +348,9 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     <WorkbenchContext.Provider
       value={{
         method, setMethod,
-        url, setUrl,
+        url, setUrl: handleUrlChange,
         activeTab, setActiveTab,
-        params, setParams,
+        params, setParams: handleParamsChange,
         headers, setHeaders,
         bodyType, setBodyType,
         body, setBody,

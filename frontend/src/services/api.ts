@@ -29,6 +29,8 @@ import type {
 } from '../types/savedApi';
 
 
+import { mergeUrlAndParamsMap } from '../utils/urlUtils';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 export class ApiClient {
@@ -96,11 +98,13 @@ export class ApiClient {
         paramsMap[p.key.trim()] = p.value;
       });
 
+    const { cleanUrl, mergedParams } = mergeUrlAndParamsMap(req.url, paramsMap);
+
     return {
       method: req.method,
-      url: req.url,
+      url: cleanUrl,
       headers: headersMap,
-      params: paramsMap,
+      params: mergedParams,
       body: req.bodyType !== 'none' ? req.body : null,
       body_type: req.bodyType,
       timeout_seconds: req.timeoutSeconds || 30.0,

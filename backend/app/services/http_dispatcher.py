@@ -2,6 +2,7 @@ import asyncio
 import json
 import time
 from typing import Dict, Any, List, Optional
+from urllib.parse import urlsplit, urlunsplit, parse_qsl
 import httpx
 from http import HTTPStatus
 from collections import Counter
@@ -21,15 +22,41 @@ class HttpDispatcherService:
     @staticmethod
     def _prepare_request_components(request_data: HttpRequestPayload):
         method = request_data.method.upper().strip()
-        url = request_data.url.strip()
+        raw_url = request_data.url.strip()
 
         # Default protocol if missing
-        if not url.startswith("http://") and not url.startswith("https://"):
-            url = f"https://{url}"
+        if not raw_url.startswith("http://") and not raw_url.startswith("https://"):
+            raw_url = f"https://{raw_url}"
 
         # Clean headers
         headers = {k: v for k, v in request_data.headers.items() if k.strip()}
-        params = {k: v for k, v in request_data.params.items() if k.strip()}
+
+        # Parse and deduplicate query parameters
+        parsed_url = urlsplit(raw_url)
+        url_query_tuples = parse_qsl(parsed_url.query, keep_blank_values=True)
+
+        # Merge parameters:
+        # 1. Start with URL query parameters
+        merged_params: Dict[str, str] = {}
+        for k, v in url_query_tuples:
+            clean_k = k.strip()
+            if clean_k:
+                merged_params[clean_k] = v
+
+        # 2. Overwrite / add parameters from params section (active precedence)
+        for k, v in request_data.params.items():
+            clean_k = k.strip()
+            if clean_k:
+                merged_params[clean_k] = v
+
+        # Clean URL without query string so httpx applies merged_params without duplicating
+        clean_url = urlunsplit((
+            parsed_url.scheme,
+            parsed_url.netloc,
+            parsed_url.path,
+            "",  # empty query string
+            parsed_url.fragment,
+        ))
 
         content = None
         json_data = None
@@ -45,7 +72,7 @@ class HttpDispatcherService:
             else:
                 content = request_data.body.encode("utf-8")
 
-        return method, url, headers, params, content, json_data
+        return method, clean_url, headers, merged_params, content, json_data
 
     @staticmethod
     async def _execute_single(
