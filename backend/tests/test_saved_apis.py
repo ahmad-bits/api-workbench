@@ -231,3 +231,48 @@ def test_saved_api_user_isolation(client):
         headers={"Authorization": f"Bearer {token_b}"},
     )
     assert bob_del.status_code == 404
+
+
+def test_delete_workspace_deletes_all_endpoints(client):
+    """Test that deleting a workspace permanently deletes all endpoint APIs in that category."""
+    # 1. Register user
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={"name": "Sarah", "username": "sarah", "email": "sarah@test.com", "password": "Password123!"},
+    )
+    token = reg.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Create endpoints in "PUBG" workspace
+    client.post(
+        "/api/v1/saved-apis",
+        headers=headers,
+        json={"name": "Match Stats", "url": "https://pubg.api/stats", "category": "PUBG"},
+    )
+    client.post(
+        "/api/v1/saved-apis",
+        headers=headers,
+        json={"name": "Player Profile", "url": "https://pubg.api/player", "category": "PUBG"},
+    )
+
+    # 3. Create endpoint in "General" workspace
+    client.post(
+        "/api/v1/saved-apis",
+        headers=headers,
+        json={"name": "General Endpoint", "url": "https://api.example.com", "category": "General"},
+    )
+
+    # Verify 3 endpoints exist
+    list_res = client.get("/api/v1/saved-apis", headers=headers)
+    assert len(list_res.json()) == 3
+
+    # 4. Delete "PUBG" workspace
+    del_res = client.delete("/api/v1/saved-apis/workspace/PUBG", headers=headers)
+    assert del_res.status_code == 200
+    assert del_res.json()["deleted_count"] == 2
+
+    # 5. Verify only "General Endpoint" remains
+    remaining_res = client.get("/api/v1/saved-apis", headers=headers)
+    items = remaining_res.json()
+    assert len(items) == 1
+    assert items[0]["name"] == "General Endpoint"

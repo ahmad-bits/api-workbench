@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.core.crypto import encrypt_api_key, decrypt_api_key, mask_api_key
 from app.models.saved_api import SavedApi
@@ -24,6 +25,7 @@ def _to_response_schema(saved: SavedApi) -> SavedApiResponse:
         user_id=saved.user_id,
         name=saved.name,
         url=saved.url,
+        category=saved.category or "General",
         has_api_key=has_key,
         api_key_masked=mask_api_key(saved.encrypted_api_key) if has_key else None,
         created_at=saved.created_at.isoformat() if saved.created_at else "",
@@ -59,6 +61,7 @@ class SavedApiService:
             user_id=user.id,
             name=api_in.name.strip(),
             url=api_in.url.strip(),
+            category=api_in.category.strip() if api_in.category else "General",
             encrypted_api_key=encrypted_key,
         )
         db.add(new_saved_api)
@@ -108,6 +111,7 @@ class SavedApiService:
             id=saved.id,
             name=saved.name,
             url=saved.url,
+            category=saved.category or "General",
             api_key=decrypted_key,
             has_api_key=bool(decrypted_key),
         )
@@ -132,6 +136,9 @@ class SavedApiService:
 
         if api_in.url is not None:
             saved.url = api_in.url.strip()
+
+        if api_in.category is not None:
+            saved.category = api_in.category.strip() if api_in.category else "General"
 
         if api_in.api_key is not None:
             if not api_in.api_key.strip():
@@ -166,6 +173,30 @@ class SavedApiService:
 
         logger.info(f"User '{user.username}' deleted saved API '{api_name}' (id: {api_id})")
         return True
+
+    def delete_saved_apis_by_workspace(
+        self, db: Session, user: User, workspace_name: str
+    ) -> int:
+        """Delete all saved APIs belonging to a specific workspace/category for the user."""
+        clean_name = workspace_name.strip().lower()
+        records = (
+            db.query(SavedApi)
+            .filter(
+                SavedApi.user_id == user.id,
+                func.lower(SavedApi.category) == clean_name,
+            )
+            .all()
+        )
+        count = len(records)
+        for item in records:
+            db.delete(item)
+        if count > 0:
+            db.commit()
+
+        logger.info(
+            f"User '{user.username}' deleted {count} saved API endpoints from workspace '{workspace_name}'"
+        )
+        return count
 
 
 saved_api_service = SavedApiService()

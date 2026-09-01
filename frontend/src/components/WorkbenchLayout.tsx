@@ -1,18 +1,24 @@
 import { useEffect } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useToast } from '../context/ToastContext';
 import { SaveApiModal } from './saved/SaveApiModal';
 
 export function WorkbenchLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const wb = useWorkbench();
+  const { setNavigateToTester } = wb;
   const toast = useToast();
 
   // Register the navigate-to-tester callback so context actions can navigate
   useEffect(() => {
-    wb.setNavigateToTester(() => navigate('/tester'));
-  }, [navigate, wb.setNavigateToTester]);
+    setNavigateToTester(() => navigate('/tester'));
+  }, [navigate, setNavigateToTester]);
+
+  const isApisRouteActive =
+    location.pathname.startsWith('/apis') ||
+    location.pathname.startsWith('/my-apis');
 
   return (
     <div className="wb-app-shell">
@@ -35,7 +41,7 @@ export function WorkbenchLayout() {
 
             <NavLink
               to="/apis"
-              className={({ isActive }) => `wb-sidebar-item ${isActive ? 'active' : ''}`}
+              className={() => `wb-sidebar-item ${isApisRouteActive ? 'active' : ''}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="12 2 2 7 12 12 22 7 12 2" />

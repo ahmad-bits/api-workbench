@@ -30,6 +30,7 @@ class SavedApi(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     url: Mapped[str] = mapped_column(String(1000), nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(120), nullable=True, default="General")
     encrypted_api_key: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

@@ -96,19 +96,17 @@ function MocksPage() {
 }
 
 export function AppRoutes() {
-  const { isAuthenticated } = useAuth();
-
   return (
     <Routes>
       {/* Public routes */}
       <Route
         path="/"
-        element={
-          isAuthenticated
-            ? <LandingPage />
-            : <LandingPage />
-        }
+        element={<LandingPage />}
       />
+
+      <Route path="/features" element={<Navigate to="/#features" replace />} />
+      <Route path="/how-it-works" element={<Navigate to="/#how-it-works" replace />} />
+      <Route path="/about" element={<Navigate to="/#about" replace />} />
 
       <Route
         path="/login"
@@ -140,6 +138,9 @@ export function AppRoutes() {
       >
         <Route path="/tester" element={<TesterPage />} />
         <Route path="/apis" element={<SavedApisPage />} />
+        <Route path="/apis/workspace/:slug" element={<SavedApisPage />} />
+        <Route path="/my-apis" element={<SavedApisPage />} />
+        <Route path="/my-apis/workspace/:slug" element={<SavedApisPage />} />
         <Route path="/apis/:id" element={<OpenSavedApiRoute />} />
         <Route path="/mocks" element={<MocksPage />} />
         <Route path="/settings" element={<AccountSettingsPage />} />

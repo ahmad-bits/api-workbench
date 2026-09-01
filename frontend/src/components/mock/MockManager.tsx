@@ -29,15 +29,15 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
       setError(null);
       const data = await api.getMocks();
       setMocks(data);
-      if (data.length > 0 && !selectedMock) {
-        setSelectedMock(data[0]);
+      if (data.length > 0) {
+        setSelectedMock((prev) => (prev ? prev : data[0]));
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load mock endpoints.');
     } finally {
       setIsLoading(false);
     }
-  }, [selectedMock]);
+  }, []);
 
   useEffect(() => {
     fetchMocks();

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { useToast } from './ToastContext';
 import type {
@@ -100,10 +100,13 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading');
   const [backendLatency, setBackendLatency] = useState<number | null>(null);
 
-  // Navigation helper — set by layout to avoid circular dependency with router
-  const [navigateToTester, setNavigateToTesterState] = useState<() => void>(() => () => {});
+  // Navigation helper — using a ref so registering doesn't trigger state re-renders
+  const navigateToTesterRef = useRef<() => void>(() => {});
+  const navigateToTester = useCallback(() => {
+    navigateToTesterRef.current();
+  }, []);
   const setNavigateToTester = useCallback((fn: () => void) => {
-    setNavigateToTesterState(() => fn);
+    navigateToTesterRef.current = fn;
   }, []);
 
   // Check backend health
@@ -313,7 +316,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  });
+  }, [handleSendRequest]);
 
   const enabledParamsCount = params.filter((p) => p.enabled && p.key.trim()).length;
   const enabledHeadersCount = headers.filter((h) => h.enabled && h.key.trim()).length;

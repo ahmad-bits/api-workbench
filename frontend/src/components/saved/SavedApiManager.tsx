@@ -1,11 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import './saved.css';
 import { api } from '../../services/api';
-import type { SavedApi } from '../../types/savedApi';
+import type { SavedApi, WorkspaceCategory } from '../../types/savedApi';
 import { AddApiModal } from './AddApiModal';
 import { EditApiModal } from './EditApiModal';
+import { NewWorkspaceModal } from './NewWorkspaceModal';
 import { useConfirm } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
+
+const LOCAL_STORAGE_WS_KEY = 'api_workbench_custom_workspaces';
+
+const slugify = (name: string): string => {
+  return (name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
 
 interface SavedApiManagerProps {
   onOpenInTester: (apiId: string) => void;
@@ -16,37 +29,188 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
   onOpenInTester,
   onCountChange,
 }) => {
+  const { slug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const confirm = useConfirm();
   const toast = useToast();
+
+  const basePrefix = location.pathname.startsWith('/my-apis') ? '/my-apis' : '/apis';
 
   const [apis, setApis] = useState<SavedApi[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
+  // Active view mode when at root: 'workspaces' | 'all'
+  const [viewMode, setViewMode] = useState<'workspaces' | 'all'>('workspaces');
+
+  // User workspaces loaded from localStorage (default: empty array)
+  const [workspaces, setWorkspaces] = useState<WorkspaceCategory[]>(() => {
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_WS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+
   // Modals state
+  const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState<boolean>(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [editingApi, setEditingApi] = useState<SavedApi | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedUrlId, setCopiedUrlId] = useState<string | null>(null);
 
-  const fetchApis = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await api.getSavedApis();
-      setApis(data);
-      if (onCountChange) onCountChange(data.length);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load saved APIs.');
-    } finally {
-      setIsLoading(false);
-    }
+  // Fetch APIs with active guard
+  useEffect(() => {
+    let isSubscribed = true;
+    api.getSavedApis()
+      .then((data) => {
+        if (isSubscribed) {
+          setApis(data);
+          if (onCountChange) onCountChange(data.length);
+          setIsLoading(false);
+
+          // Auto-register any unique categories from saved APIs into workspaces list
+          setWorkspaces((prevWs) => {
+            const existingNames = new Set(prevWs.map((w) => w.name.toLowerCase()));
+            const newDiscovered: WorkspaceCategory[] = [];
+
+            data.forEach((item) => {
+              const cat = (item.category || '').trim();
+              if (cat && cat !== 'General' && !existingNames.has(cat.toLowerCase())) {
+                existingNames.add(cat.toLowerCase());
+                newDiscovered.push({
+                  id: `ws-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  name: cat,
+                  description: `${cat} workspace collection`,
+                  iconTheme: 'blue',
+                });
+              }
+            });
+
+            if (newDiscovered.length > 0) {
+              const combined = [...prevWs, ...newDiscovered];
+              try {
+                localStorage.setItem(LOCAL_STORAGE_WS_KEY, JSON.stringify(combined));
+              } catch {
+                // ignore
+              }
+              return combined;
+            }
+            return prevWs;
+          });
+        }
+      })
+      .catch((err: unknown) => {
+        if (isSubscribed) {
+          const msg = err instanceof Error ? err.message : 'Failed to load saved APIs.';
+          setError(msg);
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [onCountChange]);
 
-  useEffect(() => {
-    fetchApis();
-  }, [fetchApis]);
+  // Derive active workspace dynamically from the current React Router URL route slug
+  const activeWorkspace = useMemo<WorkspaceCategory | null>(() => {
+    if (!slug) return null;
+    const cleanSlug = slug.toLowerCase().trim();
+
+    // 1. Check known workspaces
+    const matchedWs = workspaces.find((w) => slugify(w.name) === cleanSlug);
+    if (matchedWs) return matchedWs;
+
+    // 2. Check saved API categories
+    const matchedApi = apis.find((a) => slugify(a.category || '') === cleanSlug);
+    if (matchedApi && matchedApi.category) {
+      return {
+        id: `ws-${cleanSlug}`,
+        name: matchedApi.category,
+        description: `${matchedApi.category} workspace collection`,
+        iconTheme: 'blue',
+      };
+    }
+
+    // 3. Fallback from slug
+    const humanized = cleanSlug
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
+    return {
+      id: `ws-${cleanSlug}`,
+      name: humanized,
+      description: `${humanized} workspace collection`,
+      iconTheme: 'blue',
+    };
+  }, [slug, workspaces, apis]);
+
+  const saveWorkspaces = (newList: WorkspaceCategory[]) => {
+    setWorkspaces(newList);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_WS_KEY, JSON.stringify(newList));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleWorkspaceCreated = (newWs: WorkspaceCategory) => {
+    saveWorkspaces([...workspaces, newWs]);
+    navigate(`${basePrefix}/workspace/${slugify(newWs.name)}`);
+  };
+
+  const handleDeleteWorkspace = async (e: React.MouseEvent, ws: WorkspaceCategory) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wsApis = getWorkspaceApis(ws.name);
+    const confirmed = await confirm({
+      title: 'Delete Workspace',
+      message: `Are you sure you want to delete the workspace "${ws.name}"?`,
+      details: wsApis.length > 0
+        ? `This will permanently delete "${ws.name}" and all ${wsApis.length} saved endpoint(s) inside it.`
+        : 'This action will permanently delete this workspace collection.',
+      confirmText: wsApis.length > 0 ? 'Delete Workspace & Endpoints' : 'Delete Workspace',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    try {
+      // 1. Delete all APIs associated with this workspace on the backend
+      await api.deleteSavedApisByWorkspace(ws.name);
+
+      // 2. Remove all those APIs from local state
+      const remainingApis = apis.filter(
+        (a) => (a.category || 'General').toLowerCase() !== ws.name.toLowerCase()
+      );
+      setApis(remainingApis);
+      if (onCountChange) onCountChange(remainingApis.length);
+
+      // 3. Remove workspace from workspace list
+      const remaining = workspaces.filter((w) => w.id !== ws.id && slugify(w.name) !== slugify(ws.name));
+      saveWorkspaces(remaining);
+
+      // 4. Navigate back if currently viewing the deleted workspace
+      if (activeWorkspace && slugify(activeWorkspace.name) === slugify(ws.name)) {
+        navigate(basePrefix);
+      }
+      toast.success(`Workspace "${ws.name}" and all its endpoints were permanently deleted.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete workspace endpoints.';
+      toast.error(msg);
+    }
+  };
 
   const handleApiCreated = (newApi: SavedApi) => {
     setApis((prev) => [newApi, ...prev]);
@@ -78,9 +242,10 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
       setApis(remaining);
       if (onCountChange) onCountChange(remaining.length);
       toast.success(`API "${item.name}" was deleted.`);
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete saved API.');
-      toast.error(err.message || 'Failed to delete saved API.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete saved API.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setDeletingId(null);
     }
@@ -94,77 +259,106 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     setTimeout(() => setCopiedUrlId(null), 1500);
   };
 
+  const getWorkspaceApis = (workspaceName: string) => {
+    return apis.filter((item) => (item.category || 'General').toLowerCase() === workspaceName.toLowerCase());
+  };
+
   const filteredApis = apis.filter((item) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
-    return item.name.toLowerCase().includes(q) || item.url.toLowerCase().includes(q);
+    return (
+      item.name.toLowerCase().includes(q) ||
+      item.url.toLowerCase().includes(q) ||
+      (item.category || '').toLowerCase().includes(q)
+    );
   });
 
-  const getRelativeTime = (isoStr: string, index: number) => {
-    if (!isoStr) return index === 0 ? '2 hours ago' : index === 1 ? 'Yesterday' : '3 days ago';
+  const formatRelativeTime = (isoStr: string) => {
+    if (!isoStr) return 'Recently';
     try {
-      const now = Date.now();
-      const past = new Date(isoStr).getTime();
-      const diffMs = now - past;
-      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-      if (diffHrs < 1) return 'Just now';
-      if (diffHrs < 24) return `${diffHrs} hour${diffHrs !== 1 ? 's' : ''} ago`;
-      const diffDays = Math.floor(diffHrs / 24);
-      if (diffDays === 1) return 'Yesterday';
-      if (diffDays < 7) return `${diffDays} days ago`;
       return new Date(isoStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     } catch {
       return 'Recently';
     }
   };
 
-  const detectMethod = (name: string, url: string, index: number) => {
+  const detectMethod = (name: string, url: string) => {
     const text = (name + ' ' + url).toLowerCase();
-    if (text.includes('auth') || text.includes('login') || text.includes('create') || text.includes('order')) return 'POST';
-    if (text.includes('update') || text.includes('setting') || text.includes('config')) return 'PUT';
+    if (text.includes('auth') || text.includes('login') || text.includes('create') || text.includes('order') || text.includes('post')) return 'POST';
+    if (text.includes('update') || text.includes('setting') || text.includes('config') || text.includes('put')) return 'PUT';
     if (text.includes('delete') || text.includes('remove')) return 'DELETE';
-    if (index === 0) return 'POST';
-    if (index === 2) return 'PUT';
+    if (text.includes('patch')) return 'PATCH';
     return 'GET';
   };
 
   return (
     <div className="wb-saved-engine-root">
-      {/* Top Header matching Figma: Title + Subtitle + Search Bar + [+ Add API] Button */}
+      {/* Top Header Bar */}
       <header className="wb-saved-topbar">
         <div className="wb-saved-title-block">
-          <h2 className="wb-saved-heading">My APIs</h2>
-          <p className="wb-saved-subheading">Manage and test your saved API endpoints.</p>
+          <div className="wb-saved-breadcrumb-row">
+            {activeWorkspace ? (
+              <div className="wb-breadcrumb-nav">
+                <Link to={basePrefix} className="wb-breadcrumb-link">
+                  Workspaces
+                </Link>
+                <span className="wb-breadcrumb-separator">/</span>
+                <span className="wb-breadcrumb-current">{activeWorkspace.name}</span>
+              </div>
+            ) : (
+              <h2 className="wb-saved-heading">My APIs</h2>
+            )}
+          </div>
+          <p className="wb-saved-subheading">
+            {activeWorkspace
+              ? activeWorkspace.description
+              : 'Organize, test, and manage all your API endpoints across personal workspaces.'}
+          </p>
         </div>
 
         <div className="wb-saved-topbar-actions">
-          {/* Search Bar */}
+          {/* Search Box */}
           <div className="wb-saved-search-wrap">
             <span className="wb-saved-search-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </span>
             <input
               type="text"
+              placeholder={activeWorkspace ? `Search in ${activeWorkspace.name}...` : 'Search workspaces & APIs...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="wb-saved-search-input"
             />
           </div>
 
-          {/* + Add API Action */}
+          {/* Action Buttons */}
+          {!activeWorkspace && (
+            <button
+              type="button"
+              className="wb-btn-top-secondary"
+              onClick={() => setIsNewWorkspaceModalOpen(true)}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span>New Workspace</span>
+            </button>
+          )}
+
           <button
             type="button"
-            className="wb-btn-add-api-primary"
+            className="wb-btn-top-primary"
             onClick={() => setIsAddModalOpen(true)}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span>Add API</span>
+            <span>{activeWorkspace ? 'Add Endpoint' : 'Add API'}</span>
           </button>
         </div>
       </header>
@@ -179,8 +373,8 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
               color: '#dc2626',
               padding: '0.65rem 1rem',
               borderRadius: '8px',
-              fontSize: '0.85rem',
-              maxWidth: '1100px',
+              fontSize: '0.8125rem',
+              maxWidth: '1040px',
               margin: '0 auto 1.25rem auto',
             }}
           >
@@ -190,187 +384,363 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
 
         {isLoading ? (
           <div style={{ padding: '3rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
-            <span>Loading saved APIs...</span>
+            <span>Loading workspaces & APIs...</span>
           </div>
-        ) : filteredApis.length === 0 ? (
-          <div className="wb-saved-empty-card">
-            <div className="wb-saved-empty-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
+        ) : !activeWorkspace && viewMode === 'workspaces' ? (
+          /* ==========================================================================
+             Workspace Dashboard Grid (at /my-apis or /apis)
+             ========================================================================== */
+          <div className="wb-workspaces-dashboard">
+            {/* View Switcher Bar */}
+            <div className="wb-workspaces-view-header">
+              <div className="wb-view-tabs">
+                <button
+                  type="button"
+                  className="wb-view-tab active"
+                  onClick={() => setViewMode('workspaces')}
+                >
+                  Workspaces ({workspaces.length})
+                </button>
+                <button
+                  type="button"
+                  className="wb-view-tab"
+                  onClick={() => setViewMode('all')}
+                >
+                  All Endpoints ({apis.length})
+                </button>
+              </div>
             </div>
-            <h3 className="wb-saved-empty-title">
-              {searchQuery ? 'No Matching APIs Found' : 'No Saved APIs Yet'}
-            </h3>
-            <p className="wb-saved-empty-desc">
-              {searchQuery
-                ? `No APIs match "${searchQuery}". Try clearing search query.`
-                : 'Save your endpoints to organize, test, and share them anytime in one click.'}
-            </p>
-            <button
-              type="button"
-              className="wb-btn-add-api-primary"
-              style={{ margin: '0 auto' }}
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              + Add Your First API
-            </button>
+
+            {/* If No Workspaces Created Yet */}
+            {workspaces.length === 0 ? (
+              <div className="wb-saved-empty-card">
+                <div className="wb-saved-empty-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  </svg>
+                </div>
+                <h3 className="wb-saved-empty-title">No Workspaces Yet</h3>
+                <p className="wb-saved-empty-desc">
+                  Create workspaces to organize, group, and manage your API endpoints into dedicated project collections.
+                </p>
+                <button
+                  type="button"
+                  className="wb-btn-top-primary"
+                  onClick={() => setIsNewWorkspaceModalOpen(true)}
+                >
+                  + Create First Workspace
+                </button>
+              </div>
+            ) : (
+              /* Grid of Workspace Cards */
+              <div className="wb-workspaces-grid">
+                {workspaces
+                  .filter((ws) => {
+                    if (!searchQuery.trim()) return true;
+                    const q = searchQuery.toLowerCase().trim();
+                    return ws.name.toLowerCase().includes(q) || ws.description.toLowerCase().includes(q);
+                  })
+                  .map((ws) => {
+                    const wsApis = getWorkspaceApis(ws.name);
+                    const count = wsApis.length;
+                    const updatedText = wsApis.length > 0 ? `Updated ${formatRelativeTime(wsApis[0].created_at)}` : 'No endpoints yet';
+
+                    return (
+                      <Link
+                        key={ws.id}
+                        to={`${basePrefix}/workspace/${slugify(ws.name)}`}
+                        className="wb-workspace-card"
+                        style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}
+                      >
+                        <div className="wb-workspace-card-top">
+                          {/* Clean Blue Icon Squircle */}
+                          <div className="wb-workspace-icon-squircle">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                            </svg>
+                          </div>
+
+                          {/* Delete Workspace Button */}
+                          <button
+                            type="button"
+                            className="wb-btn-action-icon danger"
+                            onClick={(e) => handleDeleteWorkspace(e, ws)}
+                            title="Delete Workspace"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        {/* Title & Description */}
+                        <h3 className="wb-workspace-card-title">{ws.name}</h3>
+                        <p className="wb-workspace-card-desc">{ws.description}</p>
+
+                        {/* Footer: Endpoints Count & Updated */}
+                        <div className="wb-workspace-card-footer">
+                          <span className="wb-workspace-card-count">{count} {count === 1 ? 'Endpoint' : 'Endpoints'}</span>
+                          <span className="wb-workspace-card-updated">{updatedText}</span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         ) : (
+          /* ==========================================================================
+             Workspace Detail / Endpoints List View
+             ========================================================================== */
           <div className="wb-saved-cards-container">
-            {filteredApis.map((item, idx) => {
-              const method = detectMethod(item.name, item.url, idx);
-              const isDraft = idx === 1;
-
-              return (
-                <div
-                  key={item.id}
-                  className="wb-saved-card"
-                  onClick={() => onOpenInTester(item.id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {/* Left Section: Icon + Title + Method & URL */}
-                  <div className="wb-saved-card-left">
-                    <div
-                      className={`wb-saved-icon-squircle ${
-                        idx === 1 ? 'gray' : idx === 2 ? 'green' : ''
-                      }`}
-                    >
-                      {idx === 0 ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                      ) : idx === 1 ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <ellipse cx="12" cy="5" rx="9" ry="3" />
-                          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-                        </svg>
-                      )}
-                    </div>
-
-                    <div className="wb-saved-info-col">
-                      <div className="wb-saved-name-row">
-                        <h4 className="wb-saved-name-title">{item.name}</h4>
-                        <span className={`wb-saved-status-badge ${isDraft ? 'draft' : 'active'}`}>
-                          {isDraft ? 'DRAFT' : 'ACTIVE'}
-                        </span>
-                        {item.has_api_key && (
-                          <span
-                            style={{
-                              fontSize: '0.675rem',
-                              color: '#15803d',
-                              backgroundColor: '#ecfdf5',
-                              padding: '0.1rem 0.4rem',
-                              borderRadius: '4px',
-                              fontWeight: 600,
-                            }}
-                          >
-                            🔒 Key
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="wb-saved-route-row">
-                        <span className={`wb-saved-method-tag ${method.toLowerCase()}`}>
-                          {method}
-                        </span>
-                        <span className="wb-saved-url-text" title={item.url}>
-                          {item.url}
-                        </span>
-                      </div>
-                    </div>
+            {activeWorkspace && (
+              <div className="wb-workspace-detail-banner">
+                <div className="wb-workspace-banner-left">
+                  <div className="wb-workspace-icon-squircle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    </svg>
                   </div>
-
-                  {/* Right Section: Last Updated + Actions */}
-                  <div className="wb-saved-card-right">
-                    <div className="wb-saved-meta-col">
-                      <span className="wb-saved-meta-lbl">Last Updated</span>
-                      <span className="wb-saved-meta-time">
-                        {getRelativeTime(item.created_at, idx)}
-                      </span>
-                    </div>
-
-                    <div className="wb-saved-card-actions">
-                      <button
-                        type="button"
-                        className="wb-btn-open-tester-pill"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenInTester(item.id);
-                        }}
-                        title="Open in API Tester"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                        </svg>
-                        <span>Test API</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="wb-btn-icon-saved"
-                        onClick={(e) => handleCopyUrl(e, item)}
-                        title="Copy endpoint URL"
-                      >
-                        {copiedUrlId === item.id ? (
-                          <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700 }}>✓</span>
-                        ) : (
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                          </svg>
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="wb-btn-icon-saved"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingApi(item);
-                        }}
-                        title="Edit API"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="wb-btn-icon-saved delete"
-                        onClick={(e) => handleDelete(e, item)}
-                        disabled={deletingId === item.id}
-                        title="Delete API"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
-                    </div>
+                  <div>
+                    <h3 className="wb-workspace-banner-title">{activeWorkspace.name}</h3>
+                    <p className="wb-workspace-banner-desc">{activeWorkspace.description}</p>
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="wb-workspace-banner-actions">
+                  <button
+                    type="button"
+                    className="wb-btn-top-secondary"
+                    onClick={(e) => handleDeleteWorkspace(e, activeWorkspace)}
+                    title={`Delete "${activeWorkspace.name}" workspace and all its endpoints`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    <span>Delete Workspace</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="wb-btn-top-primary"
+                    onClick={() => setIsAddModalOpen(true)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>Add Endpoint</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* View switcher when in "All Endpoints" view */}
+            {!activeWorkspace && viewMode === 'all' && (
+              <div className="wb-workspaces-view-header" style={{ marginBottom: '1.25rem' }}>
+                <div className="wb-view-tabs">
+                  <button
+                    type="button"
+                    className="wb-view-tab"
+                    onClick={() => setViewMode('workspaces')}
+                  >
+                    Workspaces ({workspaces.length})
+                  </button>
+                  <button
+                    type="button"
+                    className="wb-view-tab active"
+                    onClick={() => setViewMode('all')}
+                  >
+                    All Endpoints ({apis.length})
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(() => {
+              const currentList = activeWorkspace
+                ? getWorkspaceApis(activeWorkspace.name).filter((item) => {
+                    if (!searchQuery.trim()) return true;
+                    const q = searchQuery.toLowerCase().trim();
+                    return item.name.toLowerCase().includes(q) || item.url.toLowerCase().includes(q);
+                  })
+                : filteredApis;
+
+              if (currentList.length === 0) {
+                if (activeWorkspace) {
+                  return searchQuery ? (
+                    <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94a3b8', fontSize: '0.875rem' }}>
+                      No endpoints matching "{searchQuery}" in {activeWorkspace.name}.
+                    </div>
+                  ) : null;
+                }
+
+                return (
+                  <div className="wb-saved-empty-card">
+                    <div className="wb-saved-empty-icon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="16 18 22 12 16 6" />
+                        <polyline points="8 6 2 12 8 18" />
+                      </svg>
+                    </div>
+                    <h3 className="wb-saved-empty-title">
+                      {searchQuery ? 'No Matching Endpoints' : 'No Saved APIs Yet'}
+                    </h3>
+                    <p className="wb-saved-empty-desc">
+                      {searchQuery
+                        ? `No APIs match "${searchQuery}".`
+                        : 'Save your endpoints to organize, test, and share them in one click.'}
+                    </p>
+                    <button
+                      type="button"
+                      className="wb-btn-top-primary"
+                      onClick={() => setIsAddModalOpen(true)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                      <span>Add First Endpoint</span>
+                    </button>
+                  </div>
+                );
+              }
+
+              return currentList.map((item) => {
+                const method = detectMethod(item.name, item.url);
+
+                return (
+                  <div
+                    key={item.id}
+                    className="wb-saved-card"
+                    onClick={() => onOpenInTester(item.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {/* Left Section: Title + Category + Method & URL */}
+                    <div className="wb-saved-card-left">
+                      <div className="wb-saved-icon-squircle">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="16 18 22 12 16 6" />
+                          <polyline points="8 6 2 12 8 18" />
+                        </svg>
+                      </div>
+
+                      <div className="wb-saved-card-meta">
+                        <div className="wb-saved-card-title-row">
+                          <h4 className="wb-saved-card-title">{item.name}</h4>
+                          {item.category && item.category !== 'General' && (
+                            <span className="wb-saved-workspace-badge">{item.category}</span>
+                          )}
+                        </div>
+
+                        <div className="wb-saved-url-row">
+                          <span className={`wb-method-badge ${method.toLowerCase()}`}>{method}</span>
+                          <span className="wb-saved-url-text" title={item.url}>
+                            {item.url}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Section: Last Updated + Redesigned Actions */}
+                    <div className="wb-saved-card-right">
+                      <div className="wb-saved-meta-col">
+                        <span className="wb-saved-meta-lbl">Updated</span>
+                        <span className="wb-saved-meta-time">
+                          {formatRelativeTime(item.created_at)}
+                        </span>
+                      </div>
+
+                      <div className="wb-saved-card-actions">
+                        {/* Primary Test Button */}
+                        <button
+                          type="button"
+                          className="wb-btn-action-test"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenInTester(item.id);
+                          }}
+                          title="Open in API Tester"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                          </svg>
+                          <span>Test API</span>
+                        </button>
+
+                        {/* Copy URL Icon Button */}
+                        <button
+                          type="button"
+                          className="wb-btn-action-icon"
+                          onClick={(e) => handleCopyUrl(e, item)}
+                          title="Copy endpoint URL"
+                        >
+                          {copiedUrlId === item.id ? (
+                            <span style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 700 }}>✓</span>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
+                          )}
+                        </button>
+
+                        {/* Edit API Icon Button */}
+                        <button
+                          type="button"
+                          className="wb-btn-action-icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingApi(item);
+                          }}
+                          title="Edit API"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+
+                        {/* Delete API Icon Button */}
+                        <button
+                          type="button"
+                          className="wb-btn-action-icon danger"
+                          onClick={(e) => handleDelete(e, item)}
+                          disabled={deletingId === item.id}
+                          title="Delete API"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
       </div>
+
+      {/* Add Workspace Modal */}
+      <NewWorkspaceModal
+        isOpen={isNewWorkspaceModalOpen}
+        onClose={() => setIsNewWorkspaceModalOpen(false)}
+        onCreated={handleWorkspaceCreated}
+        existingNames={workspaces.map((w) => w.name)}
+      />
 
       {/* Add API Modal */}
       <AddApiModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onCreated={handleApiCreated}
+        workspaces={workspaces}
+        defaultCategory={activeWorkspace ? activeWorkspace.name : undefined}
       />
 
       {/* Edit API Modal */}
@@ -379,6 +749,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
         onClose={() => setEditingApi(null)}
         apiItem={editingApi}
         onUpdated={handleApiUpdated}
+        workspaces={workspaces}
       />
     </div>
   );

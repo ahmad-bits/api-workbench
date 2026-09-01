@@ -1,9 +1,10 @@
 /* ==========================================================================
-   API Workbench - Account Settings Page (Figma Accurate Layout)
-   Theme: Crisp Blue & White Modern Palette (#1860ec, #ffffff, #f8fafc, #0f172a)
+   API Workbench - Account Settings (Modern Blue + White SaaS Theme)
+   Palette: Primary (#1860ec), Hover (#124ec6), Background (#ffffff, #f8fafc),
+            Text (#0f172a, #334155, #64748b), Borders (#e2e8f0, #cbd5e1)
    ========================================================================== */
 
-.wb-account-root {
+.wb-account-workspace {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -13,445 +14,510 @@
 }
 
 /* ==========================================================================
-   1. Top Header Bar
+   1. Header Section
    ========================================================================== */
 
-.wb-account-topbar {
+.wb-account-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 2rem 1.15rem 2rem;
+  padding: 1.5rem 2.5rem;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   gap: 1.5rem;
 }
 
-.wb-account-title-block {
-  display: flex;
-  flex-direction: column;
-}
-
-.wb-account-heading {
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-  margin: 0;
-}
-
-.wb-account-subheading {
-  font-size: 0.825rem;
-  color: #64748b;
-  margin: 0.15rem 0 0 0;
-}
-
-.wb-btn-logout-pill {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 9999px;
-  padding: 0.45rem 1.15rem;
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: #0f172a;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-
-.wb-btn-logout-pill:hover {
-  background-color: #fef2f2;
-  border-color: #fecaca;
-  color: #dc2626;
-}
-
-/* ==========================================================================
-   2. Main Workspace (2-Column Scrollable Grid)
-   ========================================================================== */
-
-.wb-account-content-viewport {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem 2rem 2.5rem 2rem;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.wb-account-grid {
-  max-width: 820px;
-  margin: 0 auto;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ==========================================================================
-   3. Left Column: Profile Details & Danger Zone
-   ========================================================================== */
-
-.wb-account-left-col {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-
-/* Profile Details Card */
-.wb-profile-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.75rem;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 1.35rem;
-}
-
-.wb-profile-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.wb-profile-card-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.wb-btn-edit-toggle {
-  background: none;
-  border: none;
-  color: #1860ec;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  font-family: inherit;
-}
-
-.wb-btn-edit-toggle:hover {
-  text-decoration: underline;
-}
-
-/* Avatar + Name Row */
-.wb-avatar-name-row {
+.wb-account-header-info {
   display: flex;
   align-items: center;
   gap: 1.25rem;
 }
 
-.wb-avatar-circle-wrap {
-  position: relative;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+.wb-account-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.wb-account-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #1860ec, #3b82f6);
   color: #ffffff;
-  font-size: 1.35rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(24, 96, 236, 0.25);
+  letter-spacing: 0.04em;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(24, 96, 236, 0.2);
 }
 
-.wb-avatar-edit-badge {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  font-size: 0.7rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-}
-
-.wb-name-field-wrap {
-  flex: 1;
+.wb-account-title-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.15rem;
 }
 
-.wb-field-lbl {
-  font-size: 0.75rem;
+.wb-account-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.wb-account-title {
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #475569;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.wb-account-status-pill {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #059669;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.wb-account-subtitle {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Header Logout Button - Crisp Blue Theme */
+.wb-btn-account-logout {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1860ec;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(24, 96, 236, 0.05);
+}
+
+.wb-btn-account-logout:hover {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+  color: #124ec6;
+}
+
+.wb-btn-account-logout:active {
+  transform: translateY(1px);
+}
+
+/* ==========================================================================
+   2. Main Scrollable Body & Section Grid
+   ========================================================================== */
+
+.wb-account-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2.25rem 2.5rem 3.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wb-account-sections {
+  max-width: 920px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.wb-account-section {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+  padding-bottom: 2.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.wb-account-section:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Section Aside (Left) */
+.wb-section-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.35rem;
+}
+
+.wb-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.wb-section-title.wb-text-danger {
+  color: #dc2626;
+}
+
+.wb-section-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Section Content (Right Panel) */
+.wb-section-content {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   3. Forms & Fields
+   ========================================================================== */
+
+.wb-settings-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.wb-settings-form-fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.wb-field-group {
+  padding: 1.15rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.wb-field-group + .wb-field-group {
+  border-top: 1px solid #f1f5f9;
+}
+
+.wb-field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wb-field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.wb-field-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.wb-field-badge-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
 }
 
 .wb-field-input {
   width: 100%;
+  max-width: 420px;
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.875rem;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.84rem;
   color: #0f172a;
   outline: none;
-  transition: all 0.15s ease;
+  transition: all 150ms ease;
   font-family: inherit;
 }
 
 .wb-field-input:focus {
   border-color: #1860ec;
-  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.1);
+  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.12);
 }
 
-.wb-field-input:disabled {
+.wb-field-input.wb-field-input-disabled {
   background-color: #f8fafc;
-  color: #334155;
-  cursor: default;
+  color: #64748b;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  user-select: none;
 }
 
-.wb-field-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-/* Security / Password section */
-.wb-password-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 1.15rem;
-}
-
-.wb-btn-save-profile {
-  background-color: #1860ec;
-  color: #ffffff;
-  border: none;
-  border-radius: 9999px;
-  padding: 0.65rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 10px rgba(24, 96, 236, 0.25);
-  font-family: inherit;
-  align-self: flex-start;
-}
-
-.wb-btn-save-profile:hover {
-  background-color: #124ec6;
-  box-shadow: 0 5px 14px rgba(24, 96, 236, 0.35);
-}
-
-/* Danger Zone Section */
-.wb-danger-zone-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.wb-danger-zone-label {
-  font-size: 0.725rem;
-  font-weight: 800;
-  color: #dc2626;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.wb-danger-card {
-  background-color: #ffffff;
-  border: 1px solid #fecaca;
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+/* Username input with @ prefix */
+.wb-input-prefix-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  box-shadow: 0 1px 4px rgba(220, 38, 38, 0.04);
-}
-
-.wb-danger-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.wb-danger-title {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0;
-}
-
-.wb-danger-subtitle {
-  font-size: 0.8rem;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.wb-btn-danger-pill {
+  width: 100%;
+  max-width: 420px;
   background-color: #ffffff;
-  border: 1px solid #ef4444;
-  border-radius: 9999px;
-  padding: 0.55rem 1.25rem;
-  font-size: 0.825rem;
-  font-weight: 700;
-  color: #dc2626;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  white-space: nowrap;
-  flex-shrink: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 150ms ease;
 }
 
-.wb-btn-danger-pill:hover {
-  background-color: #dc2626;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+.wb-input-prefix-container:focus-within {
+  border-color: #1860ec;
+  box-shadow: 0 0 0 3px rgba(24, 96, 236, 0.12);
+}
+
+.wb-input-prefix-adornment {
+  padding: 0.55rem 0.4rem 0.55rem 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #94a3b8;
+  user-select: none;
+  background-color: transparent;
+}
+
+.wb-field-input-prefixed {
+  border: none !important;
+  background: transparent !important;
+  padding: 0.55rem 0.85rem 0.55rem 0.15rem;
+  font-size: 0.84rem;
+  color: #0f172a;
+  outline: none !important;
+  box-shadow: none !important;
+  width: 100%;
+  font-family: inherit;
 }
 
 /* ==========================================================================
-   4. Right Column: Account Information Card
+   4. Form Actions & Button System
    ========================================================================== */
 
-.wb-account-info-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.35rem;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-}
-
-.wb-account-info-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.wb-info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.wb-info-lbl {
-  font-size: 0.725rem;
-  font-weight: 700;
-  color: #64748b;
-}
-
-.wb-account-id-box {
+.wb-settings-form-actions {
+  padding: 0.85rem 1.35rem;
   background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Primary Action Button (API Workbench Blue) */
+.wb-btn-settings-primary {
+  background-color: #1860ec;
+  color: #ffffff;
+  border: none;
   border-radius: 8px;
-  padding: 0.55rem 0.85rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.825rem;
-  color: #334155;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.8125rem;
   font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(24, 96, 236, 0.2);
 }
 
-.wb-plan-badge-pill {
-  align-self: flex-start;
-  background-color: #dbeafe;
-  color: #2563eb;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.wb-btn-settings-primary:hover:not(:disabled) {
+  background-color: #124ec6;
+  box-shadow: 0 2px 6px rgba(24, 96, 236, 0.3);
 }
 
-.wb-member-since-val {
-  font-size: 0.95rem;
+.wb-btn-settings-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.wb-btn-settings-primary:disabled {
+  background-color: #94a3b8;
+  color: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+/* Danger Box inside Section Content */
+.wb-danger-box {
+  padding: 1.25rem 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff8f8;
+  gap: 1.5rem;
+}
+
+.wb-danger-box-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.wb-danger-box-title {
+  font-size: 0.84rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #991b1b;
+  margin: 0;
+}
+
+.wb-danger-box-desc {
+  font-size: 0.7875rem;
+  color: #b91c1c;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.wb-btn-settings-danger {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.15rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.2);
+}
+
+.wb-btn-settings-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+}
+
+.wb-btn-settings-danger:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.wb-btn-settings-danger:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Spinner inside button */
+.wb-btn-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: wbBtnSpin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes wbBtnSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ==========================================================================
    5. Account Footer
    ========================================================================== */
 
-.wb-account-page-footer {
+.wb-account-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-top: 2rem;
+  margin-top: 2.5rem;
   border-top: 1px solid #e2e8f0;
-  margin-top: 3rem;
-  font-size: 0.775rem;
+  font-size: 0.75rem;
   color: #94a3b8;
-  max-width: 1150px;
+  max-width: 920px;
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.wb-footer-links {
+.wb-account-footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wb-footer-bullet {
+  color: #cbd5e1;
+}
+
+.wb-account-footer-links {
   display: flex;
   align-items: center;
   gap: 1.25rem;
 }
 
-.wb-footer-links a {
-  color: #64748b;
+.wb-account-footer-links a {
+  color: #94a3b8;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 150ms ease;
 }
 
-.wb-footer-links a:hover {
-  color: #0f172a;
+.wb-account-footer-links a:hover {
+  color: #475569;
 }
 
 /* ==========================================================================
-   Responsive Adaptations
+   Responsive Breakpoints
    ========================================================================== */
 
-@media (max-width: 1024px) {
-  .wb-account-grid {
+@media (max-width: 900px) {
+  .wb-account-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .wb-account-body {
+    padding: 1.5rem 1.5rem 2.5rem 1.5rem;
+  }
+
+  .wb-account-section {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 
-@media (max-width: 768px) {
-  .wb-account-topbar {
-    padding: 1rem;
-  }
-
-  .wb-account-content-viewport {
-    padding: 1rem;
-  }
-
-  .wb-danger-card {
+@media (max-width: 600px) {
+  .wb-account-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
 
-  .wb-account-page-footer {
+  .wb-danger-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .wb-account-footer {
     flex-direction: column;
     gap: 0.75rem;
     align-items: flex-start;

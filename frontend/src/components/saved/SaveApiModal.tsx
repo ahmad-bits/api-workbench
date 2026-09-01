@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../services/api';
-import type { SavedApi } from '../../types/savedApi';
+import type { SavedApi, WorkspaceCategory } from '../../types/savedApi';
 import { useToast } from '../../context/ToastContext';
 
 interface SaveApiModalProps {
@@ -9,6 +9,7 @@ interface SaveApiModalProps {
   currentUrl: string;
   detectedApiKey?: string | null;
   onSaved: (savedApi: SavedApi) => void;
+  workspaces?: WorkspaceCategory[];
 }
 
 export const SaveApiModal: React.FC<SaveApiModalProps> = ({
@@ -17,24 +18,34 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
   currentUrl,
   detectedApiKey,
   onSaved,
+  workspaces = [],
 }) => {
   const toast = useToast();
   const [name, setName] = useState('');
+  const [category, setCategory] = useState(
+    workspaces.length > 0 ? workspaces[0].name : 'General'
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setName('');
-      setError(null);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    setName('');
+    setCategory(workspaces.length > 0 ? workspaces[0].name : 'General');
+    setError(null);
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,27 +68,28 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
       const saved = await api.createSavedApi({
         name: cleanName,
         url: currentUrl.trim(),
+        category: category.trim() || 'General',
         api_key: detectedApiKey ? detectedApiKey.trim() : undefined,
       });
       onSaved(saved);
-      onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to save API.');
-      toast.error(err.message || 'Failed to save API.');
+      handleClose();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to save API.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={handleClose}>
       <div className="modal-content save-api-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-group">
-            <span className="modal-icon">💾</span>
             <h2 className="modal-title">Save API Configuration</h2>
           </div>
-          <button type="button" className="btn-close-modal" onClick={onClose} title="Close">
+          <button type="button" className="btn-close-modal" onClick={handleClose} title="Close">
             &times;
           </button>
         </div>
@@ -109,10 +121,44 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
                 if (error) setError(null);
               }}
               disabled={isSubmitting}
+              placeholder="e.g. List Products, Auth Service"
               maxLength={120}
               required
             />
             <span className="form-label-hint">Give this API configuration an easily identifiable name.</span>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="save-api-category">
+              Workspace / Category
+            </label>
+            {workspaces.length > 0 ? (
+              <select
+                id="save-api-category"
+                className="form-input"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                disabled={isSubmitting}
+                style={{ cursor: 'pointer' }}
+              >
+                {workspaces.map((ws) => (
+                  <option key={ws.id} value={ws.name}>
+                    {ws.name}
+                  </option>
+                ))}
+                <option value="General">General (No Workspace)</option>
+              </select>
+            ) : (
+              <input
+                id="save-api-category"
+                type="text"
+                className="form-input"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="e.g. Core API, Authentication, General"
+                disabled={isSubmitting}
+              />
+            )}
           </div>
 
           {/* Auto-Captured Configuration Summary */}
@@ -127,11 +173,11 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
               <span className="preview-label">API Key:</span>
               <span className="preview-value-key">
                 {detectedApiKey ? (
-                  <span className="badge-key-detected" title="Will be encrypted with AES in the database">
-                    🔒 Auto-Captured &bull; •••••••• (Encrypted)
+                  <span className="badge-key-detected">
+                    Auto-Captured &bull; ••••••••
                   </span>
                 ) : (
-                  <span className="badge-no-key">🔓 None (Optional)</span>
+                  <span className="badge-no-key">None (Optional)</span>
                 )}
               </span>
             </div>
@@ -141,7 +187,7 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
             <button
               type="button"
               className="btn-secondary"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancel

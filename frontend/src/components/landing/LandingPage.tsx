@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './landing.css';
 import { LandingHeader } from './LandingHeader';
@@ -12,6 +12,7 @@ import { LandingFooter } from './LandingFooter';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user } = useAuth();
 
   // Smooth scroll handler for anchor links
@@ -19,13 +20,23 @@ export const LandingPage: React.FC = () => {
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.history.replaceState(null, '', `#${sectionId}`);
     }
   };
 
   useEffect(() => {
-    // Scroll to top upon mounting
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      const el = document.getElementById(id);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        return;
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, []);
+  }, [location.hash, location.pathname]);
 
   const handleLoginClick = () => navigate('/login');
   const handleSignUpClick = () => navigate('/register');

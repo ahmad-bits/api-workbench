@@ -104,6 +104,29 @@ def update_saved_api(
 
 
 @router.delete(
+    "/workspace/{workspace_name}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete Workspace Saved APIs",
+    description="Permanently deletes all saved APIs belonging to a specific workspace/category owned by the authenticated user.",
+)
+def delete_saved_apis_by_workspace(
+    workspace_name: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Delete all saved APIs in a workspace category owned by current user."""
+    deleted_count = saved_api_service.delete_saved_apis_by_workspace(
+        db=db, user=current_user, workspace_name=workspace_name
+    )
+    return {
+        "success": True,
+        "message": f"Deleted {deleted_count} saved API endpoint(s) from workspace '{workspace_name}'.",
+        "deleted_count": deleted_count,
+        "workspace": workspace_name,
+    }
+
+
+@router.delete(
     "/{api_id}",
     status_code=status.HTTP_200_OK,
     summary="Delete Saved API",

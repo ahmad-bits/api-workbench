@@ -845,6 +845,34 @@ export class ApiClient {
 
     return await response.json();
   }
+
+  async deleteSavedApisByWorkspace(
+    workspaceName: string
+  ): Promise<{ success: boolean; message: string; deleted_count: number; workspace: string }> {
+    const response = await this.fetchWithHandling(
+      `${this.baseUrl}/saved-apis/workspace/${encodeURIComponent(workspaceName)}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          ...this.getAuthHeaders(),
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.detail || `Failed to delete workspace APIs: HTTP ${response.status}`);
+      } catch (e: any) {
+        if (e.message && !e.message.startsWith('Unexpected')) throw e;
+        throw new Error(errorText || `Failed to delete workspace APIs: HTTP ${response.status}`);
+      }
+    }
+
+    return await response.json();
+  }
 }
 
 export const api = new ApiClient();

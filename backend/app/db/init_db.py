@@ -37,6 +37,15 @@ def migrate_sqlite_schema() -> None:
                     )
                     conn.commit()
                     logger.info("Successfully added and backfilled 'username' column in 'users' table.")
+
+            # Check saved_apis table columns
+            res_saved = conn.execute(text("PRAGMA table_info(saved_apis)"))
+            saved_cols = [row[1] for row in res_saved.fetchall()]
+            if saved_cols and "category" not in saved_cols:
+                logger.info("Migrating SQLite schema: Adding missing 'category' column to 'saved_apis' table...")
+                conn.execute(text("ALTER TABLE saved_apis ADD COLUMN category VARCHAR(120) DEFAULT 'General'"))
+                conn.commit()
+                logger.info("Successfully added 'category' column in 'saved_apis' table.")
     except Exception as exc:
         logger.warning("Schema migration notice: %s", exc)
 
