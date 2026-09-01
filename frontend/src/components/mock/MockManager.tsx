@@ -4,12 +4,14 @@ import { api } from '../../services/api';
 import type { MockEndpoint, MockEndpointCreate, MockEndpointUpdate } from '../../types/mock';
 import { MockCard } from './MockCard';
 import { MockEditorPane } from './MockEditorPane';
+import { useToast } from '../../context/ToastContext';
 
 interface MockManagerProps {
   onTestInWorkbench: (mock: MockEndpoint) => void;
 }
 
 export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) => {
+  const toast = useToast();
   const [mocks, setMocks] = useState<MockEndpoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,60 +28,6 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
       setIsLoading(true);
       setError(null);
       const data = await api.getMocks();
-
-      // If user has no mocks yet, seed with default mock endpoints to match Figma design
-      if (data.length === 0) {
-        try {
-          const m1 = await api.createMock({
-            name: 'User Profile Mock',
-            method: 'GET',
-            path: '/api/v1/users/{id}',
-            statusCode: 200,
-            responseType: 'json',
-            responseHeaders: { 'Content-Type': 'application/json' },
-            responseBody: JSON.stringify(
-              {
-                id: 'usr_948j',
-                name: 'Jane Developer',
-                email: 'jane@techcorp.com',
-                role: 'admin',
-                status: 'active',
-                preferences: {
-                  theme: 'dark',
-                  notifications: true,
-                },
-              },
-              null,
-              2
-            ),
-          });
-
-          const m2 = await api.createMock({
-            name: 'Create Order Error',
-            method: 'POST',
-            path: '/api/v1/orders',
-            statusCode: 400,
-            responseType: 'json',
-            responseHeaders: { 'Content-Type': 'application/json' },
-            responseBody: JSON.stringify(
-              {
-                error: 'InvalidOrderPayload',
-                message: 'Item stock is insufficient for order checkout.',
-                code: 400,
-              },
-              null,
-              2
-            ),
-          });
-
-          setMocks([m1, m2]);
-          setSelectedMock(m1);
-          return;
-        } catch {
-          // If seeding fails, just proceed
-        }
-      }
-
       setMocks(data);
       if (data.length > 0 && !selectedMock) {
         setSelectedMock(data[0]);
@@ -110,14 +58,21 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
     isEdit: boolean,
     id?: string
   ) => {
-    if (isEdit && id) {
-      const updated = await api.updateMock(id, data as MockEndpointUpdate);
-      setSelectedMock(updated);
-    } else {
-      const created = await api.createMock(data as MockEndpointCreate);
-      setSelectedMock(created);
+    try {
+      if (isEdit && id) {
+        const updated = await api.updateMock(id, data as MockEndpointUpdate);
+        setSelectedMock(updated);
+        toast.success('Mock endpoint updated successfully!');
+      } else {
+        const created = await api.createMock(data as MockEndpointCreate);
+        setSelectedMock(created);
+        toast.success('Mock endpoint created successfully!');
+      }
+      await fetchMocks();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save mock endpoint.');
+      throw err;
     }
-    await fetchMocks();
   };
 
   const handleDeleteMock = async (id: string) => {
@@ -128,8 +83,9 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
         setSelectedMock(null);
         setIsEditorOpen(false);
       }
+      toast.success('Mock endpoint deleted successfully.');
     } catch (err: any) {
-      alert(err.message || 'Failed to delete mock endpoint.');
+      toast.error(err.message || 'Failed to delete mock endpoint.');
     }
   };
 

@@ -4,6 +4,8 @@ import { api } from '../../services/api';
 import type { SavedApi } from '../../types/savedApi';
 import { AddApiModal } from './AddApiModal';
 import { EditApiModal } from './EditApiModal';
+import { useConfirm } from '../../context/ModalContext';
+import { useToast } from '../../context/ToastContext';
 
 interface SavedApiManagerProps {
   onOpenInTester: (apiId: string) => void;
@@ -14,11 +16,13 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
   onOpenInTester,
   onCountChange,
 }) => {
+  const confirm = useConfirm();
+  const toast = useToast();
+
   const [apis, setApis] = useState<SavedApi[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -31,30 +35,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     setError(null);
     try {
       const data = await api.getSavedApis();
-
-      // If user has no saved APIs, auto-seed with standard endpoints matching Figma design
-      if (data.length === 0) {
-        try {
-          const a1 = await api.createSavedApi({
-            name: 'User Authentication',
-            url: 'https://api.techcorp.com/api/v1/auth/login',
-          });
-          const a2 = await api.createSavedApi({
-            name: 'Get User Profile',
-            url: 'https://api.techcorp.com/api/v1/users/{id}',
-          });
-          const a3 = await api.createSavedApi({
-            name: 'Update Settings',
-            url: 'https://api.techcorp.com/api/v1/config/settings',
-          });
-          setApis([a1, a2, a3]);
-          if (onCountChange) onCountChange(3);
-          return;
-        } catch {
-          // If seeding fails, fallback
-        }
-      }
-
       setApis(data);
       if (onCountChange) onCountChange(data.length);
     } catch (err: any) {
@@ -71,21 +51,25 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
   const handleApiCreated = (newApi: SavedApi) => {
     setApis((prev) => [newApi, ...prev]);
     if (onCountChange) onCountChange(apis.length + 1);
-    setActionSuccess(`API "${newApi.name}" was saved successfully.`);
-    setTimeout(() => setActionSuccess(null), 3000);
+    toast.success(`API "${newApi.name}" was saved successfully!`);
   };
 
   const handleApiUpdated = (updatedApi: SavedApi) => {
     setApis((prev) => prev.map((item) => (item.id === updatedApi.id ? updatedApi : item)));
-    setActionSuccess(`API "${updatedApi.name}" was updated.`);
-    setTimeout(() => setActionSuccess(null), 3000);
+    toast.success(`API "${updatedApi.name}" was updated.`);
   };
 
   const handleDelete = async (e: React.MouseEvent, item: SavedApi) => {
     e.stopPropagation();
-    if (!window.confirm(`Are you sure you want to delete "${item.name}"?`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete API',
+      message: `Are you sure you want to delete "${item.name}"?`,
+      details: 'This action cannot be undone. The API configuration will be permanently removed from your workspace.',
+      confirmText: 'Delete API',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     setDeletingId(item.id);
     try {
@@ -93,10 +77,10 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
       const remaining = apis.filter((a) => a.id !== item.id);
       setApis(remaining);
       if (onCountChange) onCountChange(remaining.length);
-      setActionSuccess(`API "${item.name}" was deleted.`);
-      setTimeout(() => setActionSuccess(null), 3000);
+      toast.success(`API "${item.name}" was deleted.`);
     } catch (err: any) {
       setError(err.message || 'Failed to delete saved API.');
+      toast.error(err.message || 'Failed to delete saved API.');
     } finally {
       setDeletingId(null);
     }
@@ -106,6 +90,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     e.stopPropagation();
     navigator.clipboard.writeText(item.url);
     setCopiedUrlId(item.id);
+    toast.info('API endpoint URL copied to clipboard.');
     setTimeout(() => setCopiedUrlId(null), 1500);
   };
 
@@ -186,23 +171,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
 
       {/* Main Content Viewport */}
       <div className="wb-saved-content-viewport">
-        {actionSuccess && (
-          <div
-            style={{
-              backgroundColor: '#ecfdf5',
-              border: '1px solid #bbf7d0',
-              color: '#15803d',
-              padding: '0.65rem 1rem',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
-              maxWidth: '1100px',
-              margin: '0 auto 1.25rem auto',
-            }}
-          >
-            ✓ {actionSuccess}
-          </div>
-        )}
-
         {error && (
           <div
             style={{

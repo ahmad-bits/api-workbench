@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useConfirm } from '../../context/ModalContext';
+import { useToast } from '../../context/ToastContext';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -11,6 +13,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onClose,
 }) => {
   const { user, updateProfile, deleteAccount, logout } = useAuth();
+  const confirm = useConfirm();
+  const toast = useToast();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'danger'>('profile');
 
@@ -113,9 +117,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         email: email.trim().toLowerCase(),
       });
       setProfileSuccessMsg('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       setTimeout(() => setProfileSuccessMsg(null), 4000);
     } catch (err: any) {
       setProfileErrorMsg(err.message || 'Failed to update profile.');
+      toast.error(err.message || 'Failed to update profile.');
     } finally {
       setIsSavingProfile(false);
     }
@@ -146,12 +152,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         new_password: newPassword,
       });
       setPasswordSuccessMsg('Password changed successfully!');
+      toast.success('Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => setPasswordSuccessMsg(null), 4000);
     } catch (err: any) {
       setPasswordErrorMsg(err.message || 'Failed to change password.');
+      toast.error(err.message || 'Failed to change password.');
     } finally {
       setIsChangingPassword(false);
     }
@@ -163,18 +171,25 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       return;
     }
 
-    const confirmed = window.confirm(
-      'Are you absolutely sure you want to permanently delete your account? All your Mock APIs will also be permanently deleted.'
-    );
+    const confirmed = await confirm({
+      title: 'Delete Account',
+      message: 'Are you absolutely sure you want to permanently delete your account?',
+      details: 'All your Mock APIs and profile records will be permanently removed from the system. This action cannot be undone.',
+      confirmText: 'Delete Account',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
     if (!confirmed) return;
 
     setIsDeleting(true);
     setDeleteErrorMsg(null);
     try {
       await deleteAccount();
+      toast.info('Your account has been permanently deleted.');
       onClose();
     } catch (err: any) {
       setDeleteErrorMsg(err.message || 'Failed to delete account.');
+      toast.error(err.message || 'Failed to delete account.');
       setIsDeleting(false);
     }
   };

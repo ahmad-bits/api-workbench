@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../services/api';
 import type { SavedApi } from '../../types/savedApi';
+import { useToast } from '../../context/ToastContext';
 
 interface AddApiModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
   onClose,
   onCreated,
 }) => {
+  const toast = useToast();
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -42,10 +44,12 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
     const cleanUrl = url.trim();
     if (!cleanName) {
       setError('Please enter an API name.');
+      toast.warning('Please enter an API name.');
       return;
     }
     if (!cleanUrl) {
       setError('Please enter a target API URL.');
+      toast.warning('Please enter a target API URL.');
       return;
     }
 
@@ -62,6 +66,7 @@ export const AddApiModal: React.FC<AddApiModalProps> = ({
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to add API.');
+      toast.error(err.message || 'Failed to add API.');
     } finally {
       setIsSubmitting(false);
     }

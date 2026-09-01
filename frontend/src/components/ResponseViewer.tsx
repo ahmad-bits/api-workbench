@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { WorkbenchResponse, BatchWorkbenchResponse } from '../types/workbench';
 import { BenchmarkViewer } from './BenchmarkViewer';
+import { useToast } from '../context/ToastContext';
 
 interface ResponseViewerProps {
   response: WorkbenchResponse | null;
@@ -17,6 +18,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
   isLoading,
   onSaveClick,
 }) => {
+  const toast = useToast();
   const [singleActiveTab, setSingleActiveTab] = useState<'body' | 'headers'>('body');
   const [benchmarkTab, setBenchmarkTab] = useState<'stats' | 'body' | 'headers' | 'runs'>('stats');
   const [copied, setCopied] = useState(false);
@@ -34,6 +36,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
 
     navigator.clipboard.writeText(content);
     setCopied(true);
+    toast.info('Response data copied to clipboard.');
     setTimeout(() => setCopied(false), 1500);
   };
 

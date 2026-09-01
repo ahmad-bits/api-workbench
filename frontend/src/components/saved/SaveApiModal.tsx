@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../services/api';
 import type { SavedApi } from '../../types/savedApi';
+import { useToast } from '../../context/ToastContext';
 
 interface SaveApiModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
   detectedApiKey,
   onSaved,
 }) => {
+  const toast = useToast();
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,10 +41,12 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
     const cleanName = name.trim();
     if (!cleanName) {
       setError('Please enter a name for this API.');
+      toast.warning('Please enter an API name.');
       return;
     }
     if (!currentUrl.trim()) {
       setError('A valid API URL is required to save.');
+      toast.warning('A valid API URL is required to save.');
       return;
     }
 
@@ -59,6 +63,7 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to save API.');
+      toast.error(err.message || 'Failed to save API.');
     } finally {
       setIsSubmitting(false);
     }

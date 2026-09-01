@@ -1,5 +1,7 @@
 import './components/workbench.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { ModalProvider } from './context/ModalContext';
 import { AppRoutes } from './routes';
 
 function MainApp() {
@@ -19,9 +21,13 @@ function MainApp() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ToastProvider>
+      <ModalProvider>
+        <AuthProvider>
+          <MainApp />
+        </AuthProvider>
+      </ModalProvider>
+    </ToastProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { HttpMethod } from '../../types/workbench';
+import { useToast } from '../../context/ToastContext';
 import type {
   MockEndpoint,
   MockEndpointCreate,
@@ -20,6 +21,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   onSave,
   initialMock,
 }) => {
+  const toast = useToast();
   const isEdit = !!initialMock;
 
   const [name, setName] = useState('');
@@ -117,11 +119,13 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
     const cleanPath = path.trim();
     if (!cleanPath) {
       setErrorMessage('Endpoint path is required.');
+      toast.warning('Endpoint path is required.');
       return;
     }
 
     if (statusCode < 100 || statusCode > 599) {
       setErrorMessage('Status code must be between 100 and 599.');
+      toast.warning('Status code must be between 100 and 599.');
       return;
     }
 
@@ -130,6 +134,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
         JSON.parse(responseBody);
       } catch {
         setErrorMessage('Response body contains invalid JSON. Please correct the syntax.');
+        toast.warning('Response body contains invalid JSON.');
         return;
       }
     }
@@ -160,6 +165,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       await onSave(payload, isEdit, initialMock?.id);
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to save mock endpoint.');
+      toast.error(err.message || 'Failed to save mock endpoint.');
     } finally {
       setIsSubmitting(false);
     }

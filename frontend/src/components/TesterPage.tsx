@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useNavigate } from 'react-router-dom';
 import { KeyValueEditor } from './KeyValueEditor';
@@ -8,6 +9,28 @@ import { UserNav } from './auth/UserNav';
 export function TesterPage() {
   const wb = useWorkbench();
   const navigate = useNavigate();
+
+  const [runsDropdownOpen, setRunsDropdownOpen] = useState(false);
+  const runsDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (runsDropdownRef.current && !runsDropdownRef.current.contains(event.target as Node)) {
+        setRunsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const runOptions = [
+    { value: 1, label: '1 (Single)' },
+    { value: 5, label: '5 (Benchmark)' },
+    { value: 10, label: '10 (Benchmark)' },
+    { value: 25, label: '25 (Benchmark)' },
+    { value: 50, label: '50 (Benchmark)' },
+    { value: 100, label: '100 (Benchmark)' }
+  ];
 
   return (
     <>
@@ -21,21 +44,7 @@ export function TesterPage() {
         </div>
 
         <div className="wb-topbar-actions">
-          {/* Live Backend Connection Indicator */}
-          <div
-            className={`wb-health-pill ${wb.backendStatus === 'error' ? 'error' : ''}`}
-            onClick={wb.checkBackend}
-            title="Click to check backend status"
-          >
-            <span className="wb-health-dot" />
-            <span>
-              {wb.backendStatus === 'healthy'
-                ? `FastAPI Online ${wb.backendLatency !== null ? `(${wb.backendLatency}ms)` : ''}`
-                : wb.backendStatus === 'loading'
-                ? 'Connecting...'
-                : 'FastAPI Offline'}
-            </span>
-          </div>
+
 
           {/* User Profile & Account Dropdown */}
           <UserNav onOpenProfileModal={() => navigate('/settings')} />
@@ -44,16 +53,6 @@ export function TesterPage() {
 
       {/* API Tester View (Unified Request Bar + Split Workspace) */}
       <div className="wb-tester-workspace">
-        {wb.saveToast && (
-          <div className="wb-toast-banner">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-            <span>{wb.saveToast}</span>
-          </div>
-        )}
-
         {/* UNIFIED REQUEST BAR: Method ▾ | URL Input | Runs (1x) | Save API | Send ✈ */}
         <div className="wb-unified-request-bar">
           {/* Method Dropdown */}
@@ -86,39 +85,43 @@ export function TesterPage() {
             />
           </div>
 
-          {/* Runs Selector (1 to 100) */}
-          <div className="wb-runs-control" title="Number of parallel request executions (1–100)">
-            <span className="wb-runs-label">Runs:</span>
-            <select
-              value={wb.requestCount}
-              onChange={(e) => wb.handleSetCount(parseInt(e.target.value, 10))}
-              className="wb-runs-select"
-              disabled={wb.isSending}
-            >
-              <option value={1}>1 (Single)</option>
-              <option value={5}>5 (Benchmark)</option>
-              <option value={10}>10 (Benchmark)</option>
-              <option value={25}>25 (Benchmark)</option>
-              <option value={50}>50 (Benchmark)</option>
-              <option value={100}>100 (Benchmark)</option>
-            </select>
+          {/* Fully Custom Runs Dropdown */}
+          <div className="wb-runs-custom-dropdown-wrap" ref={runsDropdownRef} title="Number of parallel request executions">
+            <span className="wb-runs-dropdown-label">Runs:</span>
+            <div className="wb-custom-select-container">
+              <button
+                type="button"
+                className={`wb-custom-select-trigger ${runsDropdownOpen ? 'open' : ''}`}
+                onClick={() => !wb.isSending && setRunsDropdownOpen(!runsDropdownOpen)}
+                disabled={wb.isSending}
+              >
+                <span>{runOptions.find(o => o.value === wb.requestCount)?.label || `${wb.requestCount} (Benchmark)`}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              
+              {runsDropdownOpen && (
+                <div className="wb-custom-select-menu">
+                  {runOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`wb-custom-select-option ${wb.requestCount === option.value ? 'selected' : ''}`}
+                      onClick={() => {
+                        wb.handleSetCount(option.value);
+                        setRunsDropdownOpen(false);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Save API Button */}
-          <button
-            type="button"
-            className="wb-btn-save-req"
-            onClick={() => wb.setSaveApiModalOpen(true)}
-            disabled={!wb.url.trim()}
-            title="Save this API configuration"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
-            <span>Save</span>
-          </button>
+
 
           {/* Send Button */}
           <button

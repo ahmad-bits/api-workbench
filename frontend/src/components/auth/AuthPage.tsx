@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './auth.css';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { api } from '../../services/api';
 
 export interface AuthPageProps {
@@ -13,6 +14,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 }) => {
   const navigate = useNavigate();
   const { login, requestOtp, verifyOtp, resendOtp, error: authError, clearError } = useAuth();
+  const toast = useToast();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(initialMode);
 
   // Sync mode if initialMode prop changes
@@ -79,8 +81,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     clearError();
   };
 
-
-
   // Step 1: Initiate registration and send OTP
   const handleInitiateRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,8 +125,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       setRegisterStep('verify');
       setResendCooldown(resp.resend_cooldown_seconds || 60);
       setSuccessInfo(`Verification code sent to ${resp.email}.`);
+      toast.info(`Verification code sent to ${resp.email}.`);
     } catch (err: any) {
       setLocalError(err.message || 'Failed to initiate registration.');
+      toast.error(err.message || 'Failed to initiate registration.');
     } finally {
       setIsSubmitting(false);
     }
@@ -151,8 +153,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setIsSubmitting(true);
     try {
       await verifyOtp(email.trim().toLowerCase(), cleanOtp);
+      toast.success('Account verified! Welcome to API Workbench.');
     } catch (err: any) {
       setLocalError(err.message || 'Verification failed. Please check the code and try again.');
+      toast.error(err.message || 'Verification failed. Please check code.');
     } finally {
       setIsSubmitting(false);
     }
@@ -170,8 +174,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       const resp = await resendOtp(email.trim().toLowerCase());
       setResendCooldown(resp.resend_cooldown_seconds || 60);
       setSuccessInfo(`A fresh verification code has been sent to ${email}.`);
+      toast.info(`A fresh verification code has been sent to ${email}.`);
     } catch (err: any) {
       setLocalError(err.message || 'Failed to resend verification code.');
+      toast.error(err.message || 'Failed to resend verification code.');
     } finally {
       setIsResending(false);
     }
@@ -181,6 +187,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const handleForgotPasswordClick = () => {
     if (!usernameOrEmail.trim()) {
       setLocalError('Please enter your username or email address above first to reset your password.');
+      toast.warning('Please enter your username or email address first.');
       return;
     }
     setLocalError(null);
@@ -199,8 +206,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       setForgotPasswordStep('verify');
       setResendCooldown(resp.resend_cooldown_seconds || 60);
       setSuccessInfo(`Verification code sent to ${resp.email}.`);
+      toast.info(`Verification code sent to ${resp.email}.`);
     } catch (err: any) {
       setLocalError(err.message || 'Operation failed.');
+      toast.error(err.message || 'Operation failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -224,8 +233,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       setForgotPasswordStep('reset');
       setSuccessInfo(resp.message);
       setOtp('');
+      toast.success('Code verified. You may now choose a new password.');
     } catch (err: any) {
       setLocalError(err.message || 'Verification failed.');
+      toast.error(err.message || 'Verification failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -249,11 +260,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     try {
       const resp = await api.resetPassword(email, resetToken, password);
       setSuccessInfo(resp.message);
+      toast.success('Password reset successfully! Please sign in.');
       setTimeout(() => {
         handleSwitchMode('login');
-      }, 2500);
+      }, 2000);
     } catch (err: any) {
       setLocalError(err.message || 'Failed to reset password.');
+      toast.error(err.message || 'Failed to reset password.');
     } finally {
       setIsSubmitting(false);
     }
@@ -270,8 +283,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       const resp = await api.resendPasswordResetOtp(email);
       setResendCooldown(resp.resend_cooldown_seconds || 60);
       setSuccessInfo(`A fresh verification code has been sent to ${resp.email}.`);
+      toast.info(`A fresh verification code has been sent to ${resp.email}.`);
     } catch (err: any) {
       setLocalError(err.message || 'Failed to resend code.');
+      toast.error(err.message || 'Failed to resend code.');
     } finally {
       setIsResending(false);
     }
@@ -298,8 +313,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         username_or_email: usernameOrEmail.trim(),
         password,
       });
+      toast.success('Signed in successfully!');
     } catch (err: any) {
       setLocalError(err.message || 'Login failed.');
+      toast.error(err.message || 'Login failed.');
     } finally {
       setIsSubmitting(false);
     }

@@ -2318,10 +2318,10 @@ code, pre {
   align-items: center;
   gap: 0.65rem;
   padding: 0.35rem 0.75rem 0.35rem 0.4rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
   border-radius: 9999px;
-  color: var(--text-primary);
+  color: #172033;
   font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.18s ease;
@@ -2329,9 +2329,9 @@ code, pre {
 
 .user-nav-badge:hover,
 .user-nav-badge.active {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: var(--border-active);
-  box-shadow: 0 0 14px rgba(59, 130, 246, 0.25);
+  background: #E0E7FF; /* slightly darker for hover */
+  border-color: #2563EB;
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.25);
 }
 
 .user-avatar-chip {
@@ -2339,8 +2339,8 @@ code, pre {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  color: #fff;
+  background: #2563EB;
+  color: #EFF6FF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2368,7 +2368,7 @@ code, pre {
 }
 
 .user-chevron {
-  color: var(--text-muted);
+  color: #172033;
   transition: transform 0.2s ease;
 }
 
@@ -2381,10 +2381,10 @@ code, pre {
   top: calc(100% + 8px);
   right: 0;
   width: 260px;
-  background: #111726;
-  border: 1px solid var(--border-subtle);
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
   border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 30px rgba(23, 32, 51, 0.15);
   backdrop-filter: blur(16px);
   padding: 0.5rem;
   z-index: 100;
@@ -2409,7 +2409,7 @@ code, pre {
 .user-dropdown-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #172033;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2417,7 +2417,7 @@ code, pre {
 
 .user-dropdown-email {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(23, 32, 51, 0.7); /* Muted text color using opacity */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2425,7 +2425,7 @@ code, pre {
 
 .user-dropdown-divider {
   height: 1px;
-  background: var(--border-subtle);
+  background: #BFDBFE;
   margin: 0.35rem 0;
 }
 
@@ -2437,7 +2437,7 @@ code, pre {
   padding: 0.55rem 0.75rem;
   background: transparent;
   border-radius: 6px;
-  color: var(--text-secondary);
+  color: #172033;
   font-size: 0.85rem;
   font-weight: 500;
   text-align: left;
@@ -2445,8 +2445,8 @@ code, pre {
 }
 
 .user-dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-primary);
+  background: #BFDBFE;
+  color: #2563EB;
 }
 
 .user-dropdown-item.signout-item {
@@ -2454,7 +2454,7 @@ code, pre {
 }
 
 .user-dropdown-item.signout-item:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: #fee2e2;
   color: #ef4444;
 }
 

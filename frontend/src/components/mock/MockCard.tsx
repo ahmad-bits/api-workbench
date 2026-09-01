@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import type { MockEndpoint } from '../../types/mock';
+import { useConfirm } from '../../context/ModalContext';
+import { useToast } from '../../context/ToastContext';
 
 interface MockCardProps {
   mock: MockEndpoint;
@@ -18,6 +20,8 @@ export const MockCard: React.FC<MockCardProps> = ({
   onDelete,
   onTestInWorkbench,
 }) => {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -27,13 +31,22 @@ export const MockCard: React.FC<MockCardProps> = ({
     e.stopPropagation();
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
+    toast.info('Simulated Mock URL copied to clipboard.');
     setTimeout(() => setCopied(false), 1500);
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
-    if (window.confirm(`Are you sure you want to delete mock endpoint '${mock.method} ${mock.path}'?`)) {
+    const confirmed = await confirm({
+      title: 'Delete Mock Endpoint',
+      message: `Are you sure you want to delete mock endpoint '${mock.method} ${mock.path}'?`,
+      details: 'This will permanently remove the simulated route. Any test clients relying on it will receive 404 Not Found.',
+      confirmText: 'Delete Mock',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (confirmed) {
       await onDelete(mock.id);
     }
   };

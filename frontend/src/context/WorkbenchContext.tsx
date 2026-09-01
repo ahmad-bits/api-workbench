@@ -1,5 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { api } from '../services/api';
+import { useToast } from './ToastContext';
 import type {
   HttpMethod,
   BodyType,
@@ -69,6 +71,8 @@ interface WorkbenchContextType {
 const WorkbenchContext = createContext<WorkbenchContextType | undefined>(undefined);
 
 export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const toast = useToast();
+
   // Request Builder state (Clean default GET endpoint)
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [url, setUrl] = useState<string>('https://jsonplaceholder.typicode.com/posts/1');
@@ -139,6 +143,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setBatchResponse(null);
     setActiveTab('params');
     navigateToTester();
+    toast.info('Cleared workspace for a new API request.');
   };
 
   // Helper to extract an API Key from current headers or query params
@@ -215,10 +220,9 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       navigateToTester();
-      setSaveToast(`Loaded "${openData.name}" into API Tester.`);
-      setTimeout(() => setSaveToast(null), 3000);
+      toast.success(`Loaded "${openData.name}" into API Tester.`);
     } catch (err: any) {
-      alert(err.message || 'Failed to open saved API');
+      toast.error(err.message || 'Failed to open saved API.');
     }
   };
 
@@ -236,13 +240,16 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setBatchResponse(null);
     setActiveTab('params');
     navigateToTester();
-    setSaveToast(`Configured Mock Endpoint "${mock.name}" in API Tester.`);
-    setTimeout(() => setSaveToast(null), 3000);
+    toast.info(`Configured Mock Endpoint "${mock.name}" in API Tester.`);
   };
 
   // Execute request
   const handleSendRequest = async () => {
-    if (!url.trim() || isSending) return;
+    if (!url.trim()) {
+      toast.warning('Please enter a target API URL to send a request.');
+      return;
+    }
+    if (isSending) return;
 
     setIsSending(true);
     setResponse(null);
@@ -263,9 +270,15 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (requestCount === 1) {
         const res = await api.dispatchHttpRequest(payload);
         setResponse(res);
+        if (res.statusCode >= 200 && res.statusCode < 400) {
+          toast.success(`Request completed: ${res.statusCode} ${res.statusText}`);
+        } else if (res.statusCode >= 400) {
+          toast.warning(`Request returned ${res.statusCode} ${res.statusText}`);
+        }
       } else {
         const batchRes = await api.dispatchBenchmarkRequest(payload);
         setBatchResponse(batchRes);
+        toast.success(`Benchmark finished: ${batchRes.stats.totalRequests} runs completed (${batchRes.stats.successRate}% success).`);
       }
     } catch (err: any) {
       setResponse({
@@ -278,6 +291,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         elapsedMs: 0,
         error: err.message || 'Network request failed. Ensure target endpoint is reachable.',
       });
+      toast.error('Network request failed. Target endpoint is unreachable.');
     } finally {
       setIsSending(false);
     }

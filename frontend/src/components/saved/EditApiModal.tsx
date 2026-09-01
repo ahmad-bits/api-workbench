@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import type { SavedApi } from '../../types/savedApi';
+import { useToast } from '../../context/ToastContext';
 
 interface EditApiModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export const EditApiModal: React.FC<EditApiModalProps> = ({
   apiItem,
   onUpdated,
 }) => {
+  const toast = useToast();
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -40,10 +42,12 @@ export const EditApiModal: React.FC<EditApiModalProps> = ({
     const cleanUrl = url.trim();
     if (!cleanName) {
       setError('Please enter an API name.');
+      toast.warning('Please enter an API name.');
       return;
     }
     if (!cleanUrl) {
       setError('Please enter a target API URL.');
+      toast.warning('Please enter a target API URL.');
       return;
     }
 
@@ -64,6 +68,7 @@ export const EditApiModal: React.FC<EditApiModalProps> = ({
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to update API.');
+      toast.error(err.message || 'Failed to update API.');
     } finally {
       setIsSubmitting(false);
     }

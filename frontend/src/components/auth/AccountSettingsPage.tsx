@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './account.css';
 import { useAuth } from '../../context/AuthContext';
+import { useConfirm } from '../../context/ModalContext';
+import { useToast } from '../../context/ToastContext';
 
 export const AccountSettingsPage: React.FC = () => {
   const { user, updateProfile, deleteAccount, logout } = useAuth();
+  const confirm = useConfirm();
+  const toast = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
@@ -32,15 +36,6 @@ export const AccountSettingsPage: React.FC = () => {
 
   if (!user) return null;
 
-  const initials = user.name
-    ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : 'U';
-
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccessMsg(null);
@@ -48,28 +43,34 @@ export const AccountSettingsPage: React.FC = () => {
 
     if (!name.trim()) {
       setErrorMsg('Full name cannot be empty.');
+      toast.warning('Full name cannot be empty.');
       return;
     }
     if (!username.trim()) {
       setErrorMsg('Username cannot be empty.');
+      toast.warning('Username cannot be empty.');
       return;
     }
     if (!email.trim()) {
       setErrorMsg('Email address cannot be empty.');
+      toast.warning('Email address cannot be empty.');
       return;
     }
 
     if (showPasswordSection) {
       if (!currentPassword) {
         setErrorMsg('Please enter your current password to set a new password.');
+        toast.warning('Please enter your current password to set a new password.');
         return;
       }
       if (newPassword.length < 6) {
         setErrorMsg('New password must be at least 6 characters long.');
+        toast.warning('New password must be at least 6 characters long.');
         return;
       }
       if (newPassword !== confirmPassword) {
         setErrorMsg('New passwords do not match.');
+        toast.warning('New passwords do not match.');
         return;
       }
     }
@@ -89,6 +90,7 @@ export const AccountSettingsPage: React.FC = () => {
 
       await updateProfile(payload);
       setSuccessMsg('Account details saved successfully!');
+      toast.success('Account profile updated successfully!');
       setIsEditing(false);
       setShowPasswordSection(false);
       setCurrentPassword('');
@@ -97,28 +99,46 @@ export const AccountSettingsPage: React.FC = () => {
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to update account details.');
+      toast.error(err.message || 'Failed to update account details.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    const confirmation = window.prompt(
-      'Type DELETE to permanently delete your account and all associated APIs/mocks:'
-    );
-    if (confirmation !== 'DELETE') {
-      if (confirmation !== null) {
-        alert('Deletion cancelled. Confirmation text did not match.');
-      }
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete Account',
+      message: 'Are you sure you want to permanently delete your account?',
+      details: 'This action cannot be undone. All your saved APIs, mock endpoints, and personal workspace configurations will be permanently removed.',
+      confirmText: 'Delete Account',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      requireInputText: 'DELETE',
+    });
+
+    if (!confirmed) return;
 
     setIsDeleting(true);
     try {
       await deleteAccount();
+      toast.info('Your account has been deleted.');
     } catch (err: any) {
-      alert(err.message || 'Failed to delete account.');
+      toast.error(err.message || 'Failed to delete account.');
       setIsDeleting(false);
+    }
+  };
+
+  const handleLogoutClick = async () => {
+    const confirmed = await confirm({
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out of your account?',
+      confirmText: 'Sign Out',
+      cancelText: 'Cancel',
+      variant: 'primary',
+    });
+    if (confirmed) {
+      logout();
+      toast.info('You have been signed out.');
     }
   };
 
@@ -134,7 +154,7 @@ export const AccountSettingsPage: React.FC = () => {
         <button
           type="button"
           className="wb-btn-logout-pill"
-          onClick={logout}
+          onClick={handleLogoutClick}
           title="Sign out of API Workbench"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -209,26 +229,17 @@ export const AccountSettingsPage: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {/* Avatar + Full Name Row */}
-                  <div className="wb-avatar-name-row">
-                    <div className="wb-avatar-circle-wrap">
-                      <span>{initials}</span>
-                      <div className="wb-avatar-edit-badge" title="Change Avatar">
-                        ✎
-                      </div>
-                    </div>
-
-                    <div className="wb-name-field-wrap">
-                      <label className="wb-field-lbl">Full Name</label>
-                      <input
-                        type="text"
-                        className="wb-field-input"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={!isEditing}
-                        required
-                      />
-                    </div>
+                  {/* Full Name Row */}
+                  <div className="wb-field-block">
+                    <label className="wb-field-lbl">Full Name</label>
+                    <input
+                      type="text"
+                      className="wb-field-input"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={!isEditing}
+                      required
+                    />
                   </div>
 
                   {/* Username Row */}
@@ -252,7 +263,10 @@ export const AccountSettingsPage: React.FC = () => {
                       className="wb-field-input"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      disabled={!isEditing}
+                      disabled={true}
+                      readOnly
+                      title="Your email address cannot be changed."
+                      style={{ opacity: 0.7, cursor: 'not-allowed' }}
                       required
                     />
                   </div>
@@ -328,7 +342,6 @@ export const AccountSettingsPage: React.FC = () => {
 
               {/* Danger Zone Section */}
               <div className="wb-danger-zone-wrap">
-                <span className="wb-danger-zone-label">DANGER ZONE</span>
                 <div className="wb-danger-card">
                   <div className="wb-danger-info">
                     <h4 className="wb-danger-title">Delete Account</h4>
