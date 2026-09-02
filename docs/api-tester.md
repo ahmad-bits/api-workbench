@@ -1,37 +1,21 @@
 # API Tester
 
-The API Tester allows you to configure, execute, and benchmark HTTP requests.
+Execute and benchmark HTTP requests.
 
----
+## Request Setup
 
-## Request Configuration
-
-- **Method**: Select from `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`.
-- **URL & Params**: Enter the endpoint URL. Query parameters sync automatically with the **Params** tab, where you can edit values or toggle them on and off with checkboxes.
-- **Headers**: Add custom headers using key-value rows with enable/disable checkboxes.
-- **Body**: Supports **JSON only**. Enter your JSON payload directly into the editor.
-- **Auth**: Add authentication headers as key-value pairs (e.g., `Authorization` or `X-API-Key`).
-
----
+* **Method**: GET, POST, PUT, PATCH, DELETE, HEAD, or OPTIONS.
+* **URL & Params**: Enter the endpoint URL. Query parameters sync with the **Params** tab where they can be edited or toggled.
+* **Headers**: Add key-value headers with checkboxes to enable or disable them.
+* **Body**: JSON only. Enter the payload directly in the editor.
+* **Auth**: Add authentication headers as key-value pairs (such as `Authorization` or `X-API-Key`).
 
 ## Sending & Benchmarking
 
-- **Single Request**: Set **Runs** to `1 (Single)` and click **Send**.
-- **Benchmark Mode**: Set **Runs** to `5`, `10`, `25`, `50`, or `100` and click **Run (<N>x)** to execute sequential requests and generate performance metrics.
-
----
+* **Single Request**: Set **Runs** to `1 (Single)` and click **Send**.
+* **Benchmark**: Select `5`, `10`, `25`, `50`, or `100` runs and click **Run (<N>x)** to measure performance over multiple requests.
 
 ## Inspecting Responses
 
-### Single Request
-- **Status & Latency**: Displays the HTTP status code, round-trip time in milliseconds, and payload size.
-- **Views**:
-  - **Pretty**: Formatted JSON.
-  - **Raw**: Unformatted response body.
-  - **Headers**: Searchable response headers table.
-- **Actions**: Click **Copy** to copy the payload, **Download** to save it to a file, or **Save API** to store the endpoint in a workspace.
-
-### Benchmark Results
-- **Summary Metrics**: Shows Total Runs, Success Rate (%), Average Speed (ms), and Min/Max latency.
-- **Status Distribution**: Badge breakdown of returned status codes.
-- **Tabs**: View overall **Stats**, latest **Body**, latest **Headers**, or the run-by-run **Runs** table.
+* **Single Run**: View status code, latency (ms), response size, formatted JSON (Pretty), raw body, and response headers. Use **Copy**, **Download**, or **Save API** as needed.
+* **Benchmark Results**: View overall stats (total runs, success rate, average latency, min/max time), status breakdown, and the detailed **Runs** table.

@@ -1,28 +1,15 @@
 # My APIs & Workspaces
 
-The **My APIs** section allows you to organize and save frequently used API requests into workspaces.
-
----
+Organize and save frequently used API requests into workspaces.
 
 ## Workspaces
 
-- **Create Workspace**: Click **+ New Workspace**, enter a name, and an optional description.
-- **Views**: Browse workspace cards, click a card to see only its endpoints, or toggle to **All** to list all saved APIs.
-- **Delete Workspace**: Inside a workspace view, click **Delete Workspace** to remove the workspace and all its saved APIs.
-
----
+* **Create Workspace**: Click **+ New Workspace** and enter a name.
+* **Workspace View**: Select a workspace card to view its saved APIs, or switch to **All** to see all requests.
+* **Delete Workspace**: Removes the workspace and its contained APIs.
 
 ## Saving & Managing APIs
 
-### Saving Endpoints
-Save an endpoint from the **API Tester** (using **Save API** in the response panel) or by clicking **+ Add API** in **My APIs**.
-
-- **API Name**: Name for the endpoint.
-- **Endpoint URL**: Target URL.
-- **Workspace**: Select a workspace for the request.
-- **API Key (Optional)**: If provided, credentials are kept hidden and masked (`••••••••`) in the interface.
-
-### Actions
-- **Open in Tester**: Loads the URL and saved API key directly into the API Tester.
-- **Edit**: Update the endpoint name, URL, workspace, or API key.
-- **Delete**: Remove a saved API from your collection.
+* **Save Endpoint**: Click **Save API** from the API Tester response panel, or click **+ Add API** in My APIs.
+* **Fields**: Set API Name, Endpoint URL, Workspace, and optional API Key (masked in UI).
+* **Actions**: Click **Open in Tester** to load the request, or use **Edit** / **Delete** to manage entries.
