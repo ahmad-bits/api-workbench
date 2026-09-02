@@ -1,5 +1,7 @@
 import type { HttpMethod } from './workbench';
 
+export type MockAuthType = 'none' | 'api_key' | 'bearer';
+
 export interface MockEndpoint {
   id: string;
   name: string;
@@ -10,6 +12,11 @@ export interface MockEndpoint {
   responseBody: string;
   responseType: 'json' | 'text';
   description?: string | null;
+  authType?: MockAuthType;
+  authHeaderName?: string;
+  authHeaderValue?: string;
+  authToken?: string;
+  delayMs?: number;
   mockUrl: string;
   fullUrl?: string | null;
   createdAt: string;
@@ -26,6 +33,11 @@ export interface MockEndpointCreate {
   responseBody: string;
   responseType?: 'json' | 'text';
   description?: string;
+  authType?: MockAuthType;
+  authHeaderName?: string;
+  authHeaderValue?: string;
+  authToken?: string;
+  delayMs?: number;
 }
 
 export interface MockEndpointUpdate {
@@ -37,6 +49,11 @@ export interface MockEndpointUpdate {
   responseBody?: string;
   responseType?: 'json' | 'text';
   description?: string;
+  authType?: MockAuthType;
+  authHeaderName?: string;
+  authHeaderValue?: string;
+  authToken?: string;
+  delayMs?: number;
 }
 
 export interface MockHeaderRow {

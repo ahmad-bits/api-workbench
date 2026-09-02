@@ -33,6 +33,16 @@ class MockEndpoint(Base):
     response_body: Mapped[str] = mapped_column(Text, nullable=False, default="")
     response_type: Mapped[str] = mapped_column(String(20), nullable=False, default="json")
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    
+    # Authentication fields ('none', 'api_key', 'bearer')
+    auth_type: Mapped[str] = mapped_column(String(20), nullable=False, default="none")
+    auth_header_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, default="X-API-Key")
+    auth_header_value: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, default="")
+    auth_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, default="")
+
+    # Custom Response Delay in milliseconds (>= 0)
+    delay_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
     call_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

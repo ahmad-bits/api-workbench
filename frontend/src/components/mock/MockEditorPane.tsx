@@ -6,6 +6,7 @@ import type {
   MockEndpointCreate,
   MockEndpointUpdate,
   MockHeaderRow,
+  MockAuthType,
 } from '../../types/mock';
 
 interface MockEditorPaneProps {
@@ -70,6 +71,15 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   // OPTIONS: allowed methods
   const [allowedMethods, setAllowedMethods] = useState<HttpMethod[]>(['GET', 'POST']);
 
+  // Authentication state
+  const [authType, setAuthType] = useState<MockAuthType>('none');
+  const [authHeaderName, setAuthHeaderName] = useState('X-API-Key');
+  const [authHeaderValue, setAuthHeaderValue] = useState('');
+  const [authToken, setAuthToken] = useState('');
+
+  // Response Delay state
+  const [delayMs, setDelayMs] = useState<number>(0);
+
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [requestJsonError, setRequestJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,6 +92,11 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       setStatusCode(initialMock.statusCode);
       setResponseBody(initialMock.responseBody || '');
       setRequestBody('');
+      setAuthType(initialMock.authType || 'none');
+      setAuthHeaderName(initialMock.authHeaderName || 'X-API-Key');
+      setAuthHeaderValue(initialMock.authHeaderValue || '');
+      setAuthToken(initialMock.authToken || '');
+      setDelayMs(initialMock.delayMs || 0);
 
       const loadedHeaders: MockHeaderRow[] = Object.entries(initialMock.responseHeaders || {}).map(
         ([k, v], i) => ({
@@ -113,6 +128,11 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
         { id: 'h_default', key: 'Content-Type', value: 'application/json', enabled: true },
       ]);
       setAllowedMethods(['GET', 'POST']);
+      setAuthType('none');
+      setAuthHeaderName('X-API-Key');
+      setAuthHeaderValue('');
+      setAuthToken('');
+      setDelayMs(0);
     }
     setJsonError(null);
     setRequestJsonError(null);
@@ -162,81 +182,103 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
     }
   }, [requestBody, method]);
 
-  if (!isOpen) return null;
-
   const handleAddHeader = () => {
-    setHeaders([
-      ...headers,
-      { id: `h_${Date.now()}`, key: '', value: '', enabled: true },
-    ]);
+    setHeaders([...headers, { id: `h_${Date.now()}`, key: '', value: '', enabled: true }]);
   };
 
   const handleUpdateHeader = (id: string, field: 'key' | 'value', val: string) => {
-    setHeaders(headers.map((h) => (h.id === id ? { ...h, [field]: val } : h)));
+    setHeaders(headers.map(h => (h.id === id ? { ...h, [field]: val } : h)));
   };
 
   const handleRemoveHeader = (id: string) => {
-    setHeaders(headers.filter((h) => h.id !== id));
+    if (headers.length <= 1) {
+      toast.warning('At least one header entry must remain.');
+      return;
+    }
+    setHeaders(headers.filter(h => h.id !== id));
   };
 
   const toggleAllowedMethod = (m: HttpMethod) => {
-    setAllowedMethods(prev =>
-      prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]
-    );
+    if (allowedMethods.includes(m)) {
+      if (allowedMethods.length === 1) {
+        toast.warning('At least one allowed method is required for OPTIONS.');
+        return;
+      }
+      setAllowedMethods(allowedMethods.filter(item => item !== m));
+    } else {
+      setAllowedMethods([...allowedMethods, m]);
+    }
   };
 
-  const showResponseBody = methodHasResponseBody(method, statusCode);
-  const showRequestBody = METHODS_WITH_REQUEST_BODY.includes(method);
   const showAllowedMethods = method === 'OPTIONS';
+  const showRequestBody = METHODS_WITH_REQUEST_BODY.includes(method);
+  const showResponseBody = methodHasResponseBody(method, statusCode);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const cleanPath = path.trim();
+    let cleanPath = path.trim();
     if (!cleanPath) {
-      toast.error('Endpoint path is required.');
+      toast.warning('Endpoint path is required.');
+      return;
+    }
+    if (!cleanPath.startsWith('/')) {
+      cleanPath = `/${cleanPath}`;
+    }
+
+    const formattedPath = cleanPath.length > 1 && cleanPath.endsWith('/')
+      ? cleanPath.slice(0, -1)
+      : cleanPath;
+
+    // Check duplicate
+    const isDuplicate = existingMocks.some(
+      m =>
+        m.method === method &&
+        m.path.toLowerCase() === formattedPath.toLowerCase() &&
+        m.id !== initialMock?.id
+    );
+
+    if (isDuplicate) {
+      toast.warning(`A mock endpoint for "${method} ${formattedPath}" already exists.`);
       return;
     }
 
-    const formattedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-    const normalizedPath =
-      formattedPath.length > 1 && formattedPath.endsWith('/')
-        ? formattedPath.slice(0, -1)
-        : formattedPath;
+    if (showResponseBody && jsonError) {
+      toast.error('Please resolve response JSON syntax errors before saving.');
+      return;
+    }
 
-    // Check for duplicate endpoint in this user's mocks
-    if (existingMocks && existingMocks.length > 0) {
-      const isDuplicate = existingMocks.some((m) => {
-        if (isEdit && m.id === initialMock?.id) return false;
-        const mNorm =
-          m.path.length > 1 && m.path.endsWith('/') ? m.path.slice(0, -1) : m.path;
-        return m.method.toUpperCase() === method.toUpperCase() && mNorm === normalizedPath;
-      });
+    if (showRequestBody && requestJsonError) {
+      toast.error('Please resolve request JSON syntax errors before saving.');
+      return;
+    }
 
-      if (isDuplicate) {
-        const msg = `A mock endpoint with method '${method}' and path '${formattedPath}' already exists in your account.`;
-        toast.error(msg);
+    // Validate Auth fields if enabled
+    if (authType === 'api_key') {
+      if (!authHeaderName.trim()) {
+        toast.warning('Header Name is required for API Key authentication.');
+        return;
+      }
+      if (!authHeaderValue.trim()) {
+        toast.warning('API Key secret value is required.');
+        return;
+      }
+    } else if (authType === 'bearer') {
+      if (!authToken.trim()) {
+        toast.warning('Bearer token secret value is required.');
         return;
       }
     }
 
-    if (showResponseBody && responseBody.trim()) {
-      try {
-        JSON.parse(responseBody);
-      } catch {
-        toast.error('Response body contains invalid JSON.');
-        return;
-      }
-    }
-
+    // Build headers dictionary
     const headersMap: Record<string, string> = {};
-    headers
-      .filter((h) => h.enabled && h.key.trim())
-      .forEach((h) => {
+    headers.forEach(h => {
+      if (h.key.trim()) {
         headersMap[h.key.trim()] = h.value;
-      });
+      }
+    });
 
-    if (!Object.keys(headersMap).some((k) => k.toLowerCase() === 'content-type')) {
+    if (!headersMap['Content-Type'] && showResponseBody) {
       headersMap['Content-Type'] = 'application/json';
     }
 
@@ -259,6 +301,11 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       responseHeaders: headersMap,
       responseBody: showResponseBody ? responseBody : '',
       responseType: 'json',
+      authType,
+      authHeaderName: authType === 'api_key' ? authHeaderName.trim() : undefined,
+      authHeaderValue: authType === 'api_key' ? authHeaderValue.trim() : undefined,
+      authToken: authType === 'bearer' ? authToken.trim() : undefined,
+      delayMs: Math.max(0, parseInt(String(delayMs), 10) || 0),
     };
 
     try {
@@ -322,18 +369,105 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         </div>
 
-        {/* Status Code */}
+        {/* Status Code & Response Delay */}
         <div className="wb-form-field">
-          <label className="wb-form-label">Status Code</label>
+          <div className="wb-form-row-2-equal">
+            <div>
+              <label className="wb-form-label">Status Code</label>
+              <select
+                value={statusCode}
+                onChange={(e) => setStatusCode(parseInt(e.target.value, 10))}
+                className="wb-form-select"
+              >
+                {STATUS_CODES.map(sc => (
+                  <option key={sc.code} value={sc.code}>{sc.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="wb-form-label">Response Delay (ms)</label>
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={delayMs}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setDelayMs(isNaN(val) || val < 0 ? 0 : val);
+                }}
+                className="wb-form-input mono"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Authentication Field */}
+        <div className="wb-form-field">
+          <label className="wb-form-label">Authentication</label>
           <select
-            value={statusCode}
-            onChange={(e) => setStatusCode(parseInt(e.target.value, 10))}
+            value={authType}
+            onChange={(e) => setAuthType(e.target.value as MockAuthType)}
             className="wb-form-select"
           >
-            {STATUS_CODES.map(sc => (
-              <option key={sc.code} value={sc.code}>{sc.label}</option>
-            ))}
+            <option value="none">None — Public Endpoint</option>
+            <option value="api_key">API Key (Header)</option>
+            <option value="bearer">Bearer Token (Authorization)</option>
           </select>
+
+          {/* API Key Sub-fields */}
+          {authType === 'api_key' && (
+            <div className="wb-mock-auth-box">
+              <div className="wb-form-row-2">
+                <div>
+                  <label className="wb-form-label" style={{ fontSize: '0.7rem' }}>Header Name</label>
+                  <input
+                    type="text"
+                    value={authHeaderName}
+                    onChange={(e) => setAuthHeaderName(e.target.value)}
+                    className="wb-form-input mono"
+                    placeholder="X-API-Key"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="wb-form-label" style={{ fontSize: '0.7rem' }}>API Key (Secret)</label>
+                  <input
+                    type="text"
+                    value={authHeaderValue}
+                    onChange={(e) => setAuthHeaderValue(e.target.value)}
+                    className="wb-form-input mono"
+                    placeholder="e.g. secret_key_12345"
+                    required
+                  />
+                </div>
+              </div>
+              <span style={{ fontSize: '0.725rem', color: '#64748b' }}>
+                Requests must include <code>{authHeaderName || 'X-API-Key'}: {authHeaderValue || '<key>'}</code> or receive 401 Unauthorized.
+              </span>
+            </div>
+          )}
+
+          {/* Bearer Token Sub-fields */}
+          {authType === 'bearer' && (
+            <div className="wb-mock-auth-box">
+              <div>
+                <label className="wb-form-label" style={{ fontSize: '0.7rem' }}>Token (Secret)</label>
+                <input
+                  type="text"
+                  value={authToken}
+                  onChange={(e) => setAuthToken(e.target.value)}
+                  className="wb-form-input mono"
+                  placeholder="e.g. token_abc123"
+                  required
+                />
+              </div>
+              <span style={{ fontSize: '0.725rem', color: '#64748b' }}>
+                Requests must include <code>Authorization: Bearer {authToken || '<token>'}</code> or receive 401 Unauthorized.
+              </span>
+            </div>
+          )}
         </div>
 
         {/* OPTIONS: Allowed Methods */}

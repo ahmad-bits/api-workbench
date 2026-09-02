@@ -720,7 +720,46 @@
 }
 
 /* ==========================================================================
-   5. Responsive
+   5. Authentication & Custom Delay Settings
+   ========================================================================== */
+
+.wb-mock-auth-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.wb-mock-meta-badge {
+  font-size: 0.675rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.wb-mock-auth-badge {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #dbeafe;
+}
+
+.wb-mock-delay-badge {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+/* ==========================================================================
+   6. Responsive
    ========================================================================== */
 
 @media (max-width: 1080px) {
@@ -743,3 +782,4 @@
     padding: 1rem;
   }
 }
+

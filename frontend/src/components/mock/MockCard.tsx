@@ -81,7 +81,7 @@ export const MockCard: React.FC<MockCardProps> = ({
     >
       {/* Main Content */}
       <div className="wb-mock-card-main">
-        {/* Route: Method + Path + Status */}
+        {/* Route: Method + Path + Status + Meta Badges */}
         <div className="wb-mock-route-row">
           <span className={`wb-mock-method-badge ${mock.method.toLowerCase()}`}>
             {mock.method}
@@ -90,6 +90,21 @@ export const MockCard: React.FC<MockCardProps> = ({
           <span className={`wb-mock-status-pill ${getStatusPillClass(mock.statusCode)}`}>
             {mock.statusCode}
           </span>
+          {mock.authType === 'api_key' && (
+            <span className="wb-mock-meta-badge wb-mock-auth-badge" title={`Requires Header "${mock.authHeaderName || 'X-API-Key'}"`}>
+              API Key
+            </span>
+          )}
+          {mock.authType === 'bearer' && (
+            <span className="wb-mock-meta-badge wb-mock-auth-badge" title="Requires Bearer Token in Authorization Header">
+              Bearer
+            </span>
+          )}
+          {mock.delayMs !== undefined && mock.delayMs > 0 && (
+            <span className="wb-mock-meta-badge wb-mock-delay-badge" title={`Response delay: ${mock.delayMs}ms`}>
+              {mock.delayMs}ms
+            </span>
+          )}
         </div>
 
         {/* URL */}

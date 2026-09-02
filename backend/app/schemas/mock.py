@@ -14,6 +14,15 @@ class MockEndpointBase(BaseModel):
     response_body: str = Field(default="{}", description="Response payload (JSON or text)")
     response_type: str = Field(default="json", description="Response type: 'json' or 'text'")
     description: Optional[str] = Field(default=None, description="Optional notes about this mock")
+    
+    # Authentication fields: 'none', 'api_key', 'bearer'
+    auth_type: str = Field(default="none", description="Auth type: 'none', 'api_key', or 'bearer'")
+    auth_header_name: Optional[str] = Field(default="X-API-Key", description="Header name for API key auth")
+    auth_header_value: Optional[str] = Field(default="", description="Expected secret value for API key auth")
+    auth_token: Optional[str] = Field(default="", description="Expected secret token for Bearer auth")
+
+    # Response Delay in milliseconds (>= 0)
+    delay_ms: int = Field(default=0, ge=0, description="Response delay in milliseconds (>= 0)")
 
     @field_validator("method")
     @classmethod
@@ -39,6 +48,23 @@ class MockEndpointBase(BaseModel):
     def validate_body(cls, v: str) -> str:
         return v if v is not None else ""
 
+    @field_validator("auth_type")
+    @classmethod
+    def validate_auth_type(cls, v: Optional[str]) -> str:
+        if not v:
+            return "none"
+        clean = v.lower().strip()
+        if clean not in {"none", "api_key", "bearer"}:
+            return "none"
+        return clean
+
+    @field_validator("delay_ms")
+    @classmethod
+    def validate_delay_ms(cls, v: Optional[int]) -> int:
+        if v is None or v < 0:
+            return 0
+        return v
+
 
 class MockEndpointCreate(MockEndpointBase):
     pass
@@ -53,6 +79,11 @@ class MockEndpointUpdate(BaseModel):
     response_body: Optional[str] = None
     response_type: Optional[str] = None
     description: Optional[str] = None
+    auth_type: Optional[str] = None
+    auth_header_name: Optional[str] = None
+    auth_header_value: Optional[str] = None
+    auth_token: Optional[str] = None
+    delay_ms: Optional[int] = Field(default=None, ge=0)
 
     @field_validator("method")
     @classmethod
@@ -76,6 +107,25 @@ class MockEndpointUpdate(BaseModel):
         if not clean.startswith("/"):
             clean = f"/{clean}"
         return clean
+
+    @field_validator("auth_type")
+    @classmethod
+    def validate_auth_type(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        clean = v.lower().strip()
+        if clean not in {"none", "api_key", "bearer"}:
+            return "none"
+        return clean
+
+    @field_validator("delay_ms")
+    @classmethod
+    def validate_delay_ms(cls, v: Optional[int]) -> Optional[int]:
+        if v is None:
+            return None
+        if v < 0:
+            return 0
+        return v
 
 
 class MockEndpointResponse(MockEndpointBase):

@@ -46,6 +46,32 @@ def migrate_sqlite_schema() -> None:
                 conn.execute(text("ALTER TABLE saved_apis ADD COLUMN category VARCHAR(120) DEFAULT 'General'"))
                 conn.commit()
                 logger.info("Successfully added 'category' column in 'saved_apis' table.")
+
+            # Check mock_endpoints table columns
+            res_mocks = conn.execute(text("PRAGMA table_info(mock_endpoints)"))
+            mock_cols = [row[1] for row in res_mocks.fetchall()]
+            if mock_cols:
+                if "auth_type" not in mock_cols:
+                    logger.info("Migrating SQLite schema: Adding missing 'auth_type' column to 'mock_endpoints' table...")
+                    conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN auth_type VARCHAR(20) DEFAULT 'none'"))
+                    conn.commit()
+                if "auth_header_name" not in mock_cols:
+                    logger.info("Migrating SQLite schema: Adding missing 'auth_header_name' column to 'mock_endpoints' table...")
+                    conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN auth_header_name VARCHAR(100) DEFAULT 'X-API-Key'"))
+                    conn.commit()
+                if "auth_header_value" not in mock_cols:
+                    logger.info("Migrating SQLite schema: Adding missing 'auth_header_value' column to 'mock_endpoints' table...")
+                    conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN auth_header_value VARCHAR(255) DEFAULT ''"))
+                    conn.commit()
+                if "auth_token" not in mock_cols:
+                    logger.info("Migrating SQLite schema: Adding missing 'auth_token' column to 'mock_endpoints' table...")
+                    conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN auth_token VARCHAR(255) DEFAULT ''"))
+                    conn.commit()
+                if "delay_ms" not in mock_cols:
+                    logger.info("Migrating SQLite schema: Adding missing 'delay_ms' column to 'mock_endpoints' table...")
+                    conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN delay_ms INTEGER DEFAULT 0"))
+                    conn.commit()
+                logger.info("Successfully verified/updated 'mock_endpoints' schema.")
     except Exception as exc:
         logger.warning("Schema migration notice: %s", exc)
 

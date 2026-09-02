@@ -41,6 +41,11 @@ def _to_response_schema(mock: MockEndpoint, username: str) -> MockEndpointRespon
         response_body=mock.response_body or "",
         response_type=mock.response_type or "json",
         description=mock.description,
+        auth_type=mock.auth_type or "none",
+        auth_header_name=mock.auth_header_name or "X-API-Key",
+        auth_header_value=mock.auth_header_value or "",
+        auth_token=mock.auth_token or "",
+        delay_ms=mock.delay_ms or 0,
         mock_url=mock_url,
         full_url=full_url,
         created_at=mock.created_at.isoformat() if mock.created_at else "",
@@ -110,6 +115,15 @@ class DatabaseMockService:
         name = data.name.strip() if data.name and data.name.strip() else f"{clean_method} {clean_path}"
         headers_str = json.dumps(data.response_headers or {"Content-Type": "application/json"})
 
+        auth_type = (data.auth_type or "none").lower().strip()
+        if auth_type not in {"none", "api_key", "bearer"}:
+            auth_type = "none"
+
+        auth_header_name = data.auth_header_name.strip() if data.auth_header_name else "X-API-Key"
+        auth_header_value = data.auth_header_value.strip() if data.auth_header_value else ""
+        auth_token = data.auth_token.strip() if data.auth_token else ""
+        delay_ms = max(0, int(data.delay_ms or 0))
+
         db_mock = MockEndpoint(
             id=mock_id,
             user_id=user.id,
@@ -121,6 +135,11 @@ class DatabaseMockService:
             response_body=data.response_body or "",
             response_type=data.response_type or "json",
             description=data.description,
+            auth_type=auth_type,
+            auth_header_name=auth_header_name,
+            auth_header_value=auth_header_value,
+            auth_token=auth_token,
+            delay_ms=delay_ms,
             call_count=0,
         )
         db.add(db_mock)
@@ -179,6 +198,17 @@ class DatabaseMockService:
             db_mock.response_type = data.response_type
         if data.description is not None:
             db_mock.description = data.description
+        if data.auth_type is not None:
+            clean_auth = data.auth_type.lower().strip()
+            db_mock.auth_type = clean_auth if clean_auth in {"none", "api_key", "bearer"} else "none"
+        if data.auth_header_name is not None:
+            db_mock.auth_header_name = data.auth_header_name.strip() if data.auth_header_name else "X-API-Key"
+        if data.auth_header_value is not None:
+            db_mock.auth_header_value = data.auth_header_value.strip() if data.auth_header_value else ""
+        if data.auth_token is not None:
+            db_mock.auth_token = data.auth_token.strip() if data.auth_token else ""
+        if data.delay_ms is not None:
+            db_mock.delay_ms = max(0, int(data.delay_ms))
 
         db.commit()
         db.refresh(db_mock)
@@ -204,7 +234,7 @@ class DatabaseMockService:
         """
         Public mock execution resolver:
         Finds user by username in SQLite, then finds configured Mock endpoint matching path and method.
-        Does NOT require authentication!
+        Does NOT require workbench session authentication.
         Returns (MockEndpoint, error_message).
         """
         clean_user = username.lower().strip()

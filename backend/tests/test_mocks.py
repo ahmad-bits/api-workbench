@@ -163,3 +163,79 @@ def test_mock_api_lifecycle_and_scoping(client):
     sarah_still_works = client.get("/mock/sarah/users")
     assert sarah_still_works.status_code == 200
     assert sarah_still_works.json() == [{"id": 2, "name": "Sarah"}]
+
+
+def test_mock_api_authentication_and_delay(client):
+    """Test Mock API with API Key auth, Bearer Token auth, and custom delay."""
+    # 1. Register user
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "name": "Dev User",
+            "username": "devuser",
+            "email": "devuser@example.com",
+            "password": "Password123!",
+        },
+    )
+    token = reg.json()["access_token"]
+    auth_header = {"Authorization": f"Bearer {token}"}
+
+    # 2. Create Mock with API Key Auth & 50ms delay
+    api_key_mock = client.post(
+        "/api/v1/mocks",
+        headers=auth_header,
+        json={
+            "name": "Protected by API Key",
+            "method": "GET",
+            "path": "/protected-apikey",
+            "status_code": 200,
+            "response_body": json.dumps({"secret": "key-data"}),
+            "auth_type": "api_key",
+            "auth_header_name": "X-Custom-Key",
+            "auth_header_value": "secret-12345",
+            "delay_ms": 50,
+        },
+    )
+    assert api_key_mock.status_code == 201
+
+    # Missing API Key -> 401 Unauthorized
+    res_no_key = client.get("/mock/devuser/protected-apikey")
+    assert res_no_key.status_code == 401
+
+    # Wrong API Key -> 401 Unauthorized
+    res_wrong_key = client.get("/mock/devuser/protected-apikey", headers={"X-Custom-Key": "wrong"})
+    assert res_wrong_key.status_code == 401
+
+    # Correct API Key -> 200 OK
+    res_good_key = client.get("/mock/devuser/protected-apikey", headers={"X-Custom-Key": "secret-12345"})
+    assert res_good_key.status_code == 200
+    assert res_good_key.json() == {"secret": "key-data"}
+
+    # 3. Create Mock with Bearer Token Auth
+    bearer_mock = client.post(
+        "/api/v1/mocks",
+        headers=auth_header,
+        json={
+            "name": "Protected by Bearer",
+            "method": "POST",
+            "path": "/protected-bearer",
+            "status_code": 201,
+            "response_body": json.dumps({"status": "created"}),
+            "auth_type": "bearer",
+            "auth_token": "bearer-token-abc",
+        },
+    )
+    assert bearer_mock.status_code == 201
+
+    # Missing Bearer -> 401
+    res_no_bearer = client.post("/mock/devuser/protected-bearer")
+    assert res_no_bearer.status_code == 401
+
+    # Wrong Bearer -> 401
+    res_wrong_bearer = client.post("/mock/devuser/protected-bearer", headers={"Authorization": "Bearer invalid"})
+    assert res_wrong_bearer.status_code == 401
+
+    # Correct Bearer -> 201
+    res_good_bearer = client.post("/mock/devuser/protected-bearer", headers={"Authorization": "Bearer bearer-token-abc"})
+    assert res_good_bearer.status_code == 201
+    assert res_good_bearer.json() == {"status": "created"}

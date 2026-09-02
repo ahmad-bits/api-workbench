@@ -1,7 +1,8 @@
+import asyncio
+import json
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-import json
 from app.db.session import get_db
 from app.services.mock_service import mock_service
 
@@ -20,7 +21,7 @@ mock_execution_router = APIRouter()
     summary="Execute Mock Endpoint (Username + Path)",
     include_in_schema=False,
 )
-def handle_mock_request(
+async def handle_mock_request(
     username: str,
     request: Request,
     subpath: str = "",
@@ -29,8 +30,8 @@ def handle_mock_request(
     """
     Publicly accessible mock execution engine.
     Dynamically receives requests to /mock/{username}/{subpath}, looks up the mock
-    in SQLite, and returns the configured response without requiring authentication.
-    Continues to work after user logout.
+    in SQLite, enforces any configured authentication (API Key or Bearer Token)
+    and custom response delay, and returns the configured response.
     """
     method = request.method.upper()
     mock, error_msg = mock_service.match_and_serve_public(
@@ -62,6 +63,52 @@ def handle_mock_request(
             headers={"Allow": mock.method},
         )
 
+    # 1. Enforce Authentication
+    auth_type = (mock.auth_type or "none").lower()
+    if auth_type == "api_key":
+        header_name = mock.auth_header_name or "X-API-Key"
+        expected_key = mock.auth_header_value or ""
+        incoming_key = request.headers.get(header_name)
+        if not incoming_key or incoming_key != expected_key:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "Unauthorized",
+                    "detail": f"Missing or invalid API key in '{header_name}' header.",
+                    "username": username,
+                    "path": mock.path,
+                },
+            )
+    elif auth_type == "bearer":
+        expected_token = mock.auth_token or ""
+        auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "Unauthorized",
+                    "detail": "Missing or invalid Bearer token in 'Authorization' header.",
+                    "username": username,
+                    "path": mock.path,
+                },
+            )
+        incoming_token = auth_header[7:].strip()
+        if incoming_token != expected_token:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "Unauthorized",
+                    "detail": "Invalid Bearer token.",
+                    "username": username,
+                    "path": mock.path,
+                },
+            )
+
+    # 2. Enforce Custom Response Delay
+    if mock.delay_ms and mock.delay_ms > 0:
+        await asyncio.sleep(mock.delay_ms / 1000.0)
+
+    # 3. Build Response Headers & Body
     resp_headers = {}
     try:
         if mock.response_headers:

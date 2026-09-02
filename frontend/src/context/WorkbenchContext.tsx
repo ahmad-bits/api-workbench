@@ -280,17 +280,35 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Test mock endpoint inside Workbench
   const handleTestInWorkbench = (mock: MockEndpoint) => {
-    const fullMockUrl = `http://127.0.0.1:8000/mock/${mock.path.startsWith('/') ? mock.path.slice(1) : mock.path}`;
+    const fullMockUrl = mock.fullUrl || (mock.mockUrl ? `http://127.0.0.1:8000${mock.mockUrl}` : `http://127.0.0.1:8000/mock/${mock.path.startsWith('/') ? mock.path.slice(1) : mock.path}`);
     handleUrlChange(fullMockUrl);
     setMethod(mock.method);
     setHeaders([{ id: 'h_default', key: 'Accept', value: 'application/json', enabled: true }]);
-    setAuthHeaders([]);
+
+    const authList: KeyValuePair[] = [];
+    if (mock.authType === 'api_key' && mock.authHeaderValue) {
+      authList.push({
+        id: `auth_${Date.now()}`,
+        key: mock.authHeaderName || 'X-API-Key',
+        value: mock.authHeaderValue,
+        enabled: true,
+      });
+    } else if (mock.authType === 'bearer' && mock.authToken) {
+      authList.push({
+        id: `auth_${Date.now()}`,
+        key: 'Authorization',
+        value: `Bearer ${mock.authToken}`,
+        enabled: true,
+      });
+    }
+    setAuthHeaders(authList);
+
     setBodyType('json');
     setBody('');
     setRequestCount(1);
     setResponse(null);
     setBatchResponse(null);
-    setActiveTab('params');
+    setActiveTab(authList.length > 0 ? 'auth' : 'params');
     navigateToTester();
     toast.info(`Configured Mock Endpoint "${mock.name}" in API Tester.`);
   };

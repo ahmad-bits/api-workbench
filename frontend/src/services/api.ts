@@ -136,6 +136,11 @@ export class ApiClient {
       responseBody: m.response_body || '',
       responseType: m.response_type || 'json',
       description: m.description,
+      authType: m.auth_type || 'none',
+      authHeaderName: m.auth_header_name || 'X-API-Key',
+      authHeaderValue: m.auth_header_value || '',
+      authToken: m.auth_token || '',
+      delayMs: m.delay_ms || 0,
       mockUrl: m.mock_url,
       fullUrl: m.full_url || `http://127.0.0.1:8000${m.mock_url}`,
       createdAt: m.created_at,
@@ -276,7 +281,7 @@ export class ApiClient {
   }
 
   async createMock(data: MockEndpointCreate): Promise<MockEndpoint> {
-    const payload = {
+    const payload: any = {
       name: data.name,
       method: data.method,
       path: data.path,
@@ -285,6 +290,11 @@ export class ApiClient {
       response_body: data.responseBody,
       response_type: data.responseType || 'json',
       description: data.description,
+      auth_type: data.authType || 'none',
+      auth_header_name: data.authHeaderName || 'X-API-Key',
+      auth_header_value: data.authHeaderValue || '',
+      auth_token: data.authToken || '',
+      delay_ms: data.delayMs || 0,
     };
 
     const response = await this.fetchWithHandling(`${this.baseUrl}/mocks`, {
@@ -325,6 +335,11 @@ export class ApiClient {
     if (data.responseBody !== undefined) payload.response_body = data.responseBody;
     if (data.responseType !== undefined) payload.response_type = data.responseType;
     if (data.description !== undefined) payload.description = data.description;
+    if (data.authType !== undefined) payload.auth_type = data.authType;
+    if (data.authHeaderName !== undefined) payload.auth_header_name = data.authHeaderName;
+    if (data.authHeaderValue !== undefined) payload.auth_header_value = data.authHeaderValue;
+    if (data.authToken !== undefined) payload.auth_token = data.authToken;
+    if (data.delayMs !== undefined) payload.delay_ms = data.delayMs;
 
     const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${id}`, {
       method: 'PUT',
