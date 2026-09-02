@@ -20,11 +20,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.15rem 1.75rem;
+  height: 58px;
+  min-height: 58px;
+  max-height: 58px;
+  padding: 0 1.75rem;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   gap: 1rem;
+  box-sizing: border-box;
 }
 
 .wb-mock-left-wrap {
@@ -36,21 +40,27 @@
 
 .wb-mock-title-block {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 0.85rem;
+  min-width: 0;
 }
 
 .wb-mock-heading {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.02em;
   margin: 0;
+  line-height: 1;
 }
 
 .wb-mock-subheading {
   font-size: 0.8rem;
   color: #64748b;
-  margin: 0.1rem 0 0 0;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wb-mock-topbar-actions {
@@ -721,10 +731,12 @@
 
 @media (max-width: 768px) {
   .wb-mock-topbar {
-    padding: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    padding: 0 1rem;
+    height: 58px;
+    min-height: 58px;
+    max-height: 58px;
+    flex-direction: row;
+    align-items: center;
   }
 
   .wb-mock-workspace-scrollable {

@@ -19,11 +19,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.15rem 2rem;
+  height: 58px;
+  min-height: 58px;
+  max-height: 58px;
+  padding: 0 1.75rem;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   gap: 1.25rem;
+  box-sizing: border-box;
 }
 
 .wb-saved-left-wrap {
@@ -35,8 +39,9 @@
 
 .wb-saved-title-block {
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  align-items: baseline;
+  gap: 0.85rem;
+  min-width: 0;
 }
 
 .wb-saved-breadcrumb-row {
@@ -688,7 +693,10 @@
 
 @media (max-width: 900px) {
   .wb-saved-topbar {
-    padding: 1rem 1.25rem;
+    padding: 0 1rem;
+    height: 58px;
+    min-height: 58px;
+    max-height: 58px;
   }
 
   .wb-saved-content-viewport {

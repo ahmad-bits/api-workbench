@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useToast } from '../context/ToastContext';
 import { SaveApiModal } from './saved/SaveApiModal';
+import { NavToggle } from './common/NavToggle';
 
 export function WorkbenchLayout() {
   const navigate = useNavigate();
@@ -16,12 +17,99 @@ export function WorkbenchLayout() {
     setNavigateToTester(() => navigate('/api-tester'));
   }, [navigate, setNavigateToTester]);
 
-  // Auto-close sidebar on mobile viewports when route changes
+  // Mobile swipe gestures:
+  // - Swipe from left edge (within 45px) to right -> Open sidebar
+  // - Swipe back toward left from drawer -> Close sidebar
   useEffect(() => {
-    if (window.innerWidth <= 768 && !isSidebarCollapsed) {
-      setSidebarCollapsed(true);
-    }
-  }, [location.pathname, isSidebarCollapsed, setSidebarCollapsed]);
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isSwiping = false;
+    let isHorizontalGesture: boolean | null = null;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.innerWidth > 768) return;
+      if (e.touches.length !== 1) return;
+
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      isSwiping = false;
+      isHorizontalGesture = null;
+
+      // When collapsed: user must start touch near the left edge
+      if (isSidebarCollapsed) {
+        if (touchStartX <= 45) {
+          isSwiping = true;
+        }
+      } else {
+        // When expanded: user can swipe anywhere within drawer or backdrop area
+        if (touchStartX <= 300) {
+          isSwiping = true;
+        }
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isSwiping || window.innerWidth > 768) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+
+      if (isHorizontalGesture === null) {
+        // Detect whether user intended horizontal swipe or vertical scroll
+        if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+          if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            isHorizontalGesture = true;
+          } else {
+            isHorizontalGesture = false;
+            isSwiping = false;
+          }
+        }
+      }
+
+      if (isHorizontalGesture) {
+        // Prevent vertical scrolling wobble during horizontal drawer swipe
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isSwiping || isHorizontalGesture !== true || window.innerWidth > 768) {
+        isSwiping = false;
+        isHorizontalGesture = null;
+        return;
+      }
+
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX;
+
+      // Swipe right from edge to open
+      if (isSidebarCollapsed && deltaX > 45) {
+        setSidebarCollapsed(false);
+      }
+      // Swipe left from drawer to close
+      else if (!isSidebarCollapsed && deltaX < -35) {
+        setSidebarCollapsed(true);
+      }
+
+      isSwiping = false;
+      isHorizontalGesture = null;
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [isSidebarCollapsed, setSidebarCollapsed]);
 
   // Global keyboard shortcut: Ctrl+B / Cmd+B to toggle navigation sidebar
   useEffect(() => {
@@ -42,6 +130,12 @@ export function WorkbenchLayout() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar]);
+
+  const handleNavClick = () => {
+    if (window.innerWidth <= 768) {
+      setSidebarCollapsed(true);
+    }
+  };
 
   const isTesterRouteActive =
     location.pathname.startsWith('/api-tester') ||
@@ -69,27 +163,16 @@ export function WorkbenchLayout() {
         aria-hidden={isSidebarCollapsed}
       >
         <div className="wb-sidebar-top-section">
-          {/* Workspace Brand / Identity */}
-          <div className="wb-workspace-header">
-            <div className="wb-workspace-logo-dot">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2.2C12 7.6 7.6 12 2.2 12C7.6 12 12 16.4 12 21.8C12 16.4 16.4 12 21.8 12C16.4 12 12 7.6 12 2.2Z"
-                  fill="#1860ec"
-                />
-                <circle cx="12" cy="12" r="2" fill="#ffffff" />
-              </svg>
-            </div>
-            <div className="wb-workspace-meta">
-              <span className="wb-workspace-title">API Workbench</span>
-              <span className="wb-workspace-badge-plan">Developer Studio</span>
-            </div>
+          {/* Top Header with Absolute Top-Left Hamburger Toggle */}
+          <div className="wb-sidebar-header">
+            <NavToggle />
           </div>
 
           {/* Sidebar Nav Items */}
           <nav className="wb-sidebar-nav">
             <NavLink
               to="/api-tester"
+              onClick={handleNavClick}
               className={() => `wb-sidebar-item ${isTesterRouteActive ? 'active' : ''}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -101,6 +184,7 @@ export function WorkbenchLayout() {
 
             <NavLink
               to="/my-apis"
+              onClick={handleNavClick}
               className={() => `wb-sidebar-item ${isApisRouteActive ? 'active' : ''}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -114,6 +198,7 @@ export function WorkbenchLayout() {
 
             <NavLink
               to="/mocks"
+              onClick={handleNavClick}
               className={({ isActive }) => `wb-sidebar-item ${isActive ? 'active' : ''}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -126,6 +211,7 @@ export function WorkbenchLayout() {
 
             <NavLink
               to="/settings"
+              onClick={handleNavClick}
               className={({ isActive }) => `wb-sidebar-item ${isActive ? 'active' : ''}`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
