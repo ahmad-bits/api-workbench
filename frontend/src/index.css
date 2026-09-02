@@ -17,7 +17,6 @@
   --accent-amber: #f59e0b;
   --accent-rose: #f43f5e;
 
-  /* HTTP Method Colors */
   --method-get: #10b981;
   --method-post: #3b82f6;
   --method-put: #f59e0b;
@@ -70,7 +69,6 @@ code, pre {
   font-family: var(--font-mono);
 }
 
-/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -89,7 +87,6 @@ code, pre {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* Layout Utilities */
 .app-container {
   min-height: 100vh;
   display: flex;
@@ -104,7 +101,6 @@ code, pre {
   flex: 1;
 }
 
-/* Header */
 .navbar {
   display: flex;
   align-items: center;
@@ -162,7 +158,6 @@ code, pre {
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-/* Status Badges */
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -219,7 +214,6 @@ code, pre {
   50% { opacity: 0.4; transform: scale(0.8); }
 }
 
-/* Glass Card */
 .glass-card {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
@@ -233,7 +227,6 @@ code, pre {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-/* Quick Presets Bar */
 .presets-container {
   display: flex;
   align-items: center;
@@ -282,7 +275,6 @@ code, pre {
   font-family: var(--font-mono);
 }
 
-/* Request Builder Bar */
 .request-bar-card {
   display: flex;
   flex-direction: column;
@@ -364,7 +356,6 @@ code, pre {
   cursor: not-allowed;
 }
 
-/* Tabs Section */
 .workbench-tabs {
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
@@ -408,7 +399,6 @@ code, pre {
   color: var(--accent-blue);
 }
 
-/* Key Value Editor */
 .kv-editor {
   display: flex;
   flex-direction: column;
@@ -562,7 +552,6 @@ code, pre {
   background: rgba(244, 63, 94, 0.15);
 }
 
-/* Body Editor */
 .body-editor {
   display: flex;
   flex-direction: column;
@@ -647,7 +636,6 @@ code, pre {
   font-family: var(--font-mono);
 }
 
-/* Response Viewer */
 .response-viewer {
   display: flex;
   flex-direction: column;
@@ -785,7 +773,6 @@ code, pre {
   color: var(--text-primary);
 }
 
-/* Empty & Loading States */
 .response-empty-state, .response-loading-state {
   display: flex;
   flex-direction: column;
@@ -816,7 +803,6 @@ code, pre {
   to { transform: rotate(360deg); }
 }
 
-/* Error State */
 .response-error-panel {
   padding: 1.5rem;
   border-radius: 8px;
@@ -838,7 +824,6 @@ code, pre {
   font-family: var(--font-mono);
 }
 
-/* Request Count Stepper & Control */
 .request-count-wrapper {
   display: flex;
   align-items: center;
@@ -909,7 +894,6 @@ code, pre {
   margin: 0;
 }
 
-/* Benchmark Mode Send Button */
 .btn-send.benchmark-mode {
   background: linear-gradient(135deg, var(--accent-purple), #6366f1);
   box-shadow: 0 2px 12px rgba(139, 92, 246, 0.35);
@@ -919,7 +903,6 @@ code, pre {
   background: linear-gradient(135deg, #a78bfa, #8b5cf6);
 }
 
-/* Quick Count Toolbar */
 .count-toolbar {
   display: flex;
   align-items: center;
@@ -999,7 +982,6 @@ code, pre {
   border-color: rgba(139, 92, 246, 0.35);
 }
 
-/* Benchmark Viewer Styles */
 .benchmark-viewer-container {
   display: flex;
   flex-direction: column;
@@ -1023,7 +1005,6 @@ code, pre {
   gap: 1.25rem;
 }
 
-/* Stats Cards Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1121,7 +1102,6 @@ code, pre {
   color: var(--text-muted);
 }
 
-/* Distribution Card */
 .distribution-card {
   background: #07090e;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1241,7 +1221,6 @@ code, pre {
   font-size: 0.85rem;
 }
 
-/* Latency Spread Card */
 .latency-spread-card {
   background: #07090e;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1323,7 +1302,6 @@ code, pre {
   border: 1px solid rgba(14, 165, 233, 0.3);
 }
 
-/* Latest Body Banner */
 .latest-body-banner {
   display: flex;
   align-items: center;
@@ -1337,7 +1315,6 @@ code, pre {
   color: var(--text-secondary);
 }
 
-/* Runs Table */
 .runs-table-container {
   max-height: 420px;
 }
@@ -1377,9 +1354,6 @@ code, pre {
   font-size: 0.75rem;
 }
 
-/* ==========================================================================
-   Navigation View Switcher
-   ========================================================================== */
 .brand-nav-group {
   display: flex;
   align-items: center;
@@ -1421,16 +1395,12 @@ code, pre {
   box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
 }
 
-/* ==========================================================================
-   Mock API Server Styles
-   ========================================================================== */
 .mock-manager-container {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* Hero Banner */
 .mock-hero-banner {
   display: flex;
   align-items: center;
@@ -1499,7 +1469,6 @@ code, pre {
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
 }
 
-/* Toolbar & Filters */
 .mock-toolbar {
   display: flex;
   align-items: center;
@@ -1607,7 +1576,6 @@ code, pre {
   color: #fbbf24;
 }
 
-/* Mock Cards Grid */
 .mock-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -1690,7 +1658,6 @@ code, pre {
   line-height: 1.35;
 }
 
-/* Mock URL Bar in Card */
 .mock-url-box {
   display: flex;
   align-items: center;
@@ -1746,7 +1713,6 @@ code, pre {
   color: #34d399;
 }
 
-/* Card Actions */
 .mock-card-actions {
   display: flex;
   align-items: center;
@@ -1815,7 +1781,6 @@ code, pre {
   background: rgba(244, 63, 94, 0.1);
 }
 
-/* Expandable Preview */
 .mock-preview-drawer {
   margin-top: 0.5rem;
   padding: 0.75rem;
@@ -1854,7 +1819,6 @@ code, pre {
   color: var(--text-secondary);
 }
 
-/* Empty State Card */
 .empty-mocks-card {
   display: flex;
   flex-direction: column;
@@ -1882,9 +1846,6 @@ code, pre {
   max-width: 480px;
 }
 
-/* ==========================================================================
-   Modal Dialog Styles
-   ========================================================================== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -2248,7 +2209,6 @@ code, pre {
   color: var(--text-primary);
 }
 
-/* Footer */
 .footer {
   text-align: center;
   padding: 2rem;
@@ -2256,10 +2216,6 @@ code, pre {
   color: var(--text-muted);
   font-size: 0.85rem;
 }
-
-/* ==========================================================================
-   AUTHENTICATION & USER PROFILE STYLES
-   ========================================================================== */
 
 .navbar-right-group {
   display: flex;
@@ -2308,7 +2264,6 @@ code, pre {
   background: linear-gradient(135deg, #60a5fa, #4f46e5);
 }
 
-/* User Nav Badge & Dropdown */
 .user-nav-container {
   position: relative;
 }
@@ -2329,7 +2284,7 @@ code, pre {
 
 .user-nav-badge:hover,
 .user-nav-badge.active {
-  background: #E0E7FF; /* slightly darker for hover */
+  background: #E0E7FF; 
   border-color: #2563EB;
   box-shadow: 0 0 14px rgba(37, 99, 235, 0.25);
 }
@@ -2417,7 +2372,7 @@ code, pre {
 
 .user-dropdown-email {
   font-size: 0.75rem;
-  color: rgba(23, 32, 51, 0.7); /* Muted text color using opacity */
+  color: rgba(23, 32, 51, 0.7); 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2458,7 +2413,6 @@ code, pre {
   color: #ef4444;
 }
 
-/* Modals & Dialogs */
 .auth-modal {
   max-width: 460px;
   width: 95%;
@@ -2647,7 +2601,6 @@ code, pre {
   color: var(--accent-blue);
 }
 
-/* User Profile Modal */
 .profile-modal {
   max-width: 620px;
   width: 95%;
@@ -2736,7 +2689,6 @@ code, pre {
   background: rgba(16, 185, 129, 0.08);
 }
 
-/* Profile Navigation Tabs */
 .profile-nav-tabs {
   display: flex;
   gap: 0.5rem;
@@ -2783,7 +2735,6 @@ code, pre {
   margin-top: 0.5rem;
 }
 
-/* Token Tab in Profile */
 .tab-explanation {
   font-size: 0.85rem;
   color: var(--text-secondary);
@@ -2839,7 +2790,6 @@ code, pre {
   flex-wrap: wrap;
 }
 
-/* Danger Zone */
 .danger-zone-container {
   display: flex;
   flex-direction: column;
@@ -2933,7 +2883,6 @@ code, pre {
   padding-top: 1rem;
 }
 
-/* Auth Page Dedicated Landing Styles */
 .auth-page-wrapper {
   min-height: 100vh;
   display: flex;
@@ -2994,7 +2943,6 @@ code, pre {
   line-height: 1.45;
 }
 
-/* User Nav Handle Styles */
 .user-nav-text-col {
   display: flex;
   flex-direction: column;
@@ -3014,7 +2962,6 @@ code, pre {
   margin-top: 0.15rem;
 }
 
-/* Auth Loading Splash */
 .auth-loading-screen {
   min-height: 100vh;
   display: flex;
@@ -3030,10 +2977,6 @@ code, pre {
   font-weight: 500;
   letter-spacing: 0.3px;
 }
-
-/* ==========================================================================
-   OTP Verification Flow Styles
-   ========================================================================== */
 
 .otp-verification-container {
   display: flex;
@@ -3185,11 +3128,6 @@ code, pre {
   font-size: 0.9rem;
 }
 
-/* ==========================================================================
-   My APIs / Save API Feature Styles
-   ========================================================================== */
-
-/* Navbar Badge */
 .nav-tab-badge {
   display: inline-flex;
   align-items: center;
@@ -3205,7 +3143,6 @@ code, pre {
   line-height: 1;
 }
 
-/* Save API Button in Workbench Tester Toolbar */
 .btn-save-api {
   display: inline-flex;
   align-items: center;
@@ -3240,7 +3177,6 @@ code, pre {
   background: rgba(255, 255, 255, 0.04);
 }
 
-/* Save API Modal Customizations */
 .save-api-modal {
   max-width: 520px;
   width: 92%;
@@ -3315,7 +3251,6 @@ code, pre {
   border-radius: 6px;
 }
 
-/* Saved API Manager Layout */
 .saved-api-manager-container {
   display: flex;
   flex-direction: column;
@@ -3379,7 +3314,6 @@ code, pre {
   border-radius: 8px;
 }
 
-/* Search Bar */
 .saved-api-search-bar {
   display: flex;
   align-items: center;
@@ -3411,7 +3345,6 @@ code, pre {
   font-weight: 500;
 }
 
-/* Grid & Cards */
 .saved-api-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -3611,7 +3544,6 @@ code, pre {
   cursor: not-allowed;
 }
 
-/* Empty & Loading States */
 .saved-api-empty-state {
   display: flex;
   flex-direction: column;
@@ -3653,8 +3585,3 @@ code, pre {
   color: var(--text-muted, #9ca3af);
   font-size: 0.9rem;
 }
-
-
-
-
-

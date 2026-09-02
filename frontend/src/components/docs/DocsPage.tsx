@@ -32,14 +32,12 @@ const DOC_SECTIONS: DocSectionMeta[] = [
 export const DocsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const isScrollingRef = useRef(false);
 
-  // Sidebar collapse state (desktop) & drawer state (mobile)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  // Extract initial section from URL hash or default to 'getting-started'
   const getSectionFromHash = (): DocSectionId => {
     const hash = location.hash.replace('#', '').toLowerCase();
     const found = DOC_SECTIONS.find((s) => s.id === hash);
@@ -48,7 +46,6 @@ export const DocsPage: React.FC = () => {
 
   const [activeSection, setActiveSection] = useState<DocSectionId>(getSectionFromHash);
 
-  // Scroll spy to update active section in sidebar as user scrolls through documents
   useEffect(() => {
     const observerCallback: IntersectionObserverCallback = (entries) => {
       if (isScrollingRef.current) return;
@@ -80,7 +77,6 @@ export const DocsPage: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Initial scroll to hash if present on mount
   useEffect(() => {
     const initialId = location.hash.replace('#', '');
     if (initialId) {
@@ -91,7 +87,7 @@ export const DocsPage: React.FC = () => {
         }, 150);
       }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelectSection = (id: DocSectionId) => {
     setActiveSection(id);
@@ -198,19 +194,15 @@ export const DocsPage: React.FC = () => {
 
   return (
     <div className="wb-landing-root wb-docs-root">
-      {/* Top Main Header */}
       <LandingHeader
         onLoginClick={() => navigate('/login')}
         onSignUpClick={() => navigate('/register')}
         onWorkbenchClick={() => navigate('/api-tester')}
         onNavigateSection={(sec) => navigate('/#' + sec)}
         isAuthenticated={isAuthenticated}
-        userName={user?.name || user?.username}
       />
 
-      {/* Main Documentation Layout */}
       <div className={`wb-docs-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        {/* Left Sticky Sidebar (Pinned in place, contains its own toggle & title) */}
         <aside className="wb-docs-sidebar" aria-label="Documentation Navigation">
           <div className="wb-docs-sidebar-header">
             <button
@@ -241,12 +233,9 @@ export const DocsPage: React.FC = () => {
           {renderNavGroup()}
         </aside>
 
-        {/* Right Main Column */}
         <div className="wb-docs-main-col">
-          {/* Breadcrumb Top Bar */}
           <div className="wb-docs-top-bar">
             <div className="wb-docs-top-bar-left">
-              {/* Show toggle button when sidebar is collapsed or on mobile */}
               {(isSidebarCollapsed || typeof window !== 'undefined' && window.innerWidth <= 768) && (
                 <button
                   type="button"
@@ -291,7 +280,6 @@ export const DocsPage: React.FC = () => {
               </nav>
             </div>
 
-            {/* Mobile section switcher */}
             <div className="wb-docs-mobile-select-wrap">
               <select
                 className="wb-docs-mobile-select"
@@ -308,7 +296,6 @@ export const DocsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Continuous Documentation Content */}
           <main className="wb-docs-content-pane">
             <article className="wb-docs-article">
               <section id="getting-started" className="wb-docs-section-block">
@@ -339,7 +326,6 @@ export const DocsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Overlay */}
       {mobileDrawerOpen && (
         <div className="wb-docs-drawer-backdrop" onClick={() => setMobileDrawerOpen(false)}>
           <div className="wb-docs-drawer" onClick={(e) => e.stopPropagation()}>
@@ -362,15 +348,10 @@ export const DocsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Footer */}
       <LandingFooter />
     </div>
   );
 };
-
-/* ==========================================================================
-   Document Content Components (Reflecting Actual Application Implementation)
-   ========================================================================== */
 
 const GettingStartedDoc: React.FC = () => (
   <div>

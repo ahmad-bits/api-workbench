@@ -41,7 +41,6 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     return () => clearTimeout(timer);
   }, [requireInputText]);
 
-  // Handle ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {

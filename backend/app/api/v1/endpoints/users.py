@@ -32,7 +32,6 @@ def register_user(
     user_in: UserCreate,
     db: Session = Depends(get_db),
 ) -> UserResponse:
-    """Register a new user account."""
     return user_service.create_user(db=db, user_in=user_in)
 
 
@@ -47,7 +46,6 @@ def list_users(
     limit: int = Query(100, ge=1, le=500, description="Maximum number of records to return"),
     db: Session = Depends(get_db),
 ) -> List[UserResponse]:
-    """Retrieve all users with pagination."""
     return user_service.get_users(db=db, skip=skip, limit=limit)
 
 
@@ -61,7 +59,6 @@ def get_user(
     user_id: int,
     db: Session = Depends(get_db),
 ) -> UserResponse:
-    """Get a user by ID."""
     user = user_service.get_user_by_id(db=db, user_id=user_id)
     if not user:
         raise HTTPException(
@@ -89,7 +86,6 @@ def update_user_account(
     user_in: UserUpdate,
     db: Session = Depends(get_db),
 ) -> UserResponse:
-    """Update user account settings."""
     return user_service.update_user(db=db, user_id=user_id, user_in=user_in)
 
 
@@ -104,7 +100,6 @@ def delete_user_account(
     user_id: int,
     db: Session = Depends(get_db),
 ) -> UserDeleteResponse:
-    """Permanently delete a user account."""
     user_service.delete_user_permanently(db=db, user_id=user_id)
     return UserDeleteResponse(
         message="User account and associated data permanently deleted.",

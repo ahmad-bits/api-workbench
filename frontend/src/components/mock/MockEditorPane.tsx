@@ -33,17 +33,14 @@ const STATUS_CODES = [
 
 const ALL_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
-// Which methods accept a request body?
 const METHODS_WITH_REQUEST_BODY: HttpMethod[] = ['POST', 'PUT', 'PATCH'];
 
-// Which methods show response body?
 const methodHasResponseBody = (method: HttpMethod, statusCode: number): boolean => {
   if (method === 'HEAD' || method === 'OPTIONS') return false;
   if (method === 'DELETE' && statusCode === 204) return false;
   return true;
 };
 
-// Default status code per method
 const defaultStatusForMethod = (method: HttpMethod): number => {
   if (method === 'POST') return 201;
   if (method === 'DELETE') return 204;
@@ -68,23 +65,19 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   const [headers, setHeaders] = useState<MockHeaderRow[]>([
     { id: 'h_default', key: 'Content-Type', value: 'application/json', enabled: true },
   ]);
-  // OPTIONS: allowed methods
   const [allowedMethods, setAllowedMethods] = useState<HttpMethod[]>(['GET', 'POST']);
 
-  // Authentication state
   const [authType, setAuthType] = useState<MockAuthType>('none');
   const [authHeaderName, setAuthHeaderName] = useState('X-API-Key');
   const [authHeaderValue, setAuthHeaderValue] = useState('');
   const [authToken, setAuthToken] = useState('');
 
-  // Response Delay state
   const [delayMs, setDelayMs] = useState<number>(0);
 
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [requestJsonError, setRequestJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Populate form from initialMock or reset for create
   useEffect(() => {
     if (initialMock) {
       setMethod(initialMock.method);
@@ -111,7 +104,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       }
       setHeaders(loadedHeaders);
 
-      // Parse Allow header for OPTIONS
       if (initialMock.method === 'OPTIONS') {
         const allowHdr = initialMock.responseHeaders?.['Allow'] || '';
         if (allowHdr) {
@@ -138,7 +130,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
     setRequestJsonError(null);
   }, [initialMock, isOpen]);
 
-  // When method changes, adjust status code defaults
   const handleMethodChange = (newMethod: HttpMethod) => {
     setMethod(newMethod);
     if (!isEdit) {
@@ -146,7 +137,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
     }
   };
 
-  // Validate response JSON
   useEffect(() => {
     if (!methodHasResponseBody(method, statusCode)) {
       setJsonError(null);
@@ -164,7 +154,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
     }
   }, [responseBody, method, statusCode]);
 
-  // Validate request JSON
   useEffect(() => {
     if (!METHODS_WITH_REQUEST_BODY.includes(method)) {
       setRequestJsonError(null);
@@ -230,7 +219,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       ? cleanPath.slice(0, -1)
       : cleanPath;
 
-    // Check duplicate
     const isDuplicate = existingMocks.some(
       m =>
         m.method === method &&
@@ -253,7 +241,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       return;
     }
 
-    // Validate Auth fields if enabled
     if (authType === 'api_key') {
       if (!authHeaderName.trim()) {
         toast.warning('Header Name is required for API Key authentication.');
@@ -270,7 +257,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       }
     }
 
-    // Build headers dictionary
     const headersMap: Record<string, string> = {};
     headers.forEach(h => {
       if (h.key.trim()) {
@@ -282,14 +268,12 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       headersMap['Content-Type'] = 'application/json';
     }
 
-    // For OPTIONS, inject Allow headers
     if (method === 'OPTIONS' && allowedMethods.length > 0) {
       const allowStr = allowedMethods.join(', ');
       headersMap['Allow'] = allowStr;
       headersMap['Access-Control-Allow-Methods'] = allowStr;
     }
 
-    // For HEAD, set Content-Length
     if (method === 'HEAD') {
       headersMap['Content-Length'] = '0';
     }
@@ -321,7 +305,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
 
   return (
     <div className="wb-mock-editor-card">
-      {/* Header */}
       <div className="wb-mock-editor-header">
         <div className="wb-mock-editor-title-group">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
@@ -338,9 +321,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
         </button>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="wb-mock-form">
-        {/* Method + Path */}
         <div className="wb-form-field">
           <div className="wb-form-row-2">
             <div>
@@ -369,7 +350,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         </div>
 
-        {/* Status Code & Response Delay */}
         <div className="wb-form-field">
           <div className="wb-form-row-2-equal">
             <div>
@@ -403,7 +383,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         </div>
 
-        {/* Authentication Field */}
         <div className="wb-form-field">
           <label className="wb-form-label">Authentication</label>
           <select
@@ -416,7 +395,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
             <option value="bearer">Bearer Token (Authorization)</option>
           </select>
 
-          {/* API Key Sub-fields */}
           {authType === 'api_key' && (
             <div className="wb-mock-auth-box">
               <div className="wb-form-row-2">
@@ -449,7 +427,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
             </div>
           )}
 
-          {/* Bearer Token Sub-fields */}
           {authType === 'bearer' && (
             <div className="wb-mock-auth-box">
               <div>
@@ -470,7 +447,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           )}
         </div>
 
-        {/* OPTIONS: Allowed Methods */}
         {showAllowedMethods && (
           <div className="wb-form-field">
             <label className="wb-form-label">Allowed Methods</label>
@@ -489,7 +465,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         )}
 
-        {/* Request Body (POST/PUT/PATCH) */}
         {showRequestBody && (
           <div className="wb-form-field">
             <label className="wb-form-label">Request Body (JSON)</label>
@@ -507,7 +482,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         )}
 
-        {/* Response Headers */}
         <div className="wb-mock-headers-section">
           <div className="wb-mock-headers-header">
             <label className="wb-form-label" style={{ margin: 0 }}>Response Headers</label>
@@ -549,7 +523,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         </div>
 
-        {/* Response Body */}
         {showResponseBody && (
           <div className="wb-form-field">
             <label className="wb-form-label">Response Body (JSON)</label>
@@ -566,7 +539,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         )}
 
-        {/* Footer */}
         <div className="wb-mock-editor-footer">
           <button type="button" className="wb-btn-mock-cancel" onClick={onClose} disabled={isSubmitting}>
             Cancel

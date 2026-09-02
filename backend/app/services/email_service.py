@@ -11,10 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def validate_and_normalize_email(email: str, check_deliverability: bool = True) -> str:
-    """
-    Validate email address syntax and domain deliverability.
-    Raises HTTPException(400) if the email is invalid or the domain is unreachable.
-    """
     clean_email = email.strip()
     if not clean_email:
         raise HTTPException(
@@ -23,21 +19,14 @@ def validate_and_normalize_email(email: str, check_deliverability: bool = True) 
         )
 
     try:
-        # Check syntax and domain deliverability
-        # If check_deliverability fails due to DNS timeouts in restricted dev environments,
-        # fallback to strict syntax check
         try:
             valid = validate_email(clean_email, check_deliverability=check_deliverability)
             return valid.normalized.lower()
         except EmailNotValidError as deliverability_err:
-            # If the error is specifically deliverability or offline DNS, try syntax only
-            # but if it's a completely invalid format, fail immediately
             err_msg = str(deliverability_err)
             if "deliverable" in err_msg.lower() or "domain" in err_msg.lower() or "dns" in err_msg.lower():
-                # If DNS check specifically failed, check syntax
                 try:
                     valid = validate_email(clean_email, check_deliverability=False)
-                    # If domain is clearly a dummy like 'notanemail' or without dot, reject
                     if "." not in valid.domain:
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
@@ -63,10 +52,8 @@ def validate_and_normalize_email(email: str, check_deliverability: bool = True) 
 
 
 def build_otp_email_content(to_name: str, otp: str, expires_in_minutes: int = 10) -> Tuple[str, str]:
-    """Generate both plain text and rich HTML email templates for OTP verification."""
     subject = f"Your API Workbench Verification Code: {otp}"
 
-    # Plain text version
     text_content = f"""Hello {to_name or 'Developer'},
 
 Thank you for registering with API Workbench!
@@ -82,7 +69,6 @@ Best regards,
 The API Workbench Team
 """
 
-    # Modern responsive HTML version
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -225,11 +211,6 @@ The API Workbench Team
 
 
 def send_otp_email(to_email: str, to_name: str, otp: str) -> bool:
-    """
-    Deliver the OTP verification code to the recipient via SMTP.
-    If SMTP is unconfigured (e.g., local developer setup), logs the OTP clearly
-    so testing proceeds seamlessly.
-    """
     text_body, html_body = build_otp_email_content(
         to_name=to_name,
         otp=otp,
@@ -237,9 +218,7 @@ def send_otp_email(to_email: str, to_name: str, otp: str) -> bool:
     )
     subject = f"Your API Workbench Verification Code: {otp}"
 
-    # Check if SMTP configuration is present
     if not settings.EMAIL_HOST or not settings.EMAIL_HOST.strip():
-        # Development / Fallback mode: Log OTP clearly to console
         logger.info("=" * 60)
         logger.info("📧 [LOCAL DEV / SIMULATED SMTP EMAIL DISPATCH]")
         logger.info(f"To: {to_name} <{to_email}>")
@@ -248,7 +227,6 @@ def send_otp_email(to_email: str, to_name: str, otp: str) -> bool:
         logger.info("=" * 60)
         return True
 
-    # Real SMTP Dispatch
     try:
         from_address = settings.EMAIL_FROM
         from_header = f"{settings.EMAIL_FROM_NAME} <{from_address}>"
@@ -277,7 +255,6 @@ def send_otp_email(to_email: str, to_name: str, otp: str) -> bool:
         return True
     except Exception as exc:
         logger.error(f"Failed to send OTP email via SMTP ({settings.EMAIL_HOST}:{settings.EMAIL_PORT}): {exc}")
-        # In development mode, log OTP so testing is not blocked
         if settings.ENVIRONMENT == "development":
             logger.warning(
                 f"[DEV FALLBACK] SMTP failed, but logged OTP for {to_email}: >>> {otp} <<<"

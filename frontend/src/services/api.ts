@@ -28,7 +28,6 @@ import type {
   SavedApiOpenResponse,
 } from '../types/savedApi';
 
-
 import { mergeUrlAndParamsMap } from '../utils/urlUtils';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -169,8 +168,6 @@ export class ApiClient {
     return { data, latencyMs };
   }
 
-  // --- Workbench Dispatcher Operations ---
-
   async dispatchHttpRequest(req: WorkbenchRequest): Promise<WorkbenchResponse> {
     const payload = this.buildPayload(req);
 
@@ -260,8 +257,6 @@ export class ApiClient {
       latestResponse,
     };
   }
-
-  // --- Authenticated User Mock API Operations ---
 
   async getMocks(): Promise<MockEndpoint[]> {
     const response = await this.fetchWithHandling(`${this.baseUrl}/mocks`, {
@@ -384,8 +379,6 @@ export class ApiClient {
 
     return { success: true };
   }
-
-  // --- Authentication Operations ---
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await this.fetchWithHandling(`${this.baseUrl}/auth/login`, {
@@ -648,7 +641,6 @@ export class ApiClient {
   }
 
   async getMe(): Promise<User> {
-
     const response = await this.fetchWithHandling(`${this.baseUrl}/auth/me`, {
       method: 'GET',
       headers: {
@@ -729,10 +721,6 @@ export class ApiClient {
     this.clearAuthToken();
     return result;
   }
-
-  // ==========================================
-  // Saved APIs API Methods
-  // ==========================================
 
   async getSavedApis(): Promise<SavedApi[]> {
     const response = await this.fetchWithHandling(`${this.baseUrl}/saved-apis`, {

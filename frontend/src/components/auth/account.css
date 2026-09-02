@@ -1,9 +1,3 @@
-/* ==========================================================================
-   API Workbench - Account Settings (Modern Blue + White SaaS Theme)
-   Palette: Primary (#1860ec), Hover (#124ec6), Background (#ffffff, #f8fafc),
-            Text (#0f172a, #334155, #64748b), Borders (#e2e8f0, #cbd5e1)
-   ========================================================================== */
-
 .wb-account-workspace {
   display: flex;
   flex-direction: column;
@@ -11,10 +5,6 @@
   width: 100%;
   background-color: #f8fafc;
 }
-
-/* ==========================================================================
-   1. Header Section
-   ========================================================================== */
 
 .wb-account-header {
   display: flex;
@@ -104,7 +94,6 @@
   margin: 0;
 }
 
-/* Header Logout Button - Crisp Blue Theme */
 .wb-btn-account-logout {
   background-color: #eff6ff;
   border: 1px solid #bfdbfe;
@@ -131,10 +120,6 @@
 .wb-btn-account-logout:active {
   transform: translateY(1px);
 }
-
-/* ==========================================================================
-   2. Main Scrollable Body & Section Grid
-   ========================================================================== */
 
 .wb-account-body {
   width: 100%;
@@ -166,7 +151,6 @@
   padding-bottom: 0;
 }
 
-/* Section Aside (Left) */
 .wb-section-aside {
   display: flex;
   flex-direction: column;
@@ -193,7 +177,6 @@
   line-height: 1.5;
 }
 
-/* Section Content (Right Panel) */
 .wb-section-content {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
@@ -201,10 +184,6 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
   overflow: hidden;
 }
-
-/* ==========================================================================
-   3. Forms & Fields
-   ========================================================================== */
 
 .wb-settings-form {
   display: flex;
@@ -285,7 +264,6 @@
   user-select: none;
 }
 
-/* Username input with @ prefix */
 .wb-input-prefix-container {
   display: flex;
   align-items: center;
@@ -324,10 +302,6 @@
   font-family: inherit;
 }
 
-/* ==========================================================================
-   4. Form Actions & Button System
-   ========================================================================== */
-
 .wb-settings-form-actions {
   padding: 0.85rem 1.35rem;
   background-color: #f8fafc;
@@ -336,7 +310,6 @@
   justify-content: flex-end;
 }
 
-/* Primary Action Button (API Workbench Blue) */
 .wb-btn-settings-primary {
   background-color: #1860ec;
   color: #ffffff;
@@ -371,7 +344,6 @@
   box-shadow: none;
 }
 
-/* Danger Box inside Section Content */
 .wb-danger-box {
   padding: 1.25rem 1.35rem;
   display: flex;
@@ -434,7 +406,6 @@
   box-shadow: none;
 }
 
-/* Spinner inside button */
 .wb-btn-spinner {
   width: 13px;
   height: 13px;
@@ -450,10 +421,6 @@
     transform: rotate(360deg);
   }
 }
-
-/* ==========================================================================
-   5. Account Footer
-   ========================================================================== */
 
 .wb-account-footer {
   display: flex;
@@ -501,10 +468,6 @@
 .wb-account-footer-link-btn:hover {
   color: #1860ec;
 }
-
-/* ==========================================================================
-   Responsive Breakpoints
-   ========================================================================== */
 
 @media (max-width: 900px) {
   .wb-account-header {

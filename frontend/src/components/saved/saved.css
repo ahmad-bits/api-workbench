@@ -1,8 +1,3 @@
-/* ==========================================================================
-   API Workbench - My APIs & Personal Workspaces
-   Theme: Crisp Blue & White Modern Palette (#1860ec, #ffffff, #f8fafc, #0f172a)
-   ========================================================================== */
-
 .wb-saved-engine-root {
   display: flex;
   flex-direction: column;
@@ -10,10 +5,6 @@
   width: 100%;
   background-color: #f8fafc;
 }
-
-/* ==========================================================================
-   1. Top Header Bar & Breadcrumbs
-   ========================================================================== */
 
 .wb-saved-topbar {
   display: flex;
@@ -109,7 +100,6 @@
   gap: 0.75rem;
 }
 
-/* Search Bar in Topbar */
 .wb-saved-search-wrap {
   position: relative;
   width: 240px;
@@ -150,7 +140,6 @@
   color: #94a3b8;
 }
 
-/* Header & Banner Action Buttons */
 .wb-btn-top-primary {
   height: 36px;
   padding: 0 1.15rem;
@@ -209,10 +198,6 @@
   transform: translateY(1px);
 }
 
-/* ==========================================================================
-   2. Main Content Viewport & Workspaces Dashboard
-   ========================================================================== */
-
 .wb-saved-content-viewport {
   width: 100%;
   padding: 1.5rem 2rem 2.5rem 2rem;
@@ -264,10 +249,6 @@
   font-weight: 700;
 }
 
-/* ==========================================================================
-   3. Workspace Cards Grid
-   ========================================================================== */
-
 .wb-workspaces-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -306,7 +287,6 @@
   margin-bottom: 0.95rem;
 }
 
-/* Workspace Icon Squircle */
 .wb-workspace-icon-squircle {
   width: 40px;
   height: 40px;
@@ -355,10 +335,6 @@
   color: #94a3b8;
 }
 
-/* ==========================================================================
-   4. Workspace Detail Banner (Inside a Workspace)
-   ========================================================================== */
-
 .wb-workspace-detail-banner {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
@@ -397,10 +373,6 @@
   align-items: center;
   gap: 0.65rem;
 }
-
-/* ==========================================================================
-   5. Saved API Horizontal Cards List & Redesigned Action Buttons
-   ========================================================================== */
 
 .wb-saved-cards-container {
   display: flex;
@@ -540,7 +512,6 @@
   text-overflow: ellipsis;
 }
 
-/* Card Right Section */
 .wb-saved-card-right {
   display: flex;
   align-items: center;
@@ -574,7 +545,6 @@
   gap: 0.45rem;
 }
 
-/* Redesigned Primary Action Button: Test API */
 .wb-btn-action-test {
   height: 34px;
   padding: 0 0.9rem;
@@ -604,7 +574,6 @@
   transform: translateY(1px);
 }
 
-/* Redesigned Action Icon Buttons: Copy, Edit, Delete */
 .wb-btn-action-icon {
   width: 34px;
   height: 34px;
@@ -649,7 +618,6 @@
   cursor: not-allowed;
 }
 
-/* Empty Card */
 .wb-saved-empty-card {
   background-color: #ffffff;
   border: 1px dashed #cbd5e1;
@@ -691,10 +659,6 @@
   line-height: 1.45;
   max-width: 340px;
 }
-
-/* ==========================================================================
-   Responsive Breakpoints
-   ========================================================================== */
 
 @media (max-width: 900px) {
   .wb-saved-topbar {

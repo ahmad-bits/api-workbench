@@ -6,29 +6,23 @@ from app.core.config import settings
 from app.core.security import get_password_hash
 from app.db.base import Base
 from app.db.session import engine, SessionLocal
-from app.models.user import User  # noqa: F401
-from app.models.mock import MockEndpoint  # noqa: F401
-from app.models.pending_registration import PendingRegistration  # noqa: F401
-from app.models.saved_api import SavedApi  # noqa: F401
-
+from app.models.user import User
+from app.models.mock import MockEndpoint
+from app.models.pending_registration import PendingRegistration
+from app.models.saved_api import SavedApi
 
 logger = logging.getLogger(__name__)
 
 
 def migrate_sqlite_schema() -> None:
-    """
-    Check and migrate SQLite table schemas to ensure newly added model columns exist.
-    """
     try:
         with engine.connect() as conn:
-            # Check users table columns
             res = conn.execute(text("PRAGMA table_info(users)"))
             cols = [row[1] for row in res.fetchall()]
             if cols:
                 if "username" not in cols:
                     logger.info("Migrating SQLite schema: Adding missing 'username' column to 'users' table...")
                     conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(60)"))
-                    # Backfill username from email prefix for existing rows
                     conn.execute(
                         text(
                             "UPDATE users SET username = lower(substr(email, 1, instr(email, '@') - 1)) "
@@ -38,7 +32,6 @@ def migrate_sqlite_schema() -> None:
                     conn.commit()
                     logger.info("Successfully added and backfilled 'username' column in 'users' table.")
 
-            # Check saved_apis table columns
             res_saved = conn.execute(text("PRAGMA table_info(saved_apis)"))
             saved_cols = [row[1] for row in res_saved.fetchall()]
             if saved_cols and "category" not in saved_cols:
@@ -47,7 +40,6 @@ def migrate_sqlite_schema() -> None:
                 conn.commit()
                 logger.info("Successfully added 'category' column in 'saved_apis' table.")
 
-            # Check mock_endpoints table columns
             res_mocks = conn.execute(text("PRAGMA table_info(mock_endpoints)"))
             mock_cols = [row[1] for row in res_mocks.fetchall()]
             if mock_cols:
@@ -77,10 +69,8 @@ def migrate_sqlite_schema() -> None:
 
 
 def seed_default_users() -> None:
-    """Seed demo accounts if they do not already exist in the database."""
     try:
         with SessionLocal() as db:
-            # 1. Ahmad Demo Account
             ahmad_user = db.query(User).filter(
                 (User.username == "ahmad") | (User.email == "ahmad@workbench.dev")
             ).first()
@@ -95,7 +85,6 @@ def seed_default_users() -> None:
                 db.add(ahmad_user)
                 logger.info("Seeded demo user: ahmad (Password123!)")
 
-            # 2. Demo Developer Account
             demo_user = db.query(User).filter(
                 (User.username == "demo.developer") | (User.email == "demo.developer@apiworkbench.io")
             ).first()
@@ -116,10 +105,6 @@ def seed_default_users() -> None:
 
 
 def init_db() -> None:
-    """
-    Ensure the database directory and tables are created.
-    Called automatically on application startup.
-    """
     db_url = settings.DATABASE_URL
     if db_url and db_url.startswith("sqlite:///"):
         raw_path = db_url.replace("sqlite:///", "")
@@ -129,12 +114,8 @@ def init_db() -> None:
             os.makedirs(db_dir, exist_ok=True)
             logger.info("Created SQLite database directory: %s", db_dir)
 
-    # Create tables if they do not exist
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables verified/created successfully.")
 
-    # Migrate any missing columns in existing SQLite tables
     migrate_sqlite_schema()
-
-    # Seed default user accounts
     seed_default_users()

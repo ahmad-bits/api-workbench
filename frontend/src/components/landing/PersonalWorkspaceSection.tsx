@@ -1,10 +1,6 @@
 import React from 'react';
 
-interface PersonalWorkspaceSectionProps {
-  onCreateWorkspaceClick?: () => void;
-}
-
-export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> = () => {
+export const PersonalWorkspaceSection: React.FC = () => {
   const workspaces = [
     {
       id: 'ecommerce',
@@ -17,7 +13,7 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="9" cy="21" r="1" />
           <circle cx="20" cy="21" r="1" />
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
         </svg>
       ),
     },
@@ -55,7 +51,6 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
   return (
     <section className="wb-personal-workspace-section" id="personal-workspace">
       <div className="wb-centered-section-container">
-        {/* Header */}
         <div className="wb-centered-header-box">
           <h2 className="wb-centered-heading">Your Personal Workspace</h2>
           <p className="wb-centered-subtitle">
@@ -63,9 +58,7 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
           </p>
         </div>
 
-        {/* Outer Workspace Card Frame (Static Demonstration) */}
         <div className="wb-workspace-frame-card">
-          {/* Top Search & Actions Bar */}
           <div className="wb-workspace-top-bar">
             <div className="wb-workspace-search-box">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -81,7 +74,6 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
               />
             </div>
 
-            {/* + New Workspace is demonstration only */}
             <button
               type="button"
               className="wb-btn-primary-pill compact wb-btn-demo-only"
@@ -93,7 +85,6 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
             </button>
           </div>
 
-          {/* Cards Grid (Static Display) */}
           <div className="wb-workspaces-cards-grid">
             {workspaces.map((item) => (
               <div key={item.id} className="wb-workspace-item-card">

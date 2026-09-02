@@ -13,9 +13,8 @@ import { LandingFooter } from './LandingFooter';
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  // Smooth scroll handler for anchor links
   const handleNavigateSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
     if (el) {
@@ -45,44 +44,35 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="wb-landing-root">
-      {/* 1. Header Navigation */}
       <LandingHeader
         onLoginClick={handleLoginClick}
         onSignUpClick={handleSignUpClick}
         onWorkbenchClick={handleWorkbenchClick}
         onNavigateSection={handleNavigateSection}
         isAuthenticated={isAuthenticated}
-        userName={user?.name || user?.username}
       />
 
-      {/* Main Content Flow */}
       <main className="wb-landing-main">
-        {/* 2. Hero Section */}
         <HeroSection
           onGetStartedClick={isAuthenticated ? handleWorkbenchClick : handleLoginClick}
           onViewDocsClick={() => navigate('/docs')}
         />
 
-        {/* 3. Instant Simulated Endpoints */}
         <div id="features">
           <MockFeatureSection
             onExploreMockingClick={isAuthenticated ? handleWorkbenchClick : handleLoginClick}
           />
         </div>
 
-        {/* 4. Comprehensive Testing Workspace */}
         <TestingFeatureSection />
 
-        {/* 5. Your Personal Workspace */}
         <PersonalWorkspaceSection />
 
-        {/* 6. Call To Action Blue Banner */}
         <CtaSection
           onCreateAccountClick={handleCtaClick}
         />
       </main>
 
-      {/* 7. Footer */}
       <LandingFooter />
     </div>
   );

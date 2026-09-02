@@ -91,7 +91,6 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
   return (
     <section className="wb-mock-feature-section" id="mock-engine">
       <div className="wb-feature-container">
-        {/* Left Column: Information */}
         <div className="wb-mock-feature-content">
           <h2 className="wb-feature-heading">
             Instant Simulated
@@ -105,7 +104,6 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
             complex testing scenarios effortlessly.
           </p>
 
-          {/* Feature List Points */}
           <div className="wb-feature-points-list">
             <div className="wb-feature-point-item">
               <div className="wb-point-icon-circle green">
@@ -133,7 +131,6 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
             </div>
           </div>
 
-          {/* CTA: Takes user to login */}
           <div className="wb-feature-cta-box">
             <button
               type="button"
@@ -148,12 +145,9 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Static Mock Endpoints Demonstration Card */}
         <div className="wb-mock-feature-card">
-          {/* Card Header */}
           <div className="wb-mock-card-header">
             <h3 className="wb-mock-card-title">Mock Endpoints</h3>
-            {/* New Endpoint is demonstration only */}
             <button
               type="button"
               className="wb-btn-new-endpoint wb-btn-demo-only"
@@ -165,7 +159,6 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
             </button>
           </div>
 
-          {/* Endpoints List (Static Demonstration) */}
           <div className="wb-mock-endpoints-list">
             {mockEndpoints.map((ep, idx) => (
               <div
@@ -189,7 +182,6 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
             ))}
           </div>
 
-          {/* Response Template Editor Container */}
           <div className="wb-mock-template-container">
             <div className="wb-mock-template-label">{current.templateTitle}</div>
             <div className="wb-mock-template-code">

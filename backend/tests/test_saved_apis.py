@@ -9,7 +9,6 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.models.saved_api import SavedApi
 
-# In-memory SQLite for test isolation
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
@@ -42,8 +41,6 @@ def client():
 
 
 def test_saved_api_lifecycle_with_encrypted_key(client):
-    """Test creating, listing, opening, updating, and deleting a Saved API with encryption."""
-    # 1. Register User
     reg = client.post(
         "/api/v1/auth/register",
         json={
@@ -57,7 +54,6 @@ def test_saved_api_lifecycle_with_encrypted_key(client):
     token = reg.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 2. Save API with optional API key
     secret_key = "sk_live_very_secret_api_token_999"
     create_res = client.post(
         "/api/v1/saved-apis",
@@ -75,10 +71,8 @@ def test_saved_api_lifecycle_with_encrypted_key(client):
     assert data["url"] == "https://api.stripe.com/v1/charges"
     assert data["has_api_key"] is True
     assert data["api_key_masked"] == "••••••••"
-    # Never expose plain key in standard response
     assert "api_key" not in data or data.get("api_key") is None
 
-    # 3. Verify in SQLite that the stored key is encrypted (not plaintext)
     db = TestingSessionLocal()
     raw_record = db.query(SavedApi).filter(SavedApi.id == api_id).first()
     assert raw_record is not None
@@ -87,7 +81,6 @@ def test_saved_api_lifecycle_with_encrypted_key(client):
     assert "sk_live" not in raw_record.encrypted_api_key
     db.close()
 
-    # 4. List Saved APIs -> masked key returned
     list_res = client.get("/api/v1/saved-apis", headers=headers)
     assert list_res.status_code == 200
     items = list_res.json()
@@ -96,7 +89,6 @@ def test_saved_api_lifecycle_with_encrypted_key(client):
     assert items[0]["api_key_masked"] == "••••••••"
     assert items[0]["has_api_key"] is True
 
-    # 5. Open in Workbench -> retrieves decrypted plain key exclusively for tester
     open_res = client.get(f"/api/v1/saved-apis/{api_id}/open", headers=headers)
     assert open_res.status_code == 200
     open_data = open_res.json()
@@ -106,7 +98,6 @@ def test_saved_api_lifecycle_with_encrypted_key(client):
     assert open_data["api_key"] == secret_key
     assert open_data["has_api_key"] is True
 
-    # 6. Update Saved API (change name and URL)
     update_res = client.put(
         f"/api/v1/saved-apis/{api_id}",
         headers=headers,
@@ -121,19 +112,15 @@ def test_saved_api_lifecycle_with_encrypted_key(client):
     assert up_data["url"] == "https://api.stripe.com/v2/charges"
     assert up_data["has_api_key"] is True
 
-    # 7. Delete Saved API
     del_res = client.delete(f"/api/v1/saved-apis/{api_id}", headers=headers)
     assert del_res.status_code == 200
     assert del_res.json()["success"] is True
 
-    # 8. Verify deleted -> 404
     get_del = client.get(f"/api/v1/saved-apis/{api_id}", headers=headers)
     assert get_del.status_code == 404
 
 
 def test_saved_api_optional_key_behavior(client):
-    """Test saving an API without an API key (optional key)."""
-    # 1. Register
     reg = client.post(
         "/api/v1/auth/register",
         json={
@@ -146,7 +133,6 @@ def test_saved_api_optional_key_behavior(client):
     token = reg.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 2. Save API without API key
     create_res = client.post(
         "/api/v1/saved-apis",
         headers=headers,
@@ -160,7 +146,6 @@ def test_saved_api_optional_key_behavior(client):
     assert data["has_api_key"] is False
     assert data["api_key_masked"] is None
 
-    # 3. Open -> key is None
     open_res = client.get(f"/api/v1/saved-apis/{data['id']}/open", headers=headers)
     assert open_res.status_code == 200
     assert open_res.json()["api_key"] is None
@@ -168,22 +153,18 @@ def test_saved_api_optional_key_behavior(client):
 
 
 def test_saved_api_user_isolation(client):
-    """Test strict user isolation: User B cannot view, open, edit, or delete User A's saved APIs."""
-    # 1. Register User A
     reg_a = client.post(
         "/api/v1/auth/register",
         json={"name": "Alice", "username": "alice", "email": "alice@test.com", "password": "Password123!"},
     )
     token_a = reg_a.json()["access_token"]
 
-    # 2. Register User B
     reg_b = client.post(
         "/api/v1/auth/register",
         json={"name": "Bob", "username": "bob", "email": "bob@test.com", "password": "Password123!"},
     )
     token_b = reg_b.json()["access_token"]
 
-    # 3. Alice saves an API with secret key
     create_res = client.post(
         "/api/v1/saved-apis",
         headers={"Authorization": f"Bearer {token_a}"},
@@ -195,7 +176,6 @@ def test_saved_api_user_isolation(client):
     )
     alice_api_id = create_res.json()["id"]
 
-    # 4. Bob lists saved APIs -> 0 returned
     bob_list = client.get(
         "/api/v1/saved-apis",
         headers={"Authorization": f"Bearer {token_b}"},
@@ -203,21 +183,18 @@ def test_saved_api_user_isolation(client):
     assert bob_list.status_code == 200
     assert len(bob_list.json()) == 0
 
-    # 5. Bob tries to get Alice's API -> 404 Not Found
     bob_get = client.get(
         f"/api/v1/saved-apis/{alice_api_id}",
         headers={"Authorization": f"Bearer {token_b}"},
     )
     assert bob_get.status_code == 404
 
-    # 6. Bob tries to open / decrypt Alice's API -> 404 Not Found
     bob_open = client.get(
         f"/api/v1/saved-apis/{alice_api_id}/open",
         headers={"Authorization": f"Bearer {token_b}"},
     )
     assert bob_open.status_code == 404
 
-    # 7. Bob tries to update Alice's API -> 404 Not Found
     bob_put = client.put(
         f"/api/v1/saved-apis/{alice_api_id}",
         headers={"Authorization": f"Bearer {token_b}"},
@@ -225,7 +202,6 @@ def test_saved_api_user_isolation(client):
     )
     assert bob_put.status_code == 404
 
-    # 8. Bob tries to delete Alice's API -> 404 Not Found
     bob_del = client.delete(
         f"/api/v1/saved-apis/{alice_api_id}",
         headers={"Authorization": f"Bearer {token_b}"},
@@ -234,8 +210,6 @@ def test_saved_api_user_isolation(client):
 
 
 def test_delete_workspace_deletes_all_endpoints(client):
-    """Test that deleting a workspace permanently deletes all endpoint APIs in that category."""
-    # 1. Register user
     reg = client.post(
         "/api/v1/auth/register",
         json={"name": "Sarah", "username": "sarah", "email": "sarah@test.com", "password": "Password123!"},
@@ -243,7 +217,6 @@ def test_delete_workspace_deletes_all_endpoints(client):
     token = reg.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 2. Create endpoints in "PUBG" workspace
     client.post(
         "/api/v1/saved-apis",
         headers=headers,
@@ -255,23 +228,19 @@ def test_delete_workspace_deletes_all_endpoints(client):
         json={"name": "Player Profile", "url": "https://pubg.api/player", "category": "PUBG"},
     )
 
-    # 3. Create endpoint in "General" workspace
     client.post(
         "/api/v1/saved-apis",
         headers=headers,
         json={"name": "General Endpoint", "url": "https://api.example.com", "category": "General"},
     )
 
-    # Verify 3 endpoints exist
     list_res = client.get("/api/v1/saved-apis", headers=headers)
     assert len(list_res.json()) == 3
 
-    # 4. Delete "PUBG" workspace
     del_res = client.delete("/api/v1/saved-apis/workspace/PUBG", headers=headers)
     assert del_res.status_code == 200
     assert del_res.json()["deleted_count"] == 2
 
-    # 5. Verify only "General Endpoint" remains
     remaining_res = client.get("/api/v1/saved-apis", headers=headers)
     items = remaining_res.json()
     assert len(items) == 1

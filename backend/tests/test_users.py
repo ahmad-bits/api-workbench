@@ -10,7 +10,6 @@ from app.db.session import get_db
 from app.models.user import User
 from app.core.security import verify_password, get_password_hash
 
-# Set up an in-memory SQLite database for test isolation
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
@@ -31,7 +30,6 @@ def override_get_db():
 
 @pytest.fixture(autouse=True)
 def setup_database():
-    """Create tables before each test and drop them after."""
     Base.metadata.create_all(bind=engine)
     app.dependency_overrides[get_db] = override_get_db
     yield
@@ -45,7 +43,6 @@ def client():
 
 
 def test_password_hashing_security():
-    """Verify that passwords are securely hashed using bcrypt and plain passwords verify."""
     plain = "SuperSecretPassword123!"
     hashed = get_password_hash(plain)
 
@@ -56,7 +53,6 @@ def test_password_hashing_security():
 
 
 def test_register_user_success(client):
-    """Test successful user registration with name, username, email, and password."""
     payload = {
         "name": "Jane Doe",
         "username": "janedoe",
@@ -76,7 +72,6 @@ def test_register_user_success(client):
     assert "password" not in data
     assert "hashed_password" not in data
 
-    # Verify directly in the DB that password was hashed
     db = TestingSessionLocal()
     db_user = db.query(User).filter(User.email == "jane.doe@example.com").first()
     assert db_user is not None
@@ -86,7 +81,6 @@ def test_register_user_success(client):
 
 
 def test_register_duplicate_username_fails(client):
-    """Test that registering with duplicate username fails."""
     client.post(
         "/api/v1/users",
         json={
@@ -111,7 +105,6 @@ def test_register_duplicate_username_fails(client):
 
 
 def test_register_duplicate_email_fails(client):
-    """Test that registering with an already existing email returns 400 Bad Request."""
     payload = {
         "name": "Alice Smith",
         "username": "alicesmith",
@@ -133,7 +126,6 @@ def test_register_duplicate_email_fails(client):
 
 
 def test_get_user_by_id(client):
-    """Test retrieving user by ID."""
     reg = client.post(
         "/api/v1/users",
         json={
@@ -151,7 +143,6 @@ def test_get_user_by_id(client):
 
 
 def test_list_users(client):
-    """Test listing users."""
     client.post(
         "/api/v1/users",
         json={

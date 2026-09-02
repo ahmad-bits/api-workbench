@@ -13,14 +13,11 @@ import { useWorkbench } from './context/WorkbenchContext';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-/**
- * Wrapper that redirects unauthenticated users to /login.
- */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return null; // Loading is handled at the App level
+    return null;
   }
 
   if (!isAuthenticated) {
@@ -30,9 +27,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-/**
- * Wrapper that redirects authenticated users away from login/register to /api-tester.
- */
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -47,9 +41,6 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-/**
- * Small component that loads a saved API into the tester and redirects to /api-tester.
- */
 function OpenSavedApiRoute() {
   const { id } = useParams<{ id: string }>();
   const wb = useWorkbench();
@@ -57,13 +48,11 @@ function OpenSavedApiRoute() {
 
   useEffect(() => {
     if (id) {
-      wb.handleOpenSavedApi(id).then(() => {
-        // handleOpenSavedApi already navigates to tester
-      }).catch(() => {
+      wb.handleOpenSavedApi(id).catch(() => {
         navigate('/my-apis', { replace: true });
       });
     }
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id]);
 
   return (
     <div className="auth-loading-screen">
@@ -73,9 +62,6 @@ function OpenSavedApiRoute() {
   );
 }
 
-/**
- * Connected Saved APIs page — wires workbench callbacks.
- */
 function SavedApisPage() {
   const wb = useWorkbench();
   return (
@@ -86,9 +72,6 @@ function SavedApisPage() {
   );
 }
 
-/**
- * Connected Mock APIs page — wires workbench callbacks.
- */
 function MocksPage() {
   const wb = useWorkbench();
   return (
@@ -99,7 +82,6 @@ function MocksPage() {
 export function AppRoutes() {
   return (
     <Routes>
-      {/* Public routes */}
       <Route
         path="/"
         element={<LandingPage />}
@@ -146,7 +128,6 @@ export function AppRoutes() {
         }
       />
 
-      {/* Protected routes — wrapped in WorkbenchProvider for state persistence */}
       <Route
         element={
           <ProtectedRoute>
@@ -156,7 +137,6 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        {/* API Tester Routes */}
         <Route path="/api-tester" element={<TesterPage />} />
         <Route path="/api-tester/params" element={<TesterPage />} />
         <Route path="/api-tester/headers" element={<TesterPage />} />
@@ -164,7 +144,6 @@ export function AppRoutes() {
         <Route path="/api-tester/body" element={<TesterPage />} />
         <Route path="/api-tester/response" element={<TesterPage />} />
 
-        {/* Backward Compatibility Aliases for Tester */}
         <Route path="/tester" element={<Navigate to="/api-tester" replace />} />
         <Route path="/tester/params" element={<Navigate to="/api-tester/params" replace />} />
         <Route path="/tester/headers" element={<Navigate to="/api-tester/headers" replace />} />
@@ -172,22 +151,18 @@ export function AppRoutes() {
         <Route path="/tester/body" element={<Navigate to="/api-tester/body" replace />} />
         <Route path="/tester/response" element={<Navigate to="/api-tester/response" replace />} />
 
-        {/* My APIs Routes */}
         <Route path="/my-apis" element={<SavedApisPage />} />
         <Route path="/my-apis/workspace/:slug" element={<SavedApisPage />} />
         <Route path="/my-apis/:id" element={<OpenSavedApiRoute />} />
 
-        {/* Backward Compatibility Aliases for APIs */}
         <Route path="/apis" element={<Navigate to="/my-apis" replace />} />
         <Route path="/apis/workspace/:slug" element={<SavedApisPage />} />
         <Route path="/apis/:id" element={<OpenSavedApiRoute />} />
 
-        {/* Mock APIs & Settings */}
         <Route path="/mocks" element={<MocksPage />} />
         <Route path="/settings" element={<AccountSettingsPage />} />
       </Route>
 
-      {/* Catch-all: redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -161,7 +161,6 @@ export const SaveApiModal: React.FC<SaveApiModalProps> = ({
             )}
           </div>
 
-          {/* Auto-Captured Configuration Summary */}
           <div className="save-api-preview-box">
             <div className="preview-row">
               <span className="preview-label">API URL:</span>

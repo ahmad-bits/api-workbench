@@ -1,4 +1,3 @@
-from datetime import timedelta
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -8,10 +7,7 @@ from sqlalchemy.pool import StaticPool
 from app.main import app
 from app.db.base import Base
 from app.db.session import get_db
-from app.core.security import create_access_token, get_password_hash
-from app.models.user import User
 
-# In-memory SQLite for test isolation
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
@@ -31,7 +27,6 @@ def override_get_db():
 
 @pytest.fixture(autouse=True)
 def setup_database():
-    """Create tables before each test and drop them after."""
     Base.metadata.create_all(bind=engine)
     app.dependency_overrides[get_db] = override_get_db
     yield
@@ -45,8 +40,6 @@ def client():
 
 
 def test_login_with_email_and_username(client):
-    """Test user login with both email and username."""
-    # Register user
     reg_res = client.post(
         "/api/v1/auth/register",
         json={
@@ -58,7 +51,6 @@ def test_login_with_email_and_username(client):
     )
     assert reg_res.status_code == 201
 
-    # 1. Login with email
     login_email = client.post(
         "/api/v1/auth/login",
         json={
@@ -69,7 +61,6 @@ def test_login_with_email_and_username(client):
     assert login_email.status_code == 200
     assert login_email.json()["user"]["username"] == "janedoe"
 
-    # 2. Login with username
     login_username = client.post(
         "/api/v1/auth/login",
         json={
@@ -82,7 +73,6 @@ def test_login_with_email_and_username(client):
 
 
 def test_login_invalid_password(client):
-    """Test login with incorrect password returns 401 Unauthorized."""
     client.post(
         "/api/v1/auth/register",
         json={
@@ -105,7 +95,6 @@ def test_login_invalid_password(client):
 
 
 def test_get_current_user_me(client):
-    """Test /api/v1/auth/me returns current user."""
     reg = client.post(
         "/api/v1/auth/register",
         json={

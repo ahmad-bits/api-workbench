@@ -19,7 +19,6 @@ export function TesterPage() {
   const methodDropdownRef = useRef<HTMLDivElement>(null);
   const responseSectionRef = useRef<HTMLElement>(null);
 
-  // Sync activeTab and scroll state with URL route changes
   useEffect(() => {
     const path = location.pathname.toLowerCase();
     if (path.endsWith('/headers')) {
@@ -35,7 +34,7 @@ export function TesterPage() {
         responseSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -73,7 +72,6 @@ export function TesterPage() {
 
   return (
     <>
-      {/* Top Header Bar */}
       <header className="wb-app-topbar">
         <div className="wb-topbar-left">
           <NavToggle />
@@ -86,16 +84,12 @@ export function TesterPage() {
         </div>
 
         <div className="wb-topbar-actions">
-          {/* User Profile & Account Dropdown */}
           <UserNav onOpenProfileModal={() => navigate('/settings')} />
         </div>
       </header>
 
-      {/* Natural Vertical Flow: Request Bar -> Config -> Response */}
       <div className="wb-tester-workspace">
-        {/* 1. UNIFIED REQUEST BAR: Method ▾ | URL Input | Runs (1x) | Send ✈ */}
         <div className="wb-unified-request-bar">
-          {/* Modern Custom Method Selector */}
           <div className="wb-method-custom-dropdown-wrap" ref={methodDropdownRef}>
             <button
               type="button"
@@ -141,7 +135,6 @@ export function TesterPage() {
             )}
           </div>
 
-          {/* URL Input */}
           <div className="wb-url-input-wrap">
             <input
               type="text"
@@ -160,7 +153,6 @@ export function TesterPage() {
             />
           </div>
 
-          {/* Fully Custom Runs Dropdown */}
           <div className="wb-runs-custom-dropdown-wrap" ref={runsDropdownRef} title="Number of parallel request executions">
             <span className="wb-runs-dropdown-label">Runs:</span>
             <div className="wb-custom-select-container">
@@ -196,7 +188,6 @@ export function TesterPage() {
             </div>
           </div>
 
-          {/* Send Action Button */}
           <button
             type="button"
             className={`wb-btn-send-req ${wb.requestCount > 1 ? 'bench' : ''}`}
@@ -220,7 +211,6 @@ export function TesterPage() {
           </button>
         </div>
 
-        {/* 2. REQUEST CONFIGURATION CARD (Expands naturally with content) */}
         <section className="wb-request-config-card">
           <div className="wb-config-tabs-bar">
             <button
@@ -289,9 +279,7 @@ export function TesterPage() {
 
             {wb.activeTab === 'body' && (
               <BodyEditor
-                bodyType={wb.bodyType}
                 body={wb.body}
-                onBodyTypeChange={wb.setBodyType}
                 onBodyChange={wb.setBody}
               />
             )}
@@ -311,7 +299,6 @@ export function TesterPage() {
           </div>
         </section>
 
-        {/* 3. RESPONSE SECTION CARD (Expands naturally downwards) */}
         <section className="wb-response-section-card" ref={responseSectionRef}>
           <ResponseViewer
             response={wb.response}
@@ -323,8 +310,7 @@ export function TesterPage() {
         </section>
       </div>
 
-      {/* 4. Website Footer (Consistent with rest of website) */}
-      <LandingFooter onNavigateSection={(sec) => navigate('/#' + sec)} />
+      <LandingFooter />
     </>
   );
 }

@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { useToast } from './ToastContext';
@@ -19,7 +18,6 @@ import type {
 import type { MockEndpoint } from '../types/mock';
 
 interface WorkbenchContextType {
-  // Request builder state
   method: HttpMethod;
   setMethod: (m: HttpMethod) => void;
   url: string;
@@ -41,12 +39,10 @@ interface WorkbenchContextType {
   setRequestCount: (n: number) => void;
   handleSetCount: (val: number) => void;
 
-  // Execution & Response state
   isSending: boolean;
   response: WorkbenchResponse | null;
   batchResponse: BatchWorkbenchResponse | null;
 
-  // Save API state
   saveApiModalOpen: boolean;
   setSaveApiModalOpen: (v: boolean) => void;
   savedApiCount: number;
@@ -54,12 +50,10 @@ interface WorkbenchContextType {
   saveToast: string | null;
   setSaveToast: (v: string | null) => void;
 
-  // Backend health
   backendStatus: 'loading' | 'healthy' | 'error';
   backendLatency: number | null;
   checkBackend: () => Promise<void>;
 
-  // Actions
   handleNewRequest: () => void;
   handleSendRequest: () => Promise<void>;
   handleKeyDownUrl: (e: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -67,17 +61,14 @@ interface WorkbenchContextType {
   handleTestInWorkbench: (mock: MockEndpoint) => void;
   detectCurrentApiKey: () => string | null;
 
-  // Computed
   enabledParamsCount: number;
   enabledHeadersCount: number;
   enabledAuthCount: number;
 
-  // Navigation sidebar state
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 
-  // Navigation callback — set by consumer to navigate to tester
   navigateToTester: () => void;
   setNavigateToTester: (fn: () => void) => void;
 }
@@ -87,7 +78,6 @@ const WorkbenchContext = createContext<WorkbenchContextType | undefined>(undefin
 export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const toast = useToast();
 
-  // Request Builder state (Clean default GET endpoint)
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [url, setUrl] = useState<string>('https://jsonplaceholder.typicode.com/posts/1');
   const [activeTab, setActiveTab] = useState<'params' | 'headers' | 'body' | 'auth'>('params');
@@ -101,13 +91,11 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [timeoutSeconds] = useState<number>(30);
   const [requestCount, setRequestCount] = useState<number>(1);
 
-  // Synchronized URL change handler: updates URL and syncs query params to the Params section
   const handleUrlChange = useCallback((newUrl: string) => {
     setUrl(newUrl);
     setParams((prev) => syncParamsFromUrl(newUrl, prev));
   }, []);
 
-  // Synchronized Params change handler: updates params and modifies the URL in-place without duplicating keys
   const handleParamsChange = useCallback((newParams: KeyValuePair[]) => {
     setParams(newParams);
     setUrl((prevUrl) => {
@@ -116,17 +104,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   }, []);
 
-  // Execution & Response state
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<WorkbenchResponse | null>(null);
   const [batchResponse, setBatchResponse] = useState<BatchWorkbenchResponse | null>(null);
 
-  // Save API & toast state
   const [saveApiModalOpen, setSaveApiModalOpen] = useState<boolean>(false);
   const [savedApiCount, setSavedApiCount] = useState<number>(0);
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
-  // Navigation sidebar collapse state with localStorage persistence
   const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem('wb_sidebar_collapsed');
@@ -134,7 +119,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return JSON.parse(saved);
       }
     } catch {
-      // ignore
+      return false;
     }
     return false;
   });
@@ -145,7 +130,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       try {
         localStorage.setItem('wb_sidebar_collapsed', JSON.stringify(next));
       } catch {
-        // ignore
+        return next;
       }
       return next;
     });
@@ -155,11 +140,9 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setSidebarCollapsed((prev) => !prev);
   }, [setSidebarCollapsed]);
 
-  // Backend health state
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading');
   const [backendLatency, setBackendLatency] = useState<number | null>(null);
 
-  // Navigation helper — using a ref so registering doesn't trigger state re-renders
   const navigateToTesterRef = useRef<() => void>(() => {});
   const navigateToTester = useCallback(() => {
     navigateToTesterRef.current();
@@ -168,7 +151,6 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     navigateToTesterRef.current = fn;
   }, []);
 
-  // Check backend health
   const checkBackend = useCallback(async () => {
     try {
       const { latencyMs } = await api.checkHealth();
@@ -192,7 +174,6 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setRequestCount(clamped);
   };
 
-  // Reset to a new clean request
   const handleNewRequest = () => {
     setUrl('');
     setParams([]);
@@ -208,9 +189,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     toast.info('Cleared workspace for a new API request.');
   };
 
-  // Helper to extract an API Key from current headers, auth rows, or query params
   const detectCurrentApiKey = (): string | null => {
-    // Check auth headers first
     for (const a of authHeaders) {
       if (a.enabled && a.key.trim() && a.value.trim()) {
         return a.value.trim();
@@ -249,7 +228,6 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return null;
   };
 
-  // Open a saved API inside Workbench Tester
   const handleOpenSavedApi = async (apiId: string) => {
     try {
       const openData = await api.getSavedApiToOpen(apiId);
@@ -278,7 +256,6 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Test mock endpoint inside Workbench
   const handleTestInWorkbench = (mock: MockEndpoint) => {
     const fullMockUrl = mock.fullUrl || (mock.mockUrl ? `http://127.0.0.1:8000${mock.mockUrl}` : `http://127.0.0.1:8000/mock/${mock.path.startsWith('/') ? mock.path.slice(1) : mock.path}`);
     handleUrlChange(fullMockUrl);
@@ -313,7 +290,6 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     toast.info(`Configured Mock Endpoint "${mock.name}" in API Tester.`);
   };
 
-  // Execute request
   const handleSendRequest = async () => {
     if (!url.trim()) {
       toast.warning('Please enter a target API URL to send a request.');
@@ -325,10 +301,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setResponse(null);
     setBatchResponse(null);
 
-    // Merge URL and params ensuring no query parameters are duplicated
     const mergedUrl = mergeUrlAndParams(url.trim(), params);
-
-    // Combine standard headers with active auth headers
     const combinedHeaders = [...headers, ...authHeaders];
 
     const payload: WorkbenchRequest = {
@@ -379,7 +352,6 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Keyboard shortcut: Ctrl+Enter (or Cmd+Enter) anywhere in workspace to Send
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {

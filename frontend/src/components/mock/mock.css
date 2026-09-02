@@ -1,9 +1,3 @@
-/* ==========================================================================
-   API Workbench — Mock API Engine
-   Theme: Blue + White (#1860ec / #2563eb, #ffffff, #f8fafc, #0f172a)
-   ========================================================================== */
-
-/* Root Container */
 .wb-mock-engine-root {
   display: flex;
   flex-direction: column;
@@ -11,10 +5,6 @@
   width: 100%;
   background-color: #f8fafc;
 }
-
-/* ==========================================================================
-   1. Top Header
-   ========================================================================== */
 
 .wb-mock-topbar {
   display: flex;
@@ -91,10 +81,6 @@
   box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
 }
 
-/* ==========================================================================
-   2. Main Workspace
-   ========================================================================== */
-
 .wb-mock-workspace-scrollable {
   width: 100%;
   padding: 1.25rem 1.75rem 2rem 1.75rem;
@@ -114,17 +100,12 @@
   max-width: 900px;
 }
 
-/* ==========================================================================
-   3. Left Column: Endpoint List
-   ========================================================================== */
-
 .wb-mock-list-column {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-/* Search Bar */
 .wb-mock-search-bar {
   display: flex;
   align-items: center;
@@ -172,10 +153,6 @@
   color: #0f172a;
 }
 
-/* ==========================================================================
-   3a. Mock Endpoint Card
-   ========================================================================== */
-
 .wb-mock-card-item {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
@@ -197,7 +174,6 @@
   box-shadow: 0 0 0 1px #2563eb;
 }
 
-/* Card Main Content */
 .wb-mock-card-main {
   padding: 0.85rem 1rem;
   display: flex;
@@ -205,7 +181,6 @@
   gap: 0.5rem;
 }
 
-/* Route Row: Method badge + Path + Status */
 .wb-mock-route-row {
   display: flex;
   align-items: center;
@@ -294,7 +269,6 @@
   color: #e11d48;
 }
 
-/* URL display */
 .wb-mock-url-display {
   font-size: 0.725rem;
   color: #64748b;
@@ -304,7 +278,6 @@
   text-overflow: ellipsis;
 }
 
-/* Card Name (subtitle below route) */
 .wb-mock-card-name {
   font-size: 0.775rem;
   color: #64748b;
@@ -312,7 +285,6 @@
   font-weight: 500;
 }
 
-/* Card Actions Footer */
 .wb-mock-card-actions {
   display: flex;
   align-items: center;
@@ -359,7 +331,6 @@
   margin-left: auto;
 }
 
-/* Empty State */
 .wb-mock-empty-state {
   padding: 2.5rem 1.5rem;
   text-align: center;
@@ -381,7 +352,6 @@
   margin: 0 0 1rem 0;
 }
 
-/* Error State */
 .wb-mock-error-state {
   padding: 1.25rem;
   background-color: #fef2f2;
@@ -408,17 +378,12 @@
   font-family: inherit;
 }
 
-/* Loading */
 .wb-mock-loading-state {
   padding: 2.5rem 1rem;
   text-align: center;
   color: #94a3b8;
   font-size: 0.825rem;
 }
-
-/* ==========================================================================
-   4. Right Column: Editor Pane
-   ========================================================================== */
 
 .wb-mock-editor-card {
   background-color: #ffffff;
@@ -436,7 +401,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Editor Header */
 .wb-mock-editor-header {
   display: flex;
   align-items: center;
@@ -477,7 +441,6 @@
   background-color: #f1f5f9;
 }
 
-/* Form */
 .wb-mock-form {
   display: flex;
   flex-direction: column;
@@ -559,7 +522,6 @@
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
-/* Headers Section */
 .wb-mock-headers-section {
   display: flex;
   flex-direction: column;
@@ -615,7 +577,6 @@
   background-color: #fef2f2;
 }
 
-/* OPTIONS: Allowed Methods */
 .wb-mock-allowed-methods {
   display: flex;
   flex-wrap: wrap;
@@ -640,7 +601,6 @@
   color: #334155;
 }
 
-/* Response Body */
 .wb-mock-body-textarea {
   width: 100%;
   background-color: #f8fafc;
@@ -668,7 +628,6 @@
   margin-top: 0.15rem;
 }
 
-/* Editor Footer */
 .wb-mock-editor-footer {
   display: flex;
   align-items: center;
@@ -719,10 +678,6 @@
   cursor: not-allowed;
 }
 
-/* ==========================================================================
-   5. Authentication & Custom Delay Settings
-   ========================================================================== */
-
 .wb-mock-auth-box {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -758,10 +713,6 @@
   border: 1px solid #fde68a;
 }
 
-/* ==========================================================================
-   6. Responsive
-   ========================================================================== */
-
 @media (max-width: 1080px) {
   .wb-mock-workspace-grid {
     grid-template-columns: 1fr;
@@ -782,4 +733,3 @@
     padding: 1rem;
   }
 }
-

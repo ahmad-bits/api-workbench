@@ -1,11 +1,9 @@
 from typing import Optional
-import re
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 from app.schemas.user import UserResponse, USERNAME_REGEX
 
 
 class LoginRequest(BaseModel):
-    """Payload for user login supporting either username or email."""
     username_or_email: Optional[str] = Field(
         None, description="Registered username or email address"
     )
@@ -23,7 +21,6 @@ class LoginRequest(BaseModel):
 
 
 class Token(BaseModel):
-    """OAuth2 compatible Bearer token response."""
     access_token: str = Field(..., description="Signed JWT Bearer token")
     token_type: str = Field("bearer", description="Token type")
     expires_in: int = Field(..., description="Token validity in seconds")
@@ -33,7 +30,6 @@ class Token(BaseModel):
 
 
 class TokenPayload(BaseModel):
-    """Decoded JWT payload."""
     sub: Optional[str] = None
     exp: Optional[int] = None
     email: Optional[str] = None
@@ -42,7 +38,6 @@ class TokenPayload(BaseModel):
 
 
 class UserProfileUpdate(BaseModel):
-    """Schema for updating current user profile and password."""
     name: Optional[str] = Field(None, min_length=1, max_length=120, description="Updated full name")
     username: Optional[str] = Field(None, min_length=3, max_length=30, description="Updated username")
     email: Optional[EmailStr] = Field(None, description="Updated email address")
@@ -73,7 +68,6 @@ class UserProfileUpdate(BaseModel):
 
 
 class OtpInitiateResponse(BaseModel):
-    """Response returned when OTP registration is successfully initiated."""
     message: str = Field(..., description="Success message")
     email: str = Field(..., description="Email address the verification code was sent to")
     resend_cooldown_seconds: int = Field(60, description="Cooldown seconds before another OTP can be requested")
@@ -81,7 +75,6 @@ class OtpInitiateResponse(BaseModel):
 
 
 class OtpVerifyRequest(BaseModel):
-    """Payload to verify email OTP and complete account registration."""
     email: EmailStr = Field(..., description="Registered email address")
     otp: str = Field(..., min_length=4, max_length=10, description="6-digit verification code")
 
@@ -95,12 +88,10 @@ class OtpVerifyRequest(BaseModel):
 
 
 class OtpResendRequest(BaseModel):
-    """Payload to request a new OTP verification code."""
     email: EmailStr = Field(..., description="Registered email address to resend OTP to")
 
 
 class OtpResendResponse(BaseModel):
-    """Response returned when a new OTP code is resent."""
     message: str = Field(..., description="Status message")
     email: str = Field(..., description="Email address the code was sent to")
     resend_cooldown_seconds: int = Field(60, description="Cooldown seconds before another code can be requested")
@@ -108,7 +99,6 @@ class OtpResendResponse(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    """Payload to request a password reset OTP."""
     username_or_email: str = Field(..., description="Registered username or email address")
 
     @field_validator("username_or_email")
@@ -121,7 +111,6 @@ class ForgotPasswordRequest(BaseModel):
 
 
 class VerifyPasswordResetOtpRequest(BaseModel):
-    """Payload to verify password reset OTP."""
     email: EmailStr = Field(..., description="Email address for the password reset")
     otp: str = Field(..., min_length=4, max_length=10, description="6-digit verification code")
 
@@ -135,14 +124,11 @@ class VerifyPasswordResetOtpRequest(BaseModel):
 
 
 class VerifyPasswordResetOtpResponse(BaseModel):
-    """Response returned after successfully verifying reset OTP."""
     message: str = Field(..., description="Status message")
     reset_token: str = Field(..., description="Temporary token used to authorize the actual password reset")
 
 
 class ResetPasswordRequest(BaseModel):
-    """Payload to finalize password reset."""
     email: EmailStr = Field(..., description="Email address for the password reset")
     reset_token: str = Field(..., description="Temporary reset token obtained from OTP verification")
     new_password: str = Field(..., min_length=6, max_length=128, description="New password")
-

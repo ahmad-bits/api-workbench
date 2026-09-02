@@ -15,12 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 def utc_now() -> datetime:
-    """Return timezone-naive UTC current time for SQLite compatibility."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def to_naive_utc(dt: datetime | None) -> datetime | None:
-    """Convert any datetime to timezone-naive UTC for consistent comparisons."""
     if dt is None:
         return None
     if dt.tzinfo is not None:
@@ -28,44 +26,21 @@ def to_naive_utc(dt: datetime | None) -> datetime | None:
     return dt
 
 
-
 def get_pending_registration_by_email(db: Session, email: str) -> PendingRegistration | None:
-    """Retrieve pending registration by normalized email."""
     return db.query(PendingRegistration).filter(
         PendingRegistration.email == email.lower().strip()
     ).first()
 
 
 def get_pending_registration_by_username(db: Session, username: str) -> PendingRegistration | None:
-    """Retrieve pending registration by normalized username."""
     return db.query(PendingRegistration).filter(
         PendingRegistration.username == username.lower().strip()
     ).first()
 
 
-def cleanup_expired_pending_registrations(db: Session) -> int:
-    """Remove expired pending registration records to keep the database tidy."""
-    try:
-        now = utc_now()
-        deleted = db.query(PendingRegistration).filter(PendingRegistration.expires_at < now).delete()
-        if deleted > 0:
-            db.commit()
-            logger.info(f"Cleaned up {deleted} expired pending registrations.")
-        return deleted
-    except Exception as exc:
-        logger.warning(f"Error during expired pending registrations cleanup: {exc}")
-        return 0
-
-
 def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
-    """
-    Validate registration input and send a 6-digit OTP verification email.
-    The user is NOT inserted into the users table until verified.
-    """
-    # 1. Validate email deliverability and format
     normalized_email = validate_and_normalize_email(user_in.email)
 
-    # 2. Validate username format
     normalized_username = user_in.username.lower().strip()
     if not USERNAME_REGEX.match(normalized_username):
         raise HTTPException(
@@ -73,7 +48,6 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
             detail="Username must be between 3 and 30 characters and contain only letters, numbers, hyphens (-), and underscores (_).",
         )
 
-    # 3. Check if email is already registered in active Users
     existing_user_email = db.query(User).filter(User.email == normalized_email).first()
     if existing_user_email:
         raise HTTPException(
@@ -81,7 +55,6 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
             detail="An account with this email address already exists.",
         )
 
-    # 4. Check if username is already registered in active Users
     existing_user_name = db.query(User).filter(User.username == normalized_username).first()
     if existing_user_name:
         raise HTTPException(
@@ -89,10 +62,8 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
             detail=f"The username '{normalized_username}' is already taken. Please choose another.",
         )
 
-    # 5. Check if another pending registration has already reserved this username
     pending_by_user = get_pending_registration_by_username(db, normalized_username)
     if pending_by_user and pending_by_user.email != normalized_email:
-        # If expired, we can discard it; if active, reject
         if to_naive_utc(pending_by_user.expires_at) > utc_now():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -102,11 +73,9 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
             db.delete(pending_by_user)
             db.commit()
 
-    # 6. Check existing pending registration for this email and resend cooldown
     existing_pending = get_pending_registration_by_email(db, normalized_email)
     now = utc_now()
     if existing_pending:
-        # Check cooldown
         resend_time = to_naive_utc(existing_pending.resend_available_at)
         if resend_time and resend_time > now:
             remaining_seconds = int((resend_time - now).total_seconds())
@@ -116,8 +85,6 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
                     detail=f"A verification code was recently sent. Please wait {remaining_seconds} seconds before requesting a new code.",
                 )
 
-
-    # 7. Generate secure 6-digit OTP
     otp = generate_otp(6)
     otp_hash_val = hash_otp(otp, email=normalized_email)
     hashed_pwd = get_password_hash(user_in.password)
@@ -125,7 +92,6 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
     expires_at = now + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
     resend_available_at = now + timedelta(seconds=settings.OTP_RESEND_COOLDOWN_SECONDS)
 
-    # 8. Create or update pending registration
     if existing_pending:
         existing_pending.name = user_in.name.strip()
         existing_pending.username = normalized_username
@@ -150,7 +116,6 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
 
     db.commit()
 
-    # 9. Send OTP email (never expose OTP in response)
     send_otp_email(
         to_email=normalized_email,
         to_name=user_in.name.strip(),
@@ -166,10 +131,6 @@ def initiate_registration(db: Session, user_in: UserCreate) -> Dict[str, Any]:
 
 
 def verify_otp_and_create_user(db: Session, email: str, otp: str) -> User:
-    """
-    Validate OTP and permanently create the User account in SQLite.
-    Decrements attempts on failure and enforces expiration.
-    """
     normalized_email = email.lower().strip()
     clean_otp = str(otp).strip()
 
@@ -188,7 +149,6 @@ def verify_otp_and_create_user(db: Session, email: str, otp: str) -> User:
 
     now = utc_now()
 
-    # Check if expired
     expiry_time = to_naive_utc(pending.expires_at)
     if expiry_time and expiry_time < now:
         db.delete(pending)
@@ -198,7 +158,6 @@ def verify_otp_and_create_user(db: Session, email: str, otp: str) -> User:
             detail="Verification code has expired. Please request a new verification code.",
         )
 
-    # Check if attempts exhausted
     if pending.attempts_left <= 0:
         db.delete(pending)
         db.commit()
@@ -207,7 +166,6 @@ def verify_otp_and_create_user(db: Session, email: str, otp: str) -> User:
             detail="Maximum verification attempts exceeded. Please request a new verification code.",
         )
 
-    # Validate OTP
     is_valid = verify_otp(plain_otp=clean_otp, hashed_otp=pending.otp_hash, email=normalized_email)
     if not is_valid:
         pending.attempts_left -= 1
@@ -224,7 +182,6 @@ def verify_otp_and_create_user(db: Session, email: str, otp: str) -> User:
             detail=f"Incorrect verification code. {pending.attempts_left} attempt(s) remaining.",
         )
 
-    # Re-check uniqueness before permanent insert (to guard against race conditions)
     if db.query(User).filter(User.email == pending.email).first():
         db.delete(pending)
         db.commit()
@@ -241,7 +198,6 @@ def verify_otp_and_create_user(db: Session, email: str, otp: str) -> User:
             detail=f"The username '{pending.username}' is already taken.",
         )
 
-    # Create permanent User account
     new_user = User(
         name=pending.name,
         username=pending.username,
@@ -259,9 +215,6 @@ def verify_otp_and_create_user(db: Session, email: str, otp: str) -> User:
 
 
 def resend_registration_otp(db: Session, email: str) -> Dict[str, Any]:
-    """
-    Resend a new 6-digit OTP code to the user's email, enforcing rate-limiting cooldown.
-    """
     normalized_email = email.lower().strip()
     pending = get_pending_registration_by_email(db, normalized_email)
 
@@ -273,7 +226,6 @@ def resend_registration_otp(db: Session, email: str) -> Dict[str, Any]:
 
     now = utc_now()
 
-    # Enforce resend cooldown
     resend_time = to_naive_utc(pending.resend_available_at)
     if resend_time and resend_time > now:
         remaining_seconds = int((resend_time - now).total_seconds())
@@ -283,8 +235,6 @@ def resend_registration_otp(db: Session, email: str) -> Dict[str, Any]:
                 detail=f"Please wait {remaining_seconds} seconds before requesting a new code.",
             )
 
-
-    # Generate new OTP & refresh expiration
     new_otp = generate_otp(6)
     pending.otp_hash = hash_otp(new_otp, email=normalized_email)
     pending.attempts_left = settings.OTP_MAX_ATTEMPTS
@@ -294,7 +244,6 @@ def resend_registration_otp(db: Session, email: str) -> Dict[str, Any]:
 
     db.commit()
 
-    # Dispatch new email
     send_otp_email(
         to_email=normalized_email,
         to_name=pending.name,

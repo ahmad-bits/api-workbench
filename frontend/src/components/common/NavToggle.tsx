@@ -5,10 +5,6 @@ interface NavToggleProps {
   className?: string;
 }
 
-/**
- * Three-line hamburger / menu toggle button that smoothly collapses and expands
- * the left navigation sidebar in the API Workbench layout.
- */
 export const NavToggle: React.FC<NavToggleProps> = ({ className = '' }) => {
   const { isSidebarCollapsed, toggleSidebar } = useWorkbench();
 

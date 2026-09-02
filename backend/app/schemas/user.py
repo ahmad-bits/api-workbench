@@ -7,7 +7,6 @@ USERNAME_REGEX = re.compile(r"^[a-zA-Z0-9_-]{3,30}$")
 
 
 class UserBase(BaseModel):
-    """Base fields shared across user schemas."""
     name: str = Field(..., min_length=1, max_length=120, description="User full name")
     username: str = Field(
         ...,
@@ -29,7 +28,6 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    """Schema for registering a new user account."""
     password: str = Field(
         ...,
         min_length=6,
@@ -39,7 +37,6 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    """Schema for updating user account details."""
     name: Optional[str] = Field(None, min_length=1, max_length=120, description="Updated full name")
     username: Optional[str] = Field(None, min_length=3, max_length=30, description="Updated username")
     email: Optional[EmailStr] = Field(None, description="Updated email address")
@@ -64,7 +61,6 @@ class UserUpdate(BaseModel):
 
 
 class UserResponse(UserBase):
-    """Schema for returning user account details. Never exposes password hash."""
     id: int
     is_active: bool
     created_at: datetime
@@ -74,6 +70,5 @@ class UserResponse(UserBase):
 
 
 class UserDeleteResponse(BaseModel):
-    """Schema returned after permanent account deletion."""
     message: str
     user_id: int

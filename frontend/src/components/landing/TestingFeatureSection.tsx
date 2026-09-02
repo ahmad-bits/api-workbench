@@ -4,7 +4,6 @@ export const TestingFeatureSection: React.FC = () => {
   return (
     <section className="wb-testing-feature-section" id="testing-workspace">
       <div className="wb-centered-section-container">
-        {/* Section Header */}
         <div className="wb-centered-header-box">
           <h2 className="wb-centered-heading">Comprehensive Testing Workspace</h2>
 
@@ -14,10 +13,8 @@ export const TestingFeatureSection: React.FC = () => {
           </p>
         </div>
 
-        {/* macOS Full Testing Workspace Mockup (Static Demonstration) */}
         <div className="wb-testing-window-wrapper">
           <div className="wb-window-card">
-            {/* Titlebar */}
             <div className="wb-window-titlebar">
               <div className="wb-traffic-dots">
                 <span className="wb-traffic-dot wb-dot-red" />
@@ -28,14 +25,11 @@ export const TestingFeatureSection: React.FC = () => {
               <div className="wb-traffic-dots-spacer" />
             </div>
 
-            {/* Main Testing Body */}
             <div className="wb-testing-body-grid">
-              {/* Left Collections Sidebar */}
               <aside className="wb-testing-sidebar">
                 <div className="wb-sidebar-heading">Collections</div>
 
                 <div className="wb-collections-tree">
-                  {/* Authentication Folder */}
                   <div className="wb-tree-folder">
                     <div className="wb-folder-title">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -57,7 +51,6 @@ export const TestingFeatureSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Users Folder */}
                   <div className="wb-tree-folder collapsed">
                     <div className="wb-folder-title">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -67,7 +60,6 @@ export const TestingFeatureSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Products Folder */}
                   <div className="wb-tree-folder collapsed">
                     <div className="wb-folder-title">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -79,9 +71,7 @@ export const TestingFeatureSection: React.FC = () => {
                 </div>
               </aside>
 
-              {/* Right Workspace Main Pane */}
               <div className="wb-testing-main-pane">
-                {/* Request Bar */}
                 <div className="wb-testing-req-bar">
                   <div className="wb-method-selector-pill">
                     <span>POST</span>
@@ -93,7 +83,6 @@ export const TestingFeatureSection: React.FC = () => {
                     <span className="wb-env-var">&#123;&#123;base_url&#125;&#125;</span>
                     <span>/api/v1/auth/login</span>
                   </div>
-                  {/* Send Request is demonstration only */}
                   <button
                     type="button"
                     className="wb-btn-send-request wb-btn-demo-only"
@@ -105,7 +94,6 @@ export const TestingFeatureSection: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Request Sub-Tabs (Static Display) */}
                 <div className="wb-testing-subtabs-row">
                   <span className="wb-subtab">Params</span>
                   <span className="wb-subtab">Headers</span>
@@ -114,7 +102,6 @@ export const TestingFeatureSection: React.FC = () => {
                   <span className="wb-subtab">Tests</span>
                 </div>
 
-                {/* Request Body Code Box */}
                 <div className="wb-testing-code-box">
                   <div className="wb-code-block-inner">
                     <div className="wb-code-line"><span className="wb-code-punc">&#123;</span></div>
@@ -134,9 +121,7 @@ export const TestingFeatureSection: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Response Section (Static Display - Full Visibility) */}
                 <div className="wb-testing-response-section">
-                  {/* Response Header Row */}
                   <div className="wb-resp-top-bar">
                     <div className="wb-resp-tabs-group">
                       <span className="wb-resp-tab-btn active">Response</span>
@@ -151,7 +136,6 @@ export const TestingFeatureSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Response Body (Fully visible, no internal scroll) */}
                   <div className="wb-resp-body-code">
                     <div className="wb-code-block-inner">
                       <div className="wb-code-line"><span className="wb-code-punc">&#123;</span></div>

@@ -56,16 +56,3 @@ export interface BatchWorkbenchResponse {
   results: WorkbenchResponse[];
   latestResponse: WorkbenchResponse;
 }
-
-export interface QuickPreset {
-  id: string;
-  name: string;
-  method: HttpMethod;
-  url: string;
-  headers?: KeyValuePair[];
-  params?: KeyValuePair[];
-  bodyType?: BodyType;
-  body?: string;
-  requestCount?: number;
-}
-

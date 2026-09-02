@@ -21,7 +21,6 @@ class SavedApiBase(BaseModel):
         clean = v.strip()
         if not clean:
             raise ValueError("API URL cannot be empty.")
-        # Auto-prefix http:// if protocol is omitted
         if not (clean.startswith("http://") or clean.startswith("https://")):
             clean = f"https://{clean}"
         return clean

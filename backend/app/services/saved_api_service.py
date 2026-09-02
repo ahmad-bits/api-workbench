@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 def _to_response_schema(saved: SavedApi) -> SavedApiResponse:
-    """Format SavedApi database model into a safe public response with masked API key."""
     has_key = bool(saved.encrypted_api_key and saved.encrypted_api_key.strip())
     return SavedApiResponse(
         id=saved.id,
@@ -34,10 +33,7 @@ def _to_response_schema(saved: SavedApi) -> SavedApiResponse:
 
 
 class SavedApiService:
-    """Service layer managing user-scoped Saved APIs with AES encryption at rest."""
-
     def list_user_saved_apis(self, db: Session, user: User) -> List[SavedApiResponse]:
-        """Return all saved APIs belonging strictly to the authenticated user."""
         records = (
             db.query(SavedApi)
             .filter(SavedApi.user_id == user.id)
@@ -49,10 +45,6 @@ class SavedApiService:
     def create_saved_api(
         self, db: Session, user: User, api_in: SavedApiCreate
     ) -> SavedApiResponse:
-        """
-        Create a new saved API for the authenticated user.
-        Encrypts the API key before persisting to the database.
-        """
         encrypted_key: Optional[str] = None
         if api_in.api_key and api_in.api_key.strip():
             encrypted_key = encrypt_api_key(api_in.api_key.strip())
@@ -72,7 +64,6 @@ class SavedApiService:
         return _to_response_schema(new_saved_api)
 
     def get_saved_api(self, db: Session, user: User, api_id: str) -> SavedApiResponse:
-        """Get summary details of a single saved API owned by the user."""
         saved = (
             db.query(SavedApi)
             .filter(SavedApi.id == api_id, SavedApi.user_id == user.id)
@@ -88,10 +79,6 @@ class SavedApiService:
     def get_saved_api_for_open(
         self, db: Session, user: User, api_id: str
     ) -> SavedApiOpenResponse:
-        """
-        Retrieve saved API details with decrypted plain API key,
-        specifically for loading into the API testing workbench by the authenticated owner.
-        """
         saved = (
             db.query(SavedApi)
             .filter(SavedApi.id == api_id, SavedApi.user_id == user.id)
@@ -119,7 +106,6 @@ class SavedApiService:
     def update_saved_api(
         self, db: Session, user: User, api_id: str, api_in: SavedApiUpdate
     ) -> SavedApiResponse:
-        """Update an existing saved API owned by the user."""
         saved = (
             db.query(SavedApi)
             .filter(SavedApi.id == api_id, SavedApi.user_id == user.id)
@@ -142,7 +128,6 @@ class SavedApiService:
 
         if api_in.api_key is not None:
             if not api_in.api_key.strip():
-                # Empty string clears the key
                 saved.encrypted_api_key = None
             else:
                 saved.encrypted_api_key = encrypt_api_key(api_in.api_key.strip())
@@ -155,7 +140,6 @@ class SavedApiService:
         return _to_response_schema(saved)
 
     def delete_saved_api(self, db: Session, user: User, api_id: str) -> bool:
-        """Delete a saved API owned by the user."""
         saved = (
             db.query(SavedApi)
             .filter(SavedApi.id == api_id, SavedApi.user_id == user.id)
@@ -177,7 +161,6 @@ class SavedApiService:
     def delete_saved_apis_by_workspace(
         self, db: Session, user: User, workspace_name: str
     ) -> int:
-        """Delete all saved APIs belonging to a specific workspace/category for the user."""
         clean_name = workspace_name.strip().lower()
         records = (
             db.query(SavedApi)

@@ -1,8 +1,3 @@
-/* ==========================================================================
-   API Workbench - Unified Confirmation & Dialog Modal System
-   Theme: Crisp Blue & White Modern Palette (#1860ec, #ffffff, #f8fafc, #0f172a)
-   ========================================================================== */
-
 .wb-confirm-backdrop {
   position: fixed;
   inset: 0;
@@ -50,7 +45,6 @@
   }
 }
 
-/* Modal Header */
 .wb-confirm-header {
   padding: 1.25rem 1.35rem 0.85rem 1.35rem;
   display: flex;
@@ -119,7 +113,6 @@
   background-color: #f1f5f9;
 }
 
-/* Modal Body */
 .wb-confirm-body {
   padding: 0.5rem 1.35rem 1.25rem 1.35rem;
   display: flex;
@@ -148,7 +141,6 @@
   line-height: 1.45;
 }
 
-/* Verification Input Group */
 .wb-confirm-input-group {
   display: flex;
   flex-direction: column;
@@ -185,7 +177,6 @@
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
 
-/* Modal Footer */
 .wb-confirm-footer {
   padding: 0.85rem 1.35rem;
   display: flex;
@@ -265,10 +256,6 @@
   cursor: not-allowed;
   box-shadow: none;
 }
-
-/* ==========================================================================
-   Centered General Modal Dialogs (New Workspace, Add API, Edit API, Save API)
-   ========================================================================== */
 
 .wb-modal-backdrop,
 .modal-backdrop {
@@ -498,4 +485,3 @@
   color: #94a3b8;
   font-size: 0.725rem;
 }
-

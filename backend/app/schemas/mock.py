@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any, List
+from typing import Dict, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -15,13 +15,11 @@ class MockEndpointBase(BaseModel):
     response_type: str = Field(default="json", description="Response type: 'json' or 'text'")
     description: Optional[str] = Field(default=None, description="Optional notes about this mock")
     
-    # Authentication fields: 'none', 'api_key', 'bearer'
     auth_type: str = Field(default="none", description="Auth type: 'none', 'api_key', or 'bearer'")
     auth_header_name: Optional[str] = Field(default="X-API-Key", description="Header name for API key auth")
     auth_header_value: Optional[str] = Field(default="", description="Expected secret value for API key auth")
     auth_token: Optional[str] = Field(default="", description="Expected secret token for Bearer auth")
 
-    # Response Delay in milliseconds (>= 0)
     delay_ms: int = Field(default=0, ge=0, description="Response delay in milliseconds (>= 0)")
 
     @field_validator("method")

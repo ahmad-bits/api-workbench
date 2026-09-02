@@ -37,7 +37,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
 
   return (
     <div className="wb-bench-view">
-      {/* Benchmark Summary Metrics Strip */}
       <div className="wb-bench-metrics-strip">
         <div className="wb-bench-metric-card">
           <span className="wb-bench-lbl">TOTAL RUNS</span>
@@ -60,7 +59,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
         </div>
       </div>
 
-      {/* Benchmark Sub-Navigation Tabs */}
       <div className="wb-bench-subtabs-row">
         <div className="wb-bench-tabs-group">
           <button
@@ -100,7 +98,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
         )}
       </div>
 
-      {/* TAB 1: Overview & Status Code Distribution */}
       {activeTab === 'stats' && (
         <div className="wb-bench-overview-pane">
           <h5 className="wb-bench-section-title">Status Code Breakdown</h5>
@@ -137,7 +134,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
         </div>
       )}
 
-      {/* TAB 2: All Runs Table */}
       {activeTab === 'runs' && (
         <div className="wb-bench-runs-pane">
           <table className="wb-bench-runs-table">
@@ -182,7 +178,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
         </div>
       )}
 
-      {/* TAB 3: Sample Body */}
       {activeTab === 'body' && (
         <div className="wb-bench-code-pane">
           <pre className="wb-bench-json-code">
@@ -195,7 +190,6 @@ export const BenchmarkViewer: React.FC<BenchmarkViewerProps> = ({
         </div>
       )}
 
-      {/* TAB 4: Sample Headers */}
       {activeTab === 'headers' && (
         <div className="wb-bench-headers-pane">
           <table className="wb-bench-headers-table">

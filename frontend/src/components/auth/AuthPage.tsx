@@ -26,7 +26,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(getModeFromPath);
 
-  // Sync mode whenever URL path changes (e.g. browser Back / Forward buttons)
   useEffect(() => {
     const nextMode = getModeFromPath();
     setMode(nextMode);
@@ -39,10 +38,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     clearError();
   }, [location.pathname, clearError]);
 
-  // Step 1: 'form' | Step 2: 'verify' (for registration)
   const [registerStep, setRegisterStep] = useState<'form' | 'verify'>('form');
 
-  // Form states
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -51,7 +48,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // OTP State
   const [otp, setOtp] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [forgotPasswordStep, setForgotPasswordStep] = useState<'form' | 'verify' | 'reset'>('form');
@@ -64,7 +60,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   const otpInputRef = useRef<HTMLInputElement>(null);
 
-  // Cooldown countdown timer
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -73,7 +68,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  // Focus OTP input when switching to verify step
   useEffect(() => {
     if (registerStep === 'verify' && otpInputRef.current) {
       otpInputRef.current.focus();
@@ -90,7 +84,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
-  // Step 1: Initiate registration and send OTP
   const handleInitiateRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
@@ -143,7 +136,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
-  // Step 2: Verify OTP and create account
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
@@ -171,7 +163,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
-  // Resend OTP
   const handleResendOtp = async () => {
     if (resendCooldown > 0 || isResending) return;
     setLocalError(null);
@@ -192,7 +183,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
-  // Forgot Password flow handlers
   const handleForgotPasswordClick = () => {
     if (!usernameOrEmail.trim()) {
       setLocalError('Please enter your username or email address above first to reset your password.');
@@ -301,7 +291,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
-  // Login handler
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
@@ -335,20 +324,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   return (
     <div className="wb-auth-page-root">
-
-
-      {/* 2-Column Split Modal Card matching Figma Design */}
       <div className="wb-auth-card-split">
-        {/* Left Column: Branding, Decorative Circles, Code Preview, Headline */}
         <div className="wb-auth-left-col">
-          {/* Decorative Concentric Rings */}
           <div className="wb-auth-circle-bg">
             <div className="wb-auth-circle-ring ring-1" />
             <div className="wb-auth-circle-ring ring-2" />
             <div className="wb-auth-circle-ring ring-3" />
           </div>
 
-          {/* Top Brand Info (Static, Non-Interactive) */}
           <div className="wb-auth-brand-box">
             <div className="wb-auth-brand-logo">
               <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
@@ -360,7 +343,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <span className="wb-auth-brand-name">API Workbench</span>
           </div>
 
-          {/* Middle Floating Code Mockup */}
           <div className="wb-auth-middle-graphic">
             <div className="wb-auth-code-card">
               <div className="wb-code-req-line">GET /v1/users/profile</div>
@@ -380,7 +362,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           </div>
 
-          {/* Bottom Headline & Tagline */}
           <div className="wb-auth-bottom-content">
             <h2 className="wb-auth-main-headline">
               Build faster,
@@ -393,9 +374,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Form (Login, Register, OTP) */}
         <div className="wb-auth-right-col">
-          {/* Header */}
           <div className="wb-auth-form-header">
             <h1 className="wb-auth-form-title">
               {mode === 'login'
@@ -417,7 +396,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </p>
           </div>
 
-          {/* Alerts */}
           {displayedError && (
             <div className="wb-auth-alert error">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
@@ -439,7 +417,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           )}
 
-          {/* VIEW 1: Login Form */}
           {mode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="wb-auth-form">
               <div className="wb-auth-field">
@@ -451,7 +428,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="login-email"
                     type="text"
                     className="wb-auth-input"
-
                     value={usernameOrEmail}
                     onChange={(e) => setUsernameOrEmail(e.target.value)}
                     autoComplete="username"
@@ -479,7 +455,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="login-password"
                     type={showPassword ? 'text' : 'password'}
                     className="wb-auth-input"
-
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
@@ -534,12 +509,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   Sign up
                 </button>
               </div>
-
-
             </form>
           )}
 
-          {/* VIEW 2: Sign Up (Register Step 1) */}
           {mode === 'register' && registerStep === 'form' && (
             <form onSubmit={handleInitiateRegistration} className="wb-auth-form">
               <div className="wb-auth-field">
@@ -551,7 +523,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-name"
                     type="text"
                     className="wb-auth-input"
-
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="name"
@@ -570,7 +541,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-username"
                     type="text"
                     className="wb-auth-input"
-
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     autoComplete="username"
@@ -589,7 +559,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-email"
                     type="email"
                     className="wb-auth-input"
-
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
@@ -608,7 +577,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-password"
                     type={showPassword ? 'text' : 'password'}
                     className="wb-auth-input"
-
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
@@ -627,7 +595,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="reg-confirm-password"
                     type={showPassword ? 'text' : 'password'}
                     className="wb-auth-input"
-
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     autoComplete="new-password"
@@ -645,9 +612,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 {isSubmitting ? (
                   <span>Sending code...</span>
                 ) : (
-                  <>
-                    <span>Continue → Verify Email</span>
-                  </>
+                  <span>Continue → Verify Email</span>
                 )}
               </button>
 
@@ -664,7 +629,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </form>
           )}
 
-          {/* VIEW 3: OTP Verification Screen */}
           {mode === 'register' && registerStep === 'verify' && (
             <div className="wb-otp-box">
               <div className="wb-otp-badge">
@@ -746,7 +710,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           )}
 
-          {/* VIEW 4: Forgot Password - Request OTP */}
           {mode === 'forgot_password' && forgotPasswordStep === 'form' && (
             <div className="wb-auth-form">
               <div className="wb-auth-field" style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -783,7 +746,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           )}
 
-          {/* VIEW 5: Forgot Password - Verify OTP */}
           {mode === 'forgot_password' && forgotPasswordStep === 'verify' && (
             <div className="wb-otp-box">
               <div className="wb-otp-badge">
@@ -863,7 +825,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           )}
 
-          {/* VIEW 6: Forgot Password - Reset Password */}
           {mode === 'forgot_password' && forgotPasswordStep === 'reset' && (
             <form onSubmit={handleResetPasswordSubmit} className="wb-auth-form">
               <div className="wb-auth-field">

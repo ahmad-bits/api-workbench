@@ -14,12 +14,12 @@ from app.services.user_service import get_user_by_identifier
 
 logger = logging.getLogger(__name__)
 
+
 def utc_now() -> datetime:
-    """Return timezone-naive UTC current time for SQLite compatibility."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
+
 def to_naive_utc(dt: datetime | None) -> datetime | None:
-    """Convert any datetime to timezone-naive UTC for consistent comparisons."""
     if dt is None:
         return None
     if dt.tzinfo is not None:
@@ -28,7 +28,6 @@ def to_naive_utc(dt: datetime | None) -> datetime | None:
 
 
 def get_password_reset_otp_by_email(db: Session, email: str) -> PasswordResetOtp | None:
-    """Retrieve password reset request by normalized email."""
     return db.query(PasswordResetOtp).filter(
         PasswordResetOtp.email == email.lower().strip()
     ).first()

@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Dict, List, Optional, Tuple, Any
+from typing import List, Optional, Tuple
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.user import User
@@ -55,10 +55,7 @@ def _to_response_schema(mock: MockEndpoint, username: str) -> MockEndpointRespon
 
 
 class DatabaseMockService:
-    """Database-backed Mock API Service managing user-scoped mock endpoints in SQLite."""
-
     def list_user_mocks(self, db: Session, user: User) -> List[MockEndpointResponse]:
-        """Return all mock endpoints belonging strictly to the authenticated user."""
         mocks = (
             db.query(MockEndpoint)
             .filter(MockEndpoint.user_id == user.id)
@@ -70,7 +67,6 @@ class DatabaseMockService:
     def get_user_mock(
         self, db: Session, user: User, mock_id: str
     ) -> Optional[MockEndpointResponse]:
-        """Get single mock endpoint by ID belonging to the authenticated user."""
         mock = (
             db.query(MockEndpoint)
             .filter(MockEndpoint.id == mock_id, MockEndpoint.user_id == user.id)
@@ -83,7 +79,6 @@ class DatabaseMockService:
     def create_user_mock(
         self, db: Session, user: User, data: MockEndpointCreate
     ) -> MockEndpointResponse:
-        """Create and persist a new mock endpoint for the authenticated user."""
         clean_method = data.method.upper().strip()
         clean_path = data.path.strip()
         if not clean_path.startswith("/"):
@@ -91,7 +86,6 @@ class DatabaseMockService:
         if len(clean_path) > 1 and clean_path.endswith("/"):
             clean_path = clean_path.rstrip("/")
 
-        # Check for existing duplicate mock endpoint in this user's account
         existing = (
             db.query(MockEndpoint)
             .filter(
@@ -108,7 +102,6 @@ class DatabaseMockService:
             )
 
         mock_id = uuid.uuid4().hex[:8]
-        # Ensure ID is unique in table
         while db.query(MockEndpoint).filter(MockEndpoint.id == mock_id).first():
             mock_id = uuid.uuid4().hex[:8]
 
@@ -151,7 +144,6 @@ class DatabaseMockService:
     def update_user_mock(
         self, db: Session, user: User, mock_id: str, data: MockEndpointUpdate
     ) -> Optional[MockEndpointResponse]:
-        """Update an existing mock endpoint owned by the authenticated user."""
         db_mock = (
             db.query(MockEndpoint)
             .filter(MockEndpoint.id == mock_id, MockEndpoint.user_id == user.id)
@@ -215,7 +207,6 @@ class DatabaseMockService:
         return _to_response_schema(db_mock, user.username)
 
     def delete_user_mock(self, db: Session, user: User, mock_id: str) -> bool:
-        """Delete a mock endpoint owned by the authenticated user."""
         db_mock = (
             db.query(MockEndpoint)
             .filter(MockEndpoint.id == mock_id, MockEndpoint.user_id == user.id)
@@ -231,30 +222,21 @@ class DatabaseMockService:
     def match_and_serve_public(
         self, db: Session, username: str, incoming_method: str, subpath: str
     ) -> Tuple[Optional[MockEndpoint], Optional[str]]:
-        """
-        Public mock execution resolver:
-        Finds user by username in SQLite, then finds configured Mock endpoint matching path and method.
-        Does NOT require workbench session authentication.
-        Returns (MockEndpoint, error_message).
-        """
         clean_user = username.lower().strip()
         user = db.query(User).filter(User.username == clean_user).first()
         if not user or not user.is_active:
             return None, f"No active user found with username '@{username}'."
 
-        # Normalize target subpath
         clean_subpath = subpath.strip()
         if not clean_subpath.startswith("/"):
             clean_subpath = f"/{clean_subpath}" if clean_subpath else "/"
 
-        # Match exact path or path with/without trailing slash
         candidates = [clean_subpath]
         if clean_subpath.endswith("/") and len(clean_subpath) > 1:
             candidates.append(clean_subpath.rstrip("/"))
         elif not clean_subpath.endswith("/"):
             candidates.append(f"{clean_subpath}/")
 
-        # Find mock among candidates
         mock = (
             db.query(MockEndpoint)
             .filter(
@@ -267,14 +249,12 @@ class DatabaseMockService:
         if not mock:
             return None, f"Mock endpoint '{clean_subpath}' not configured under user '@{user.username}'."
 
-        # Validate HTTP method
         if mock.method.upper() != incoming_method.upper():
             return (
                 mock,
                 f"Method Not Allowed: Mock '{mock.path}' only accepts {mock.method} requests, but received {incoming_method}.",
             )
 
-        # Increment call counter in database
         mock.call_count = (mock.call_count or 0) + 1
         db.commit()
 

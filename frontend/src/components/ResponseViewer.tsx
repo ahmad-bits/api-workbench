@@ -12,13 +12,11 @@ interface ResponseViewerProps {
 }
 
 function highlightJsonLine(line: string): string {
-  // Escape HTML entities first
   const escaped = line
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // Highlight JSON keys, strings, numbers, booleans, null with clean dark-blue/neutral palette
   return escaped.replace(
     /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     (match) => {
@@ -128,7 +126,6 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
 
   return (
     <div className="wb-resp-section-root">
-      {/* 1. Header & Meta Bar */}
       <div className="wb-resp-header-bar">
         <div className="wb-resp-header-left">
           <div className="wb-resp-main-title">
@@ -137,26 +134,22 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
 
           {!isLoading && response && !isMultiRequest && (
             <div className="wb-resp-meta-pills-row">
-              {/* Status Chip */}
               <div className={`wb-resp-meta-chip status ${getStatusBadgeClass(response.statusCode)}`}>
                 <span className="wb-chip-dot" />
                 <span className="wb-chip-label">Status</span>
                 <span className="wb-chip-value">{response.statusCode} {response.statusText || 'OK'}</span>
               </div>
 
-              {/* Speed Chip */}
               <div className="wb-resp-meta-chip" title="Round-trip request time">
                 <span className="wb-chip-label">Speed</span>
                 <span className="wb-chip-value">{response.elapsedMs} ms</span>
               </div>
 
-              {/* Size Chip */}
               <div className="wb-resp-meta-chip" title="Response payload size">
                 <span className="wb-chip-label">Size</span>
                 <span className="wb-chip-value">{formatSize(response.sizeBytes)}</span>
               </div>
 
-              {/* Format Chip */}
               <div className="wb-resp-meta-chip" title="Response format">
                 <span className="wb-chip-label">Format</span>
                 <span className="wb-chip-value">{response.isJson ? 'JSON' : 'TEXT'}</span>
@@ -165,10 +158,8 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           )}
         </div>
 
-        {/* Action Controls & Format Switcher */}
         {!isLoading && response && !isMultiRequest && (
           <div className="wb-resp-header-right">
-            {/* View Subtabs */}
             <div className="wb-resp-nav-tabs">
               <button
                 type="button"
@@ -193,7 +184,6 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
               </button>
             </div>
 
-            {/* Quick Actions */}
             <div className="wb-resp-actions-group">
               <button
                 type="button"
@@ -253,9 +243,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
         )}
       </div>
 
-      {/* 2. Main Response Body Viewport */}
       <div className="wb-resp-body-viewport">
-        {/* Loading State */}
         {isLoading && (
           <div className="wb-resp-state-box loading">
             <div className="wb-resp-loading-spinner" />
@@ -270,7 +258,6 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           </div>
         )}
 
-        {/* Empty State */}
         {!isLoading && !response && !batchResponse && (
           <div className="wb-resp-state-box empty">
             <div className="wb-resp-empty-icon-circle">
@@ -286,7 +273,6 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           </div>
         )}
 
-        {/* Benchmark Results */}
         {!isLoading && isMultiRequest && batchResponse && (
           <BenchmarkViewer
             batchResponse={batchResponse}
@@ -297,7 +283,6 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           />
         )}
 
-        {/* Error Response Box */}
         {!isLoading && response?.error && (
           <div className="wb-resp-error-card">
             <div className="wb-resp-error-header">
@@ -312,10 +297,8 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           </div>
         )}
 
-        {/* Single Response Content Display */}
         {!isLoading && response && !response.error && !isMultiRequest && (
           <div className="wb-resp-content-card">
-            {/* TAB: Pretty Formatted Code with Line Numbers */}
             {activeTab === 'pretty' && (
               <div className="wb-resp-code-canvas">
                 <div className="wb-resp-code-lines">
@@ -334,14 +317,12 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
               </div>
             )}
 
-            {/* TAB: Raw Text */}
             {activeTab === 'raw' && (
               <div className="wb-resp-raw-canvas">
                 <pre className="wb-resp-raw-pre">{rawText}</pre>
               </div>
             )}
 
-            {/* TAB: Headers Table */}
             {activeTab === 'headers' && (
               <div className="wb-resp-headers-section">
                 <div className="wb-resp-headers-toolbar">

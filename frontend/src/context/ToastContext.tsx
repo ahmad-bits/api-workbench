@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { ToastContainer } from '../components/common/ToastContainer';
 
@@ -52,7 +51,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       };
 
       setToasts((prev) => {
-        // Keep at most 5 toasts stacked to prevent overflow
         const trimmed = prev.length >= 5 ? prev.slice(prev.length - 4) : prev;
         return [...trimmed, newToast];
       });

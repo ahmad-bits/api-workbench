@@ -5,14 +5,10 @@ from app.db.base import Base
 
 
 def utc_now() -> datetime:
-    """Return timezone-naive UTC datetime for SQLite compatibility."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class PasswordResetOtp(Base):
-    """
-    Stores temporary password reset requests with HMAC-hashed OTPs and verification tokens.
-    """
     __tablename__ = "password_reset_otps"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)

@@ -6,10 +6,6 @@ export interface SplitUrlResult {
   hash: string;
 }
 
-/**
- * Splits a raw URL string into base URL (protocol, host, port, path),
- * query string (without the leading '?'), and hash fragment (with leading '#').
- */
 export function splitUrl(rawUrl: string): SplitUrlResult {
   if (!rawUrl) return { baseUrl: '', queryString: '', hash: '' };
 
@@ -35,9 +31,6 @@ export function splitUrl(rawUrl: string): SplitUrlResult {
   };
 }
 
-/**
- * Parses a query string into key-value pairs.
- */
 export function parseQueryString(queryString: string): { key: string; value: string }[] {
   if (!queryString || !queryString.trim()) return [];
 
@@ -74,14 +67,9 @@ export function parseQueryString(queryString: string): { key: string; value: str
   return pairs;
 }
 
-/**
- * Builds a full URL from a base URL and an array of KeyValuePair parameters.
- * Automatically deduplicates keys (last active value wins) and excludes disabled items.
- */
 export function buildUrlWithParams(baseUrl: string, params: KeyValuePair[], hash: string = ''): string {
   const enabledParams = params.filter((p) => p.enabled && p.key.trim() !== '');
 
-  // Deduplicate by key (case-sensitive by exact trimmed key)
   const paramMap = new Map<string, string>();
   for (const p of enabledParams) {
     paramMap.set(p.key.trim(), p.value);
@@ -100,23 +88,16 @@ export function buildUrlWithParams(baseUrl: string, params: KeyValuePair[], hash
   return `${baseUrl}?${queryStr}${hash}`;
 }
 
-/**
- * Merges a raw URL (which may already have query parameters) and KeyValuePair params.
- * If a parameter exists in both the URL and the Params section, the active value
- * from the Params section replaces/updates the URL parameter rather than duplicating it.
- */
 export function mergeUrlAndParams(rawUrl: string, params: KeyValuePair[]): string {
   const { baseUrl, queryString, hash } = splitUrl(rawUrl);
   const urlPairs = parseQueryString(queryString);
   const enabledParams = params.filter((p) => p.enabled && p.key.trim() !== '');
 
-  // Start with URL query parameters in order
   const paramMap = new Map<string, string>();
   for (const pair of urlPairs) {
     paramMap.set(pair.key, pair.value);
   }
 
-  // Override/update with enabled Params section items
   for (const p of enabledParams) {
     paramMap.set(p.key.trim(), p.value);
   }
@@ -134,10 +115,6 @@ export function mergeUrlAndParams(rawUrl: string, params: KeyValuePair[]): strin
   return `${baseUrl}?${queryStr}${hash}`;
 }
 
-/**
- * Merges a raw URL and a Record<string, string> map of parameters.
- * Returns the base URL and a deduplicated parameter dictionary.
- */
 export function mergeUrlAndParamsMap(
   rawUrl: string,
   paramsMap: Record<string, string>
@@ -147,12 +124,10 @@ export function mergeUrlAndParamsMap(
 
   const merged: Record<string, string> = {};
 
-  // 1. URL query parameters
   for (const pair of urlPairs) {
     merged[pair.key] = pair.value;
   }
 
-  // 2. Params section map overrides/updates URL query parameters
   for (const [k, v] of Object.entries(paramsMap)) {
     const cleanKey = k.trim();
     if (cleanKey) {
@@ -166,10 +141,6 @@ export function mergeUrlAndParamsMap(
   };
 }
 
-/**
- * Synchronizes KeyValuePair[] state when user modifies the URL bar.
- * Preserves existing item IDs and descriptions where keys match.
- */
 export function syncParamsFromUrl(newUrl: string, prevParams: KeyValuePair[]): KeyValuePair[] {
   const { queryString } = splitUrl(newUrl);
   const parsedPairs = parseQueryString(queryString);

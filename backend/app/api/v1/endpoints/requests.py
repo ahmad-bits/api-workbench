@@ -17,7 +17,6 @@ router = APIRouter()
     description="Asynchronously executes a single HTTP request from the backend to bypass browser CORS restrictions and captures diagnostics.",
 )
 async def dispatch_request(payload: HttpRequestPayload) -> HttpResponsePayload:
-    """Dispatch a single HTTP request and return response payload with diagnostics."""
     return await http_dispatcher.dispatch(payload)
 
 
@@ -29,5 +28,4 @@ async def dispatch_request(payload: HttpRequestPayload) -> HttpResponsePayload:
     description="Executes the configured HTTP request multiple times (1-100) and returns aggregated performance metrics and status code distribution.",
 )
 async def benchmark_requests(payload: HttpRequestPayload) -> BatchHttpResponsePayload:
-    """Execute configured HTTP request multiple times and return aggregate statistics."""
     return await http_dispatcher.dispatch_batch(payload)

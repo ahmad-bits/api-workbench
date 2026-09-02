@@ -5,16 +5,10 @@ from app.db.base import Base
 
 
 def utc_now() -> datetime:
-    """Return timezone-naive UTC datetime for SQLite compatibility."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
-
 class PendingRegistration(Base):
-    """
-    Stores temporary registration requests awaiting email OTP verification.
-    The actual User is ONLY created in the 'users' table upon successful verification.
-    """
     __tablename__ = "pending_registrations"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)

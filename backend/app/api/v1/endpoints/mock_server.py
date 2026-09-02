@@ -27,12 +27,6 @@ async def handle_mock_request(
     subpath: str = "",
     db: Session = Depends(get_db),
 ):
-    """
-    Publicly accessible mock execution engine.
-    Dynamically receives requests to /mock/{username}/{subpath}, looks up the mock
-    in SQLite, enforces any configured authentication (API Key or Bearer Token)
-    and custom response delay, and returns the configured response.
-    """
     method = request.method.upper()
     mock, error_msg = mock_service.match_and_serve_public(
         db=db, username=username, incoming_method=method, subpath=subpath
@@ -63,7 +57,6 @@ async def handle_mock_request(
             headers={"Allow": mock.method},
         )
 
-    # 1. Enforce Authentication
     auth_type = (mock.auth_type or "none").lower()
     if auth_type == "api_key":
         header_name = mock.auth_header_name or "X-API-Key"
@@ -104,11 +97,9 @@ async def handle_mock_request(
                 },
             )
 
-    # 2. Enforce Custom Response Delay
     if mock.delay_ms and mock.delay_ms > 0:
         await asyncio.sleep(mock.delay_ms / 1000.0)
 
-    # 3. Build Response Headers & Body
     resp_headers = {}
     try:
         if mock.response_headers:
@@ -121,7 +112,6 @@ async def handle_mock_request(
         "application/json" if mock.response_type == "json" else "text/plain",
     )
 
-    # HEAD request returns status and headers without payload
     if method == "HEAD":
         return Response(
             content=b"",
@@ -130,7 +120,6 @@ async def handle_mock_request(
             media_type=media_type,
         )
 
-    # JSON response rendering
     if mock.response_type == "json":
         try:
             parsed_json = json.loads(mock.response_body)
@@ -147,7 +136,6 @@ async def handle_mock_request(
                 media_type="application/json",
             )
 
-    # Plain text / other content
     return Response(
         content=mock.response_body.encode("utf-8"),
         status_code=mock.status_code,

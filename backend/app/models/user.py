@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 
 def utc_now() -> datetime:
-    """Return timezone-naive or UTC datetime for SQLAlchemy DateTime column."""
     return datetime.now(timezone.utc)
 
 
@@ -28,7 +27,6 @@ class User(Base):
         DateTime, default=utc_now, onupdate=utc_now, nullable=False
     )
 
-    # Relationships
     mocks: Mapped[List["MockEndpoint"]] = relationship(
         "MockEndpoint", back_populates="user", cascade="all, delete-orphan"
     )

@@ -12,7 +12,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <section className="wb-hero-section" id="hero">
       <div className="wb-hero-container">
-        {/* Top Header & Copy */}
         <div className="wb-hero-header-box">
           <h1 className="wb-hero-title">
             Your workspace for
@@ -25,7 +24,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             precision and speed.
           </p>
 
-          {/* CTA Buttons */}
           <div className="wb-hero-cta-row">
             <button
               type="button"
@@ -48,10 +46,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        {/* macOS Window Mockup */}
         <div className="wb-hero-mockup-wrapper">
           <div className="wb-window-card">
-            {/* Window Title Bar */}
             <div className="wb-window-titlebar">
               <div className="wb-traffic-dots">
                 <span className="wb-traffic-dot wb-dot-red" />
@@ -62,9 +58,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="wb-traffic-dots-spacer" />
             </div>
 
-            {/* Window Content: 2-Column Split */}
             <div className="wb-hero-preview-body">
-              {/* Left Column: Request Configuration */}
               <div className="wb-hero-request-pane">
                 <div className="wb-hero-url-row">
                   <span className="wb-badge-method-get">GET</span>
@@ -75,7 +69,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     readOnly
                     tabIndex={-1}
                   />
-                  {/* Send button is for demonstration only - disabled / non-clickable */}
                   <button
                     type="button"
                     className="wb-hero-send-btn wb-btn-demo-only"
@@ -87,7 +80,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   </button>
                 </div>
 
-                {/* Sub-tabs (Static Display) */}
                 <div className="wb-hero-tabs-row">
                   <span className="wb-hero-tab active">
                     Params
@@ -100,7 +92,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   </span>
                 </div>
 
-                {/* Tab content row (Static Display) */}
                 <div className="wb-hero-params-table">
                   <div className="wb-hero-param-row">
                     <div className="wb-checkbox-mock checked">
@@ -114,7 +105,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 </div>
               </div>
 
-              {/* Right Column: Response Details */}
               <div className="wb-hero-response-pane">
                 <div className="wb-hero-resp-header">
                   <div className="wb-hero-status-tag">
@@ -127,7 +117,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>
                 </div>
 
-                {/* Formatted JSON */}
                 <div className="wb-hero-json-container">
                   <div className="wb-hero-json-line">
                     <span className="wb-code-punc">&#123;</span>

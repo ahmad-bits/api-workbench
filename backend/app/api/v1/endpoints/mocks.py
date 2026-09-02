@@ -25,7 +25,6 @@ def list_mock_endpoints(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> List[MockEndpointResponse]:
-    """Retrieve all mock endpoints owned by the current user."""
     return mock_service.list_user_mocks(db=db, user=current_user)
 
 
@@ -41,7 +40,6 @@ def create_mock_endpoint(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> MockEndpointResponse:
-    """Create a new mock endpoint for the current user."""
     return mock_service.create_user_mock(db=db, user=current_user, data=payload)
 
 
@@ -57,7 +55,6 @@ def get_mock_endpoint(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> MockEndpointResponse:
-    """Get mock endpoint details by ID."""
     mock = mock_service.get_user_mock(db=db, user=current_user, mock_id=mock_id)
     if not mock:
         raise HTTPException(
@@ -80,7 +77,6 @@ def update_mock_endpoint(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> MockEndpointResponse:
-    """Update mock endpoint owned by user."""
     updated = mock_service.update_user_mock(
         db=db, user=current_user, mock_id=mock_id, data=payload
     )
@@ -103,7 +99,6 @@ def delete_mock_endpoint(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    """Delete a mock endpoint owned by user."""
     deleted = mock_service.delete_user_mock(db=db, user=current_user, mock_id=mock_id)
     if not deleted:
         raise HTTPException(

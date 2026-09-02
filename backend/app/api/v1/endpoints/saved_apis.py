@@ -26,7 +26,6 @@ def list_saved_apis(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> List[SavedApiResponse]:
-    """Retrieve all saved APIs owned by current user."""
     return saved_api_service.list_user_saved_apis(db=db, user=current_user)
 
 
@@ -42,7 +41,6 @@ def create_saved_api(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SavedApiResponse:
-    """Save a new API configuration for current user."""
     return saved_api_service.create_saved_api(
         db=db, user=current_user, api_in=payload
     )
@@ -60,7 +58,6 @@ def get_saved_api(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SavedApiResponse:
-    """Get single saved API metadata by ID."""
     return saved_api_service.get_saved_api(
         db=db, user=current_user, api_id=api_id
     )
@@ -78,7 +75,6 @@ def open_saved_api_for_workbench(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SavedApiOpenResponse:
-    """Retrieve saved API with decrypted key for workbench testing."""
     return saved_api_service.get_saved_api_for_open(
         db=db, user=current_user, api_id=api_id
     )
@@ -97,7 +93,6 @@ def update_saved_api(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SavedApiResponse:
-    """Update saved API owned by current user."""
     return saved_api_service.update_saved_api(
         db=db, user=current_user, api_id=api_id, api_in=payload
     )
@@ -114,7 +109,6 @@ def delete_saved_apis_by_workspace(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Delete all saved APIs in a workspace category owned by current user."""
     deleted_count = saved_api_service.delete_saved_apis_by_workspace(
         db=db, user=current_user, workspace_name=workspace_name
     )
@@ -137,7 +131,6 @@ def delete_saved_api(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Delete a saved API owned by current user."""
     saved_api_service.delete_saved_api(
         db=db, user=current_user, api_id=api_id
     )

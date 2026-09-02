@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import type {
@@ -27,7 +26,6 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
   clearError: () => void;
 }
-
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -59,7 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
   }, []);
 
-  // Fetch current user details on initial mount if token exists
   const refreshUser = useCallback(async () => {
     const existingToken = api.getAuthToken();
     if (!existingToken) {
@@ -165,7 +162,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-
   return (
     <AuthContext.Provider
       value={{
@@ -189,7 +185,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-
 };
 
 export function useAuth(): AuthContextType {

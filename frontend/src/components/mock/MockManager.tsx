@@ -109,7 +109,6 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
 
   return (
     <div className="wb-mock-engine-root">
-      {/* Header */}
       <header className="wb-mock-topbar">
         <div className="wb-mock-left-wrap">
           <NavToggle />
@@ -136,13 +135,10 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
         </div>
       </header>
 
-      {/* Workspace */}
       <div className="wb-mock-workspace-scrollable">
         <div className={`wb-mock-workspace-grid ${isSingleColumn ? 'full-width' : ''}`}>
-          {/* Endpoint List */}
           {showList && (
             <div className="wb-mock-list-column">
-              {/* Search */}
               <div className="wb-mock-search-bar">
                 <span className="wb-mock-search-icon">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -159,7 +155,6 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
                 />
               </div>
 
-              {/* List Content */}
               {isLoading ? (
                 <div className="wb-mock-loading-state">Loading endpoints...</div>
               ) : error ? (
@@ -205,7 +200,6 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
             </div>
           )}
 
-          {/* Editor */}
           {isEditorOpen && (
             <MockEditorPane
               isOpen={isEditorOpen}

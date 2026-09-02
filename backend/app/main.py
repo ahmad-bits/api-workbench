@@ -9,14 +9,11 @@ from app.db.init_db import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan event handler for application startup and shutdown."""
-    # Automatically initialize SQLite database directory and tables on startup
     init_db()
     yield
 
 
 def create_application() -> FastAPI:
-    """FastAPI application factory."""
     application = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
@@ -27,8 +24,6 @@ def create_application() -> FastAPI:
         lifespan=lifespan,
     )
 
-
-    # Set up CORS middleware with flexible dev origins & regex
     cors_origins = settings.BACKEND_CORS_ORIGINS if settings.BACKEND_CORS_ORIGINS else ["http://localhost:5173", "http://127.0.0.1:5173"]
     application.add_middleware(
         CORSMiddleware,
@@ -39,12 +34,8 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Include API router
     application.include_router(api_router, prefix=settings.API_V1_STR)
-
-    # Include Mock Server execution router
     application.include_router(mock_execution_router, prefix="/mock", tags=["Mock Execution Server"])
-
 
     @application.get("/", tags=["Root"])
     async def root():

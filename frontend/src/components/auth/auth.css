@@ -1,9 +1,3 @@
-/* ==========================================================================
-   API Workbench - Figma-Accurate Split Auth Page Styles
-   Theme: Crisp Light Modern Palette, 2-Column Split Modal Card
-   Typography: Plus Jakarta Sans / Inter / JetBrains Mono
-   ========================================================================== */
-
 .wb-auth-page-root {
   --wb-auth-blue: #1860ec;
   --wb-auth-blue-hover: #124ec6;
@@ -34,7 +28,6 @@
   box-sizing: border-box;
 }
 
-/* Floating Back Button */
 .wb-auth-back-btn {
   position: fixed;
   top: 1.5rem;
@@ -64,7 +57,6 @@
   box-shadow: 0 4px 12px rgba(24, 96, 236, 0.12);
 }
 
-/* Main 2-Column Split Modal Card */
 .wb-auth-card-split {
   width: 100%;
   max-width: 980px;
@@ -90,10 +82,6 @@
   }
 }
 
-/* ==========================================================================
-   Left Column: Branding & Feature Graphic
-   ========================================================================== */
-
 .wb-auth-left-col {
   background: linear-gradient(145deg, #f8fbff 0%, #edf4fe 100%);
   border-right: 1px solid var(--wb-auth-border);
@@ -105,7 +93,6 @@
   overflow: hidden;
 }
 
-/* Concentric Background Circles */
 .wb-auth-circle-bg {
   position: absolute;
   top: 45%;
@@ -142,7 +129,6 @@
   border-color: rgba(24, 96, 236, 0.05);
 }
 
-/* Top Left Brand Link */
 .wb-auth-brand-box {
   display: flex;
   align-items: center;
@@ -168,7 +154,6 @@
   letter-spacing: -0.02em;
 }
 
-/* Middle Tilted Code Mockup Card */
 .wb-auth-middle-graphic {
   position: relative;
   z-index: 2;
@@ -213,7 +198,6 @@
   color: #0f172a;
 }
 
-/* Bottom Left Headline & Subtitle */
 .wb-auth-bottom-content {
   position: relative;
   z-index: 2;
@@ -235,10 +219,6 @@
   margin: 0;
   max-width: 360px;
 }
-
-/* ==========================================================================
-   Right Column: Auth Form
-   ========================================================================== */
 
 .wb-auth-right-col {
   background: #ffffff;
@@ -266,7 +246,6 @@
   margin: 0;
 }
 
-/* Form Styles */
 .wb-auth-form {
   display: flex;
   flex-direction: column;
@@ -354,7 +333,6 @@
   color: var(--wb-auth-text-dark);
 }
 
-/* Submit Action Button */
 .wb-auth-submit-btn {
   margin-top: 0.5rem;
   background-color: var(--wb-auth-blue);
@@ -385,7 +363,6 @@
   cursor: not-allowed;
 }
 
-/* Bottom Switch Row */
 .wb-auth-switch-text {
   text-align: center;
   font-size: 0.875rem;
@@ -408,7 +385,6 @@
   text-decoration: underline;
 }
 
-/* Quick Presets / Helpers */
 .wb-auth-presets-box {
   margin-top: 1.25rem;
   padding-top: 1.15rem;
@@ -451,7 +427,6 @@
   color: var(--wb-auth-blue);
 }
 
-/* Alerts */
 .wb-auth-alert {
   display: flex;
   align-items: flex-start;
@@ -475,7 +450,6 @@
   color: #15803d;
 }
 
-/* OTP Verification UI */
 .wb-otp-box {
   display: flex;
   flex-direction: column;
@@ -541,10 +515,6 @@
 .wb-otp-link:hover {
   text-decoration: underline;
 }
-
-/* ==========================================================================
-   Responsive Breakpoints
-   ========================================================================== */
 
 @media (max-width: 860px) {
   .wb-auth-card-split {

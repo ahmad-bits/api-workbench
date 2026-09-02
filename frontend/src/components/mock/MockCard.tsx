@@ -79,9 +79,7 @@ export const MockCard: React.FC<MockCardProps> = ({
       className={`wb-mock-card-item ${isSelected ? 'selected' : ''}`}
       onClick={() => onSelect(mock)}
     >
-      {/* Main Content */}
       <div className="wb-mock-card-main">
-        {/* Route: Method + Path + Status + Meta Badges */}
         <div className="wb-mock-route-row">
           <span className={`wb-mock-method-badge ${mock.method.toLowerCase()}`}>
             {mock.method}
@@ -107,13 +105,11 @@ export const MockCard: React.FC<MockCardProps> = ({
           )}
         </div>
 
-        {/* URL */}
         <div className="wb-mock-url-display" title={fullUrl}>
           {fullUrl}
         </div>
       </div>
 
-      {/* Actions */}
       <div className="wb-mock-card-actions">
         <button type="button" className="wb-mock-action-btn action-edit" onClick={handleEdit} title="Edit endpoint">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">

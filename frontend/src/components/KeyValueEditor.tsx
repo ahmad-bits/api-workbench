@@ -52,7 +52,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
 
   return (
     <div className="wb-kv-container">
-      {/* Top Toolbar */}
       <div className="wb-kv-toolbar">
         <div className="wb-kv-toolbar-left">
           <button type="button" className="wb-kv-btn-add" onClick={handleAddItem}>
@@ -72,7 +71,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
         </div>
       </div>
 
-      {/* Grid Table */}
       <div className="wb-kv-table-wrap">
         <table className="wb-kv-grid">
           <thead>
@@ -105,7 +103,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
             ) : (
               items.map((item, index) => (
                 <tr key={item.id} className={!item.enabled ? 'row-disabled' : ''}>
-                  {/* Enabled Checkbox */}
                   <td className="td-check">
                     <label className="wb-checkbox-label">
                       <input
@@ -118,7 +115,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
                     </label>
                   </td>
 
-                  {/* Key / Name Input */}
                   <td className="td-key">
                     <input
                       type="text"
@@ -131,7 +127,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
                     />
                   </td>
 
-                  {/* Value Input */}
                   <td className="td-val">
                     <input
                       type="text"
@@ -143,7 +138,6 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
                     />
                   </td>
 
-                  {/* Delete Button */}
                   <td className="td-del">
                     <button
                       type="button"

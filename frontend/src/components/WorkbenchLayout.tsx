@@ -12,14 +12,10 @@ export function WorkbenchLayout() {
   const { setNavigateToTester, isSidebarCollapsed, toggleSidebar, setSidebarCollapsed } = wb;
   const toast = useToast();
 
-  // Register the navigate-to-tester callback so context actions can navigate
   useEffect(() => {
     setNavigateToTester(() => navigate('/api-tester'));
   }, [navigate, setNavigateToTester]);
 
-  // Mobile swipe gestures:
-  // - Swipe from left edge (within 45px) to right -> Open sidebar
-  // - Swipe back toward left from drawer -> Close sidebar
   useEffect(() => {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -36,13 +32,11 @@ export function WorkbenchLayout() {
       isSwiping = false;
       isHorizontalGesture = null;
 
-      // When collapsed: user must start touch near the left edge
       if (isSidebarCollapsed) {
         if (touchStartX <= 45) {
           isSwiping = true;
         }
       } else {
-        // When expanded: user can swipe anywhere within drawer or backdrop area
         if (touchStartX <= 300) {
           isSwiping = true;
         }
@@ -56,7 +50,6 @@ export function WorkbenchLayout() {
       const deltaY = touch.clientY - touchStartY;
 
       if (isHorizontalGesture === null) {
-        // Detect whether user intended horizontal swipe or vertical scroll
         if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
           if (Math.abs(deltaX) > Math.abs(deltaY)) {
             isHorizontalGesture = true;
@@ -68,7 +61,6 @@ export function WorkbenchLayout() {
       }
 
       if (isHorizontalGesture) {
-        // Prevent vertical scrolling wobble during horizontal drawer swipe
         if (e.cancelable) {
           e.preventDefault();
         }
@@ -85,12 +77,9 @@ export function WorkbenchLayout() {
       const touch = e.changedTouches[0];
       const deltaX = touch.clientX - touchStartX;
 
-      // Swipe right from edge to open
       if (isSidebarCollapsed && deltaX > 45) {
         setSidebarCollapsed(false);
-      }
-      // Swipe left from drawer to close
-      else if (!isSidebarCollapsed && deltaX < -35) {
+      } else if (!isSidebarCollapsed && deltaX < -35) {
         setSidebarCollapsed(true);
       }
 
@@ -111,7 +100,6 @@ export function WorkbenchLayout() {
     };
   }, [isSidebarCollapsed, setSidebarCollapsed]);
 
-  // Global keyboard shortcut: Ctrl+B / Cmd+B to toggle navigation sidebar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
@@ -147,7 +135,6 @@ export function WorkbenchLayout() {
 
   return (
     <div className={`wb-app-shell ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}>
-      {/* Mobile Backdrop Overlay */}
       {!isSidebarCollapsed && (
         <div
           className="wb-sidebar-mobile-backdrop"
@@ -156,19 +143,16 @@ export function WorkbenchLayout() {
         />
       )}
 
-      {/* 1. Left Professional Developer Sidebar */}
       <aside
         className={`wb-app-sidebar ${isSidebarCollapsed ? 'collapsed' : 'expanded'}`}
         aria-label="Sidebar Navigation"
         aria-hidden={isSidebarCollapsed}
       >
         <div className="wb-sidebar-top-section">
-          {/* Top Header with Absolute Top-Left Hamburger Toggle */}
           <div className="wb-sidebar-header">
             <NavToggle />
           </div>
 
-          {/* Sidebar Nav Items */}
           <nav className="wb-sidebar-nav">
             <NavLink
               to="/api-tester"
@@ -224,12 +208,10 @@ export function WorkbenchLayout() {
         </div>
       </aside>
 
-      {/* 2. Main Content Workspace */}
       <main className="wb-app-main">
         <Outlet />
       </main>
 
-      {/* Save API Modal */}
       <SaveApiModal
         isOpen={wb.saveApiModalOpen}
         onClose={() => wb.setSaveApiModalOpen(false)}

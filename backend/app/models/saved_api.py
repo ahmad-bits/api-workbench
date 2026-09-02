@@ -10,12 +10,10 @@ if TYPE_CHECKING:
 
 
 def utc_now() -> datetime:
-    """Return timezone-aware or naive UTC datetime for SQLAlchemy DateTime column."""
     return datetime.now(timezone.utc)
 
 
 def generate_uuid() -> str:
-    """Generate unique UUID4 string for primary key."""
     return str(uuid.uuid4())
 
 
@@ -37,7 +35,6 @@ class SavedApi(Base):
         DateTime, default=utc_now, onupdate=utc_now, nullable=False
     )
 
-    # Relationships
     user: Mapped["User"] = relationship("User", back_populates="saved_apis")
 
     def __repr__(self) -> str:

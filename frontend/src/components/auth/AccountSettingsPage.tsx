@@ -42,7 +42,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="wb-settings-form">
       <div className="wb-settings-form-fields">
-        {/* Full Name */}
         <div className="wb-field-group">
           <label htmlFor="settings-fullname" className="wb-field-label">
             Full Name
@@ -58,7 +57,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           />
         </div>
 
-        {/* Username */}
         <div className="wb-field-group">
           <label htmlFor="settings-username" className="wb-field-label">
             Username
@@ -78,7 +76,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           <span className="wb-field-hint">Your unique username identifier across API Workbench.</span>
         </div>
 
-        {/* Email Address */}
         <div className="wb-field-group">
           <div className="wb-field-label-row">
             <label htmlFor="settings-email" className="wb-field-label">
@@ -130,12 +127,10 @@ export const AccountSettingsPage: React.FC = () => {
   const confirm = useConfirm();
   const toast = useToast();
 
-  // Password fields
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Loading states
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -268,7 +263,6 @@ export const AccountSettingsPage: React.FC = () => {
 
   return (
     <div className="wb-account-workspace">
-      {/* Top Header Bar */}
       <header className="wb-account-header">
         <div className="wb-account-left-wrap">
           <NavToggle />
@@ -297,11 +291,8 @@ export const AccountSettingsPage: React.FC = () => {
         </button>
       </header>
 
-      {/* Main Settings Container */}
       <div className="wb-account-body">
         <div className="wb-account-sections">
-
-          {/* Section: Profile */}
           <section className="wb-account-section">
             <div className="wb-section-aside">
               <h3 className="wb-section-title">Profile Information</h3>
@@ -322,7 +313,6 @@ export const AccountSettingsPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Section: Password Security */}
           <section className="wb-account-section">
             <div className="wb-section-aside">
               <h3 className="wb-section-title">Password & Security</h3>
@@ -401,7 +391,6 @@ export const AccountSettingsPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Section: Delete Account */}
           <section className="wb-account-section wb-account-section-danger">
             <div className="wb-section-aside">
               <h3 className="wb-section-title">Delete Account</h3>
@@ -436,10 +425,8 @@ export const AccountSettingsPage: React.FC = () => {
               </div>
             </div>
           </section>
-
         </div>
 
-        {/* Footer */}
         <footer className="wb-account-footer">
           <div className="wb-account-footer-meta">
             <span>API Workbench</span>

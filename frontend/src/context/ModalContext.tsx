@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { ConfirmationModal } from '../components/common/ConfirmationModal';
 import type { ConfirmOptions } from '../types/modal';

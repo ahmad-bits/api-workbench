@@ -43,10 +43,8 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
-  // Active view mode when at root: 'workspaces' | 'all'
   const [viewMode, setViewMode] = useState<'workspaces' | 'all'>('workspaces');
 
-  // User workspaces loaded from localStorage (default: empty array)
   const [workspaces, setWorkspaces] = useState<WorkspaceCategory[]>(() => {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_WS_KEY);
@@ -57,19 +55,17 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
         }
       }
     } catch {
-      // ignore
+      return [];
     }
     return [];
   });
 
-  // Modals state
   const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState<boolean>(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [editingApi, setEditingApi] = useState<SavedApi | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedUrlId, setCopiedUrlId] = useState<string | null>(null);
 
-  // Fetch APIs with active guard
   useEffect(() => {
     let isSubscribed = true;
     api.getSavedApis()
@@ -79,7 +75,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
           if (onCountChange) onCountChange(data.length);
           setIsLoading(false);
 
-          // Auto-register any unique categories from saved APIs into workspaces list
           setWorkspaces((prevWs) => {
             const existingNames = new Set(prevWs.map((w) => w.name.toLowerCase()));
             const newDiscovered: WorkspaceCategory[] = [];
@@ -102,7 +97,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
               try {
                 localStorage.setItem(LOCAL_STORAGE_WS_KEY, JSON.stringify(combined));
               } catch {
-                // ignore
+                return combined;
               }
               return combined;
             }
@@ -123,16 +118,13 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     };
   }, [onCountChange]);
 
-  // Derive active workspace dynamically from the current React Router URL route slug
   const activeWorkspace = useMemo<WorkspaceCategory | null>(() => {
     if (!slug) return null;
     const cleanSlug = slug.toLowerCase().trim();
 
-    // 1. Check known workspaces
     const matchedWs = workspaces.find((w) => slugify(w.name) === cleanSlug);
     if (matchedWs) return matchedWs;
 
-    // 2. Check saved API categories
     const matchedApi = apis.find((a) => slugify(a.category || '') === cleanSlug);
     if (matchedApi && matchedApi.category) {
       return {
@@ -143,7 +135,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
       };
     }
 
-    // 3. Fallback from slug
     const humanized = cleanSlug
       .split('-')
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -162,7 +153,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     try {
       localStorage.setItem(LOCAL_STORAGE_WS_KEY, JSON.stringify(newList));
     } catch {
-      // ignore
+      return;
     }
   };
 
@@ -188,21 +179,17 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     if (!confirmed) return;
 
     try {
-      // 1. Delete all APIs associated with this workspace on the backend
       await api.deleteSavedApisByWorkspace(ws.name);
 
-      // 2. Remove all those APIs from local state
       const remainingApis = apis.filter(
         (a) => (a.category || 'General').toLowerCase() !== ws.name.toLowerCase()
       );
       setApis(remainingApis);
       if (onCountChange) onCountChange(remainingApis.length);
 
-      // 3. Remove workspace from workspace list
       const remaining = workspaces.filter((w) => w.id !== ws.id && slugify(w.name) !== slugify(ws.name));
       saveWorkspaces(remaining);
 
-      // 4. Navigate back if currently viewing the deleted workspace
       if (activeWorkspace && slugify(activeWorkspace.name) === slugify(ws.name)) {
         navigate(basePrefix);
       }
@@ -294,7 +281,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
 
   return (
     <div className="wb-saved-engine-root">
-      {/* Top Header Bar */}
       <header className="wb-saved-topbar">
         <div className="wb-saved-left-wrap">
           <NavToggle />
@@ -321,7 +307,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
         </div>
 
         <div className="wb-saved-topbar-actions">
-          {/* Search Box */}
           <div className="wb-saved-search-wrap">
             <span className="wb-saved-search-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -338,7 +323,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
             />
           </div>
 
-          {/* Action Buttons */}
           {!activeWorkspace && (
             <button
               type="button"
@@ -367,7 +351,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
         </div>
       </header>
 
-      {/* Main Content Viewport */}
       <div className="wb-saved-content-viewport">
         {error && (
           <div
@@ -391,11 +374,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
             <span>Loading workspaces & APIs...</span>
           </div>
         ) : !activeWorkspace && viewMode === 'workspaces' ? (
-          /* ==========================================================================
-             Workspace Dashboard Grid (at /my-apis or /apis)
-             ========================================================================== */
           <div className="wb-workspaces-dashboard">
-            {/* View Switcher Bar */}
             <div className="wb-workspaces-view-header">
               <div className="wb-view-tabs">
                 <button
@@ -415,7 +394,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
               </div>
             </div>
 
-            {/* If No Workspaces Created Yet */}
             {workspaces.length === 0 ? (
               <div className="wb-saved-empty-card">
                 <div className="wb-saved-empty-icon">
@@ -436,7 +414,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                 </button>
               </div>
             ) : (
-              /* Grid of Workspace Cards */
               <div className="wb-workspaces-grid">
                 {workspaces
                   .filter((ws) => {
@@ -457,14 +434,12 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                         style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}
                       >
                         <div className="wb-workspace-card-top">
-                          {/* Clean Blue Icon Squircle */}
                           <div className="wb-workspace-icon-squircle">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                             </svg>
                           </div>
 
-                          {/* Delete Workspace Button */}
                           <button
                             type="button"
                             className="wb-btn-action-icon danger"
@@ -478,11 +453,9 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                           </button>
                         </div>
 
-                        {/* Title & Description */}
                         <h3 className="wb-workspace-card-title">{ws.name}</h3>
                         <p className="wb-workspace-card-desc">{ws.description}</p>
 
-                        {/* Footer: Endpoints Count & Updated */}
                         <div className="wb-workspace-card-footer">
                           <span className="wb-workspace-card-count">{count} {count === 1 ? 'Endpoint' : 'Endpoints'}</span>
                           <span className="wb-workspace-card-updated">{updatedText}</span>
@@ -494,9 +467,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
             )}
           </div>
         ) : (
-          /* ==========================================================================
-             Workspace Detail / Endpoints List View
-             ========================================================================== */
           <div className="wb-saved-cards-container">
             {activeWorkspace && (
               <div className="wb-workspace-detail-banner">
@@ -541,7 +511,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
               </div>
             )}
 
-            {/* View switcher when in "All Endpoints" view */}
             {!activeWorkspace && viewMode === 'all' && (
               <div className="wb-workspaces-view-header" style={{ marginBottom: '1.25rem' }}>
                 <div className="wb-view-tabs">
@@ -566,10 +535,10 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
             {(() => {
               const currentList = activeWorkspace
                 ? getWorkspaceApis(activeWorkspace.name).filter((item) => {
-                    if (!searchQuery.trim()) return true;
-                    const q = searchQuery.toLowerCase().trim();
-                    return item.name.toLowerCase().includes(q) || item.url.toLowerCase().includes(q);
-                  })
+                  if (!searchQuery.trim()) return true;
+                  const q = searchQuery.toLowerCase().trim();
+                  return item.name.toLowerCase().includes(q) || item.url.toLowerCase().includes(q);
+                })
                 : filteredApis;
 
               if (currentList.length === 0) {
@@ -622,7 +591,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                     onClick={() => onOpenInTester(item.id)}
                     style={{ cursor: 'pointer' }}
                   >
-                    {/* Left Section: Title + Category + Method & URL */}
                     <div className="wb-saved-card-left">
                       <div className="wb-saved-icon-squircle">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -648,7 +616,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                       </div>
                     </div>
 
-                    {/* Right Section: Last Updated + Redesigned Actions */}
                     <div className="wb-saved-card-right">
                       <div className="wb-saved-meta-col">
                         <span className="wb-saved-meta-lbl">Updated</span>
@@ -658,7 +625,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                       </div>
 
                       <div className="wb-saved-card-actions">
-                        {/* Primary Test Button */}
                         <button
                           type="button"
                           className="wb-btn-action-test"
@@ -674,7 +640,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                           <span>Test API</span>
                         </button>
 
-                        {/* Copy URL Icon Button */}
                         <button
                           type="button"
                           className="wb-btn-action-icon"
@@ -691,7 +656,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                           )}
                         </button>
 
-                        {/* Edit API Icon Button */}
                         <button
                           type="button"
                           className="wb-btn-action-icon"
@@ -707,7 +671,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
                           </svg>
                         </button>
 
-                        {/* Delete API Icon Button */}
                         <button
                           type="button"
                           className="wb-btn-action-icon danger"
@@ -730,7 +693,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
         )}
       </div>
 
-      {/* Add Workspace Modal */}
       <NewWorkspaceModal
         isOpen={isNewWorkspaceModalOpen}
         onClose={() => setIsNewWorkspaceModalOpen(false)}
@@ -738,7 +700,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
         existingNames={workspaces.map((w) => w.name)}
       />
 
-      {/* Add API Modal */}
       <AddApiModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -747,7 +708,6 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
         defaultCategory={activeWorkspace ? activeWorkspace.name : undefined}
       />
 
-      {/* Edit API Modal */}
       <EditApiModal
         isOpen={Boolean(editingApi)}
         onClose={() => setEditingApi(null)}

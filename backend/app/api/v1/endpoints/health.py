@@ -16,7 +16,6 @@ class HealthCheckResponse(BaseModel):
 
 @router.get("/health", response_model=HealthCheckResponse, summary="Service Health Check")
 async def get_health() -> HealthCheckResponse:
-    """Return backend service status, version, and server timestamp."""
     return HealthCheckResponse(
         status="healthy",
         app=settings.PROJECT_NAME,

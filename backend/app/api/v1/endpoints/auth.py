@@ -14,10 +14,13 @@ from app.schemas.auth import (
     OtpVerifyRequest,
     OtpResendRequest,
     OtpResendResponse,
+    ForgotPasswordRequest,
+    VerifyPasswordResetOtpRequest,
+    VerifyPasswordResetOtpResponse,
+    ResetPasswordRequest,
 )
 from app.schemas.user import UserCreate, UserDeleteResponse, UserResponse
-from app.services import user_service, otp_service
-
+from app.services import user_service, otp_service, password_reset_service
 
 router = APIRouter()
 
@@ -32,7 +35,6 @@ def login(
     login_data: LoginRequest,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Validate credentials (email or username) and return JWT access token."""
     identifier = login_data.username_or_email or login_data.email or login_data.username or ""
     user = user_service.authenticate_user(
         db=db,
@@ -74,7 +76,6 @@ def request_registration_otp(
     user_in: UserCreate,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Validate credentials, reserve username/email, and send OTP verification code."""
     result = otp_service.initiate_registration(db=db, user_in=user_in)
     return OtpInitiateResponse(**result)
 
@@ -90,7 +91,6 @@ def verify_registration_otp(
     verify_data: OtpVerifyRequest,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Verify 6-digit OTP and create user account."""
     user = otp_service.verify_otp_and_create_user(
         db=db,
         email=verify_data.email,
@@ -125,7 +125,6 @@ def resend_registration_otp(
     resend_data: OtpResendRequest,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Resend a new 6-digit OTP code to the specified email."""
     result = otp_service.resend_registration_otp(db=db, email=resend_data.email)
     return OtpResendResponse(**result)
 
@@ -141,7 +140,6 @@ def register(
     user_in: UserCreate,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Create user directly and return JWT access token."""
     user = user_service.create_user(db=db, user_in=user_in)
 
     access_token = create_access_token(
@@ -161,14 +159,6 @@ def register(
     )
 
 
-from app.schemas.auth import (
-    ForgotPasswordRequest,
-    VerifyPasswordResetOtpRequest,
-    VerifyPasswordResetOtpResponse,
-    ResetPasswordRequest
-)
-from app.services import password_reset_service
-
 @router.post(
     "/forgot-password/request-otp",
     response_model=OtpInitiateResponse,
@@ -180,7 +170,6 @@ def request_password_reset_otp(
     req: ForgotPasswordRequest,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Send an OTP code for password reset."""
     result = password_reset_service.request_password_reset_otp(db=db, identifier=req.username_or_email)
     return OtpInitiateResponse(**result)
 
@@ -196,7 +185,6 @@ def verify_password_reset_otp(
     req: VerifyPasswordResetOtpRequest,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Verify OTP and return a reset token."""
     reset_token = password_reset_service.verify_password_reset_otp(db=db, email=req.email, otp=req.otp)
     return VerifyPasswordResetOtpResponse(
         message="OTP verified successfully. Please proceed to reset your password.",
@@ -214,7 +202,6 @@ def reset_password(
     req: ResetPasswordRequest,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Reset the user password."""
     password_reset_service.reset_password(
         db=db,
         email=req.email,
@@ -235,7 +222,6 @@ def resend_password_reset_otp(
     req: OtpResendRequest,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Resend a new OTP code for password reset."""
     result = password_reset_service.resend_password_reset_otp(db=db, email=req.email)
     return OtpResendResponse(**result)
 
@@ -249,7 +235,6 @@ def resend_password_reset_otp(
 def read_current_user_profile(
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
-    """Return the profile of the current authenticated user."""
     return current_user
 
 
@@ -264,7 +249,6 @@ def update_current_user_profile(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> Any:
-    """Update profile and/or change password for the current user."""
     return user_service.update_user_profile(
         db=db,
         user_id=current_user.id,
@@ -283,7 +267,6 @@ def delete_current_user_account(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> Any:
-    """Permanently delete the authenticated user."""
     user_id = current_user.id
     user_service.delete_user_permanently(db=db, user_id=user_id)
     return UserDeleteResponse(

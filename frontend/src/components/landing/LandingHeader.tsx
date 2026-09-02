@@ -6,7 +6,6 @@ interface LandingHeaderProps {
   onWorkbenchClick: () => void;
   onNavigateSection: (sectionId: string) => void;
   isAuthenticated: boolean;
-  userName?: string;
 }
 
 export const LandingHeader: React.FC<LandingHeaderProps> = ({
@@ -15,7 +14,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   onWorkbenchClick,
   onNavigateSection,
   isAuthenticated,
-  userName,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -27,7 +25,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header className="wb-header-wrapper">
       <div className="wb-header-container">
-        {/* Brand Logo (Static, Non-Interactive) */}
         <div className="wb-brand-link">
           <div className="wb-brand-logo-icon">
             <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
@@ -39,7 +36,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <span className="wb-brand-text">API Workbench</span>
         </div>
 
-        {/* Center Navigation Links */}
         <nav className="wb-header-nav" aria-label="Main Navigation">
           <ul className="wb-nav-links">
             <li className="wb-nav-item">
@@ -55,7 +51,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           </ul>
         </nav>
 
-        {/* Right Action Buttons */}
         <div className="wb-header-actions">
           {isAuthenticated ? (
             <button
@@ -96,7 +91,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             </>
           )}
 
-          {/* Mobile Toggle */}
           <button
             type="button"
             className="wb-mobile-toggle"
@@ -120,7 +114,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="wb-mobile-menu">
           <ul className="wb-mobile-nav-links">

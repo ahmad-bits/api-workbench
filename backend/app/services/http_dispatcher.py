@@ -17,44 +17,35 @@ from app.schemas.request import (
 
 
 class HttpDispatcherService:
-    """Service to asynchronously dispatch HTTP requests and capture diagnostics."""
-
     @staticmethod
     def _prepare_request_components(request_data: HttpRequestPayload):
         method = request_data.method.upper().strip()
         raw_url = request_data.url.strip()
 
-        # Default protocol if missing
         if not raw_url.startswith("http://") and not raw_url.startswith("https://"):
             raw_url = f"https://{raw_url}"
 
-        # Clean headers
         headers = {k: v for k, v in request_data.headers.items() if k.strip()}
 
-        # Parse and deduplicate query parameters
         parsed_url = urlsplit(raw_url)
         url_query_tuples = parse_qsl(parsed_url.query, keep_blank_values=True)
 
-        # Merge parameters:
-        # 1. Start with URL query parameters
         merged_params: Dict[str, str] = {}
         for k, v in url_query_tuples:
             clean_k = k.strip()
             if clean_k:
                 merged_params[clean_k] = v
 
-        # 2. Overwrite / add parameters from params section (active precedence)
         for k, v in request_data.params.items():
             clean_k = k.strip()
             if clean_k:
                 merged_params[clean_k] = v
 
-        # Clean URL without query string so httpx applies merged_params without duplicating
         clean_url = urlunsplit((
             parsed_url.scheme,
             parsed_url.netloc,
             parsed_url.path,
-            "",  # empty query string
+            "",
             parsed_url.fragment,
         ))
 
@@ -208,7 +199,6 @@ class HttpDispatcherService:
         count = max(1, min(100, request_data.request_count))
         method, url, headers, params, content, json_data = self._prepare_request_components(request_data)
 
-        # Concurrency limit to prevent local socket starvation while maintaining fast throughput
         semaphore = asyncio.Semaphore(20)
 
         async def run_one(client: httpx.AsyncClient) -> HttpResponsePayload:
@@ -234,7 +224,6 @@ class HttpDispatcherService:
             tasks = [run_one(client) for _ in range(count)]
             results: List[HttpResponsePayload] = await asyncio.gather(*tasks)
 
-        # Aggregate Statistics Calculation
         total_requests = len(results)
         successful_requests = sum(
             1 for r in results if 200 <= r.status_code < 400 and not r.error
@@ -247,11 +236,9 @@ class HttpDispatcherService:
         min_latency_ms = min(latencies) if latencies else 0.0
         max_latency_ms = max(latencies) if latencies else 0.0
 
-        # Status code counts
         status_counts = Counter(r.status_code for r in results)
         status_code_distribution = {code: count for code, count in status_counts.items()}
 
-        # Build detailed status code list with phrase & percentage
         status_codes_list: List[StatusCodeStat] = []
         for code, c in sorted(status_counts.items(), key=lambda x: x[0]):
             matching_resp = next((r for r in results if r.status_code == code), None)

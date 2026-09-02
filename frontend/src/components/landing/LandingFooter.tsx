@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './landing.css';
 
 interface LandingFooterProps {
-  onNavigateSection?: (sectionId: string) => void;
   hideDocsLink?: boolean;
 }
 
@@ -16,7 +15,6 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ hideDocsLink }) =>
   return (
     <footer className="wb-landing-footer">
       <div className="wb-footer-inner-container">
-        {/* Brand */}
         <div className="wb-footer-brand">
           <div className="wb-brand-logo-icon">
             <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
@@ -28,7 +26,6 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ hideDocsLink }) =>
           <span className="wb-footer-brand-title">API Workbench</span>
         </div>
 
-        {/* Links: Documentation (Hidden on Docs page) */}
         {!isDocsPage && (
           <div className="wb-footer-links">
             <button
@@ -41,7 +38,6 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ hideDocsLink }) =>
           </div>
         )}
 
-        {/* Copyright */}
         <span className="wb-footer-copyright">
           &copy; {new Date().getFullYear()} API Workbench. All rights reserved.
         </span>

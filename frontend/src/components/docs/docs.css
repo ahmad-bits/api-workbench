@@ -1,9 +1,3 @@
-/* ==========================================================================
-   API Workbench - Documentation Stylesheet
-   Clean, developer-focused documentation design system with sticky navigation
-   ========================================================================== */
-
-/* Fix parent overflow to ensure position: sticky works reliably */
 .wb-landing-root.wb-docs-root {
   overflow-x: clip !important;
   overflow-y: visible !important;
@@ -19,7 +13,6 @@
   line-height: 1.6;
 }
 
-/* Main Layout Grid */
 .wb-docs-layout {
   flex: 1;
   max-width: 1320px;
@@ -33,7 +26,6 @@
   transition: grid-template-columns 0.2s ease;
 }
 
-/* Collapsed Sidebar Mode */
 .wb-docs-layout.sidebar-collapsed {
   grid-template-columns: 1fr;
 }
@@ -41,10 +33,6 @@
 .wb-docs-layout.sidebar-collapsed .wb-docs-sidebar {
   display: none;
 }
-
-/* ==========================================================================
-   Left Sticky Sidebar (Pinned in place, never moves on scroll)
-   ========================================================================== */
 
 .wb-docs-sidebar {
   position: sticky;
@@ -60,7 +48,6 @@
   scrollbar-width: thin;
 }
 
-/* Sidebar Top Header with Nav Toggle */
 .wb-docs-sidebar-header {
   display: flex;
   align-items: center;
@@ -137,10 +124,6 @@
   font-weight: 600;
 }
 
-/* ==========================================================================
-   Navigation Toggle Button (Dashboard Style)
-   ========================================================================== */
-
 .wb-docs-nav-toggle-btn {
   display: inline-flex;
   align-items: center;
@@ -171,10 +154,6 @@
 .wb-docs-nav-toggle-btn:hover .wb-hamburger-svg {
   stroke: #1860ec;
 }
-
-/* ==========================================================================
-   Right Main Column & Breadcrumb Bar
-   ========================================================================== */
 
 .wb-docs-main-col {
   min-width: 0;
@@ -237,7 +216,6 @@
   font-weight: 600;
 }
 
-/* Mobile section switcher */
 .wb-docs-mobile-select-wrap {
   display: none;
 }
@@ -253,10 +231,6 @@
   font-family: inherit;
   cursor: pointer;
 }
-
-/* ==========================================================================
-   Content Area & Continuous Sections
-   ========================================================================== */
 
 .wb-docs-content-pane {
   background-color: #ffffff;
@@ -280,7 +254,6 @@
   border-bottom: none;
 }
 
-/* Typography & Markdown Rendering */
 .wb-docs-article h1 {
   font-size: 2rem;
   font-weight: 800;
@@ -334,7 +307,6 @@
   color: #0f172a;
 }
 
-/* Code & Code Blocks */
 .wb-docs-article code {
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
   font-size: 0.85em;
@@ -384,7 +356,6 @@
   font-size: inherit;
 }
 
-/* Callout Boxes */
 .wb-docs-note {
   background-color: #eff6ff;
   border-left: 4px solid #1860ec;
@@ -399,10 +370,6 @@
 .wb-docs-note strong {
   color: #1860ec;
 }
-
-/* ==========================================================================
-   Mobile Drawer Overlay
-   ========================================================================== */
 
 .wb-docs-drawer-backdrop {
   position: fixed;
@@ -470,10 +437,6 @@
   background-color: #f1f5f9;
   color: #0f172a;
 }
-
-/* ==========================================================================
-   Responsive Breakpoints
-   ========================================================================== */
 
 @media (max-width: 992px) {
   .wb-docs-layout {

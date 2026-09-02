@@ -1,10 +1,7 @@
 import React from 'react';
-import type { BodyType } from '../types/workbench';
 
 interface BodyEditorProps {
-  bodyType: BodyType;
   body: string;
-  onBodyTypeChange: (type: BodyType) => void;
   onBodyChange: (body: string) => void;
 }
 
