@@ -41,6 +41,7 @@
   font-family: var(--wb-font-main);
   overflow: hidden;
   box-sizing: border-box;
+  position: relative;
 }
 
 .wb-app-shell * {
@@ -61,12 +62,38 @@
   padding: 1.25rem 1rem;
   flex-shrink: 0;
   height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.28s ease,
+              opacity 0.2s ease,
+              transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width, transform;
+  z-index: 40;
+}
+
+/* Sidebar Collapsed State on Desktop */
+.wb-app-sidebar.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-right-color: transparent !important;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .wb-sidebar-top-section {
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
+  width: 206px;
+  min-width: 206px;
 }
 
 .wb-workspace-header {
@@ -257,10 +284,18 @@
   flex-shrink: 0;
 }
 
+.wb-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
 .wb-topbar-title-block {
   display: flex;
   align-items: baseline;
   gap: 0.85rem;
+  min-width: 0;
 }
 
 .wb-topbar-heading {
@@ -274,6 +309,61 @@
 .wb-topbar-tagline {
   font-size: 0.8rem;
   color: var(--wb-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Navigation Toggle Button (Hamburger Menu)
+   ========================================================================== */
+
+.wb-nav-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  background-color: var(--wb-bg-surface);
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  color: var(--wb-text-body);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease,
+              box-shadow 0.15s ease,
+              transform 0.12s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.wb-nav-toggle-btn:hover {
+  background-color: var(--wb-bg-subtle);
+  color: var(--wb-blue);
+  border-color: var(--wb-blue-border);
+  box-shadow: 0 2px 6px rgba(24, 96, 236, 0.12);
+  transform: translateY(-1px);
+}
+
+.wb-nav-toggle-btn:active {
+  background-color: #e2e8f0;
+  transform: translateY(0) scale(0.96);
+}
+
+.wb-nav-toggle-btn:focus-visible {
+  outline: 2px solid var(--wb-blue);
+  outline-offset: 2px;
+}
+
+.wb-hamburger-svg {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wb-nav-toggle-btn:hover .wb-hamburger-svg {
+  stroke: var(--wb-blue);
 }
 
 .wb-topbar-actions {
@@ -1735,8 +1825,13 @@
 }
 
 /* ==========================================================================
-   8. Responsive Adaptations
+   8. Responsive Adaptations & Mobile Navigation Drawer
    ========================================================================== */
+
+/* Mobile Backdrop Overlay */
+.wb-sidebar-mobile-backdrop {
+  display: none;
+}
 
 @media (max-width: 1024px) {
   .wb-tester-workspace {
@@ -1745,15 +1840,70 @@
 }
 
 @media (max-width: 768px) {
+  .wb-sidebar-mobile-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 95;
+    animation: wbBackdropFadeIn 0.2s ease-out;
+  }
+
+  @keyframes wbBackdropFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
   .wb-app-shell {
-    flex-direction: column;
-    height: auto;
-    overflow-y: auto;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
   }
 
   .wb-app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 260px !important;
+    max-width: 82vw;
+    z-index: 100;
+    background-color: #ffffff;
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.16);
+    transform: translateX(0);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .wb-app-sidebar.collapsed {
+    transform: translateX(-100%) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .wb-app-main {
     width: 100%;
-    height: auto;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .wb-app-topbar {
+    padding: 0 1rem;
+    height: 56px;
+  }
+
+  .wb-topbar-tagline {
+    display: none;
   }
 
   .wb-unified-request-bar {

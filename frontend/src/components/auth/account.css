@@ -7,10 +7,9 @@
 .wb-account-workspace {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   background-color: #f8fafc;
-  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -26,6 +25,13 @@
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   gap: 1.5rem;
+}
+
+.wb-account-left-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .wb-account-header-info {
@@ -127,9 +133,7 @@
    ========================================================================== */
 
 .wb-account-body {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
+  width: 100%;
   padding: 2.25rem 2.5rem 3.5rem 2.5rem;
   display: flex;
   flex-direction: column;

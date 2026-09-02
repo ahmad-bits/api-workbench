@@ -6,6 +6,7 @@ import type { SavedApi, WorkspaceCategory } from '../../types/savedApi';
 import { AddApiModal } from './AddApiModal';
 import { EditApiModal } from './EditApiModal';
 import { NewWorkspaceModal } from './NewWorkspaceModal';
+import { NavToggle } from '../common/NavToggle';
 import { useConfirm } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
 
@@ -295,25 +296,28 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     <div className="wb-saved-engine-root">
       {/* Top Header Bar */}
       <header className="wb-saved-topbar">
-        <div className="wb-saved-title-block">
-          <div className="wb-saved-breadcrumb-row">
-            {activeWorkspace ? (
-              <div className="wb-breadcrumb-nav">
-                <Link to={basePrefix} className="wb-breadcrumb-link">
-                  Workspaces
-                </Link>
-                <span className="wb-breadcrumb-separator">/</span>
-                <span className="wb-breadcrumb-current">{activeWorkspace.name}</span>
-              </div>
-            ) : (
-              <h2 className="wb-saved-heading">My APIs</h2>
-            )}
+        <div className="wb-saved-left-wrap">
+          <NavToggle />
+          <div className="wb-saved-title-block">
+            <div className="wb-saved-breadcrumb-row">
+              {activeWorkspace ? (
+                <div className="wb-breadcrumb-nav">
+                  <Link to={basePrefix} className="wb-breadcrumb-link">
+                    Workspaces
+                  </Link>
+                  <span className="wb-breadcrumb-separator">/</span>
+                  <span className="wb-breadcrumb-current">{activeWorkspace.name}</span>
+                </div>
+              ) : (
+                <h2 className="wb-saved-heading">My APIs</h2>
+              )}
+            </div>
+            <p className="wb-saved-subheading">
+              {activeWorkspace
+                ? activeWorkspace.description
+                : 'Organize, test, and manage all your API endpoints across personal workspaces.'}
+            </p>
           </div>
-          <p className="wb-saved-subheading">
-            {activeWorkspace
-              ? activeWorkspace.description
-              : 'Organize, test, and manage all your API endpoints across personal workspaces.'}
-          </p>
         </div>
 
         <div className="wb-saved-topbar-actions">

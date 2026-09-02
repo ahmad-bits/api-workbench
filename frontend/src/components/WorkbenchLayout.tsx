@@ -8,13 +8,40 @@ export function WorkbenchLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const wb = useWorkbench();
-  const { setNavigateToTester } = wb;
+  const { setNavigateToTester, isSidebarCollapsed, toggleSidebar, setSidebarCollapsed } = wb;
   const toast = useToast();
 
   // Register the navigate-to-tester callback so context actions can navigate
   useEffect(() => {
     setNavigateToTester(() => navigate('/api-tester'));
   }, [navigate, setNavigateToTester]);
+
+  // Auto-close sidebar on mobile viewports when route changes
+  useEffect(() => {
+    if (window.innerWidth <= 768 && !isSidebarCollapsed) {
+      setSidebarCollapsed(true);
+    }
+  }, [location.pathname, isSidebarCollapsed, setSidebarCollapsed]);
+
+  // Global keyboard shortcut: Ctrl+B / Cmd+B to toggle navigation sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        const target = e.target as HTMLElement | null;
+        const isInput =
+          target &&
+          (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.isContentEditable);
+        if (!isInput) {
+          e.preventDefault();
+          toggleSidebar();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleSidebar]);
 
   const isTesterRouteActive =
     location.pathname.startsWith('/api-tester') ||
@@ -25,10 +52,39 @@ export function WorkbenchLayout() {
     location.pathname.startsWith('/my-apis');
 
   return (
-    <div className="wb-app-shell">
+    <div className={`wb-app-shell ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}>
+      {/* Mobile Backdrop Overlay */}
+      {!isSidebarCollapsed && (
+        <div
+          className="wb-sidebar-mobile-backdrop"
+          onClick={() => setSidebarCollapsed(true)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* 1. Left Professional Developer Sidebar */}
-      <aside className="wb-app-sidebar">
+      <aside
+        className={`wb-app-sidebar ${isSidebarCollapsed ? 'collapsed' : 'expanded'}`}
+        aria-label="Sidebar Navigation"
+        aria-hidden={isSidebarCollapsed}
+      >
         <div className="wb-sidebar-top-section">
+          {/* Workspace Brand / Identity */}
+          <div className="wb-workspace-header">
+            <div className="wb-workspace-logo-dot">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2.2C12 7.6 7.6 12 2.2 12C7.6 12 12 16.4 12 21.8C12 16.4 16.4 12 21.8 12C16.4 12 12 7.6 12 2.2Z"
+                  fill="#1860ec"
+                />
+                <circle cx="12" cy="12" r="2" fill="#ffffff" />
+              </svg>
+            </div>
+            <div className="wb-workspace-meta">
+              <span className="wb-workspace-title">API Workbench</span>
+              <span className="wb-workspace-badge-plan">Developer Studio</span>
+            </div>
+          </div>
 
           {/* Sidebar Nav Items */}
           <nav className="wb-sidebar-nav">

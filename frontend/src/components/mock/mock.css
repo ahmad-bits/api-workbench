@@ -7,10 +7,9 @@
 .wb-mock-engine-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   background-color: #f8fafc;
-  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -26,6 +25,13 @@
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   gap: 1rem;
+}
+
+.wb-mock-left-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
 }
 
 .wb-mock-title-block {
@@ -80,10 +86,8 @@
    ========================================================================== */
 
 .wb-mock-workspace-scrollable {
-  flex: 1;
-  overflow-y: auto;
+  width: 100%;
   padding: 1.25rem 1.75rem 2rem 1.75rem;
-  min-height: 0;
 }
 
 .wb-mock-workspace-grid {
@@ -543,16 +547,6 @@
 .wb-form-select:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-}
-
-/* Error banner */
-.wb-mock-error-banner {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 0.55rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
 }
 
 /* Headers Section */

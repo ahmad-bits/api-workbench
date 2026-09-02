@@ -6,10 +6,9 @@
 .wb-saved-engine-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   background-color: #f8fafc;
-  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -25,6 +24,13 @@
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   gap: 1.25rem;
+}
+
+.wb-saved-left-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
 }
 
 .wb-saved-title-block {
@@ -198,10 +204,8 @@
    ========================================================================== */
 
 .wb-saved-content-viewport {
-  flex: 1;
-  overflow-y: auto;
+  width: 100%;
   padding: 1.5rem 2rem 2.5rem 2rem;
-  min-height: 0;
 }
 
 .wb-workspaces-dashboard {

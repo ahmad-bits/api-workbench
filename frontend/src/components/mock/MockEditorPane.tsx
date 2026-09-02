@@ -73,7 +73,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [requestJsonError, setRequestJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Populate form from initialMock or reset for create
   useEffect(() => {
@@ -117,7 +116,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
     }
     setJsonError(null);
     setRequestJsonError(null);
-    setErrorMessage(null);
   }, [initialMock, isOpen]);
 
   // When method changes, adjust status code defaults
@@ -193,12 +191,10 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
 
     const cleanPath = path.trim();
     if (!cleanPath) {
-      setErrorMessage('Endpoint path is required.');
-      toast.warning('Endpoint path is required.');
+      toast.error('Endpoint path is required.');
       return;
     }
 
@@ -219,8 +215,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
 
       if (isDuplicate) {
         const msg = `A mock endpoint with method '${method}' and path '${formattedPath}' already exists in your account.`;
-        setErrorMessage(msg);
-        toast.warning(msg);
+        toast.error(msg);
         return;
       }
     }
@@ -229,8 +224,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       try {
         JSON.parse(responseBody);
       } catch {
-        setErrorMessage('Response body contains invalid JSON.');
-        toast.warning('Response body contains invalid JSON.');
+        toast.error('Response body contains invalid JSON.');
         return;
       }
     }
@@ -272,7 +266,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       await onSave(payload, isEdit, initialMock?.id);
     } catch (err: any) {
       const msg = err.message || 'Failed to save mock endpoint.';
-      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -299,10 +293,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="wb-mock-form">
-        {errorMessage && (
-          <div className="wb-mock-error-banner">{errorMessage}</div>
-        )}
-
         {/* Method + Path */}
         <div className="wb-form-field">
           <div className="wb-form-row-2">

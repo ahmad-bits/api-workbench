@@ -5,6 +5,7 @@ import { KeyValueEditor } from './KeyValueEditor';
 import { BodyEditor } from './BodyEditor';
 import { ResponseViewer } from './ResponseViewer';
 import { UserNav } from './auth/UserNav';
+import { NavToggle } from './common/NavToggle';
 import { LandingFooter } from './landing/LandingFooter';
 
 export function TesterPage() {
@@ -74,11 +75,14 @@ export function TesterPage() {
     <>
       {/* Top Header Bar */}
       <header className="wb-app-topbar">
-        <div className="wb-topbar-title-block">
-          <h1 className="wb-topbar-heading">API Tester</h1>
-          <span className="wb-topbar-tagline">
-            HTTP Request &amp; Benchmark Testing Environment
-          </span>
+        <div className="wb-topbar-left">
+          <NavToggle />
+          <div className="wb-topbar-title-block">
+            <h1 className="wb-topbar-heading">API Tester</h1>
+            <span className="wb-topbar-tagline">
+              HTTP Request &amp; Benchmark Testing Environment
+            </span>
+          </div>
         </div>
 
         <div className="wb-topbar-actions">

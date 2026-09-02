@@ -72,6 +72,11 @@ interface WorkbenchContextType {
   enabledHeadersCount: number;
   enabledAuthCount: number;
 
+  // Navigation sidebar state
+  isSidebarCollapsed: boolean;
+  toggleSidebar: () => void;
+  setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+
   // Navigation callback — set by consumer to navigate to tester
   navigateToTester: () => void;
   setNavigateToTester: (fn: () => void) => void;
@@ -120,6 +125,35 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [saveApiModalOpen, setSaveApiModalOpen] = useState<boolean>(false);
   const [savedApiCount, setSavedApiCount] = useState<number>(0);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+
+  // Navigation sidebar collapse state with localStorage persistence
+  const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('wb_sidebar_collapsed');
+      if (saved !== null) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      // ignore
+    }
+    return false;
+  });
+
+  const setSidebarCollapsed = useCallback<React.Dispatch<React.SetStateAction<boolean>>>((action) => {
+    setIsSidebarCollapsedState((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      try {
+        localStorage.setItem('wb_sidebar_collapsed', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => !prev);
+  }, [setSidebarCollapsed]);
 
   // Backend health state
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading');
@@ -375,6 +409,9 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         enabledParamsCount,
         enabledHeadersCount,
         enabledAuthCount,
+        isSidebarCollapsed,
+        toggleSidebar,
+        setSidebarCollapsed,
         navigateToTester,
         setNavigateToTester,
       }}

@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 import type { MockEndpoint, MockEndpointCreate, MockEndpointUpdate } from '../../types/mock';
 import { MockCard } from './MockCard';
 import { MockEditorPane } from './MockEditorPane';
+import { NavToggle } from '../common/NavToggle';
 import { useToast } from '../../context/ToastContext';
 
 interface MockManagerProps {
@@ -110,9 +111,12 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
     <div className="wb-mock-engine-root">
       {/* Header */}
       <header className="wb-mock-topbar">
-        <div className="wb-mock-title-block">
-          <h2 className="wb-mock-heading">Mock APIs</h2>
-          <p className="wb-mock-subheading">Create and manage simulated API endpoints.</p>
+        <div className="wb-mock-left-wrap">
+          <NavToggle />
+          <div className="wb-mock-title-block">
+            <h2 className="wb-mock-heading">Mock APIs</h2>
+            <p className="wb-mock-subheading">Create and manage simulated API endpoints.</p>
+          </div>
         </div>
 
         <div className="wb-mock-topbar-actions">

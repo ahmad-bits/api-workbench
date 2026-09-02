@@ -3,6 +3,7 @@ import './account.css';
 import { useAuth } from '../../context/AuthContext';
 import { useConfirm } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
+import { NavToggle } from '../common/NavToggle';
 
 interface ProfileFormProps {
   initialName: string;
@@ -267,12 +268,15 @@ export const AccountSettingsPage: React.FC = () => {
     <div className="wb-account-workspace">
       {/* Top Header Bar */}
       <header className="wb-account-header">
-        <div className="wb-account-header-info">
-          <div className="wb-account-title-meta">
-            <h2 className="wb-account-title">Account Settings</h2>
-            <p className="wb-account-subtitle">
-              Manage your account credentials, security options, and workspace preferences.
-            </p>
+        <div className="wb-account-left-wrap">
+          <NavToggle />
+          <div className="wb-account-header-info">
+            <div className="wb-account-title-meta">
+              <h2 className="wb-account-title">Account Settings</h2>
+              <p className="wb-account-subtitle">
+                Manage your account credentials, security options, and workspace preferences.
+              </p>
+            </div>
           </div>
         </div>
 
