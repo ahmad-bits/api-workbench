@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface PersonalWorkspaceSectionProps {
   onCreateWorkspaceClick?: () => void;
 }
 
 export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-
   const workspaces = [
     {
       id: 'ecommerce',
@@ -54,12 +52,6 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
     },
   ];
 
-  const filtered = workspaces.filter(
-    (w) =>
-      w.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <section className="wb-personal-workspace-section" id="personal-workspace">
       <div className="wb-centered-section-container">
@@ -71,7 +63,7 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
           </p>
         </div>
 
-        {/* Outer Workspace Card Frame */}
+        {/* Outer Workspace Card Frame (Static Demonstration) */}
         <div className="wb-workspace-frame-card">
           {/* Top Search & Actions Bar */}
           <div className="wb-workspace-top-bar">
@@ -82,8 +74,9 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
               </svg>
               <input
                 type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value="Search workspaces..."
+                readOnly
+                tabIndex={-1}
                 className="wb-workspace-search-input"
               />
             </div>
@@ -100,9 +93,9 @@ export const PersonalWorkspaceSection: React.FC<PersonalWorkspaceSectionProps> =
             </button>
           </div>
 
-          {/* Cards Grid */}
+          {/* Cards Grid (Static Display) */}
           <div className="wb-workspaces-cards-grid">
-            {filtered.map((item) => (
+            {workspaces.map((item) => (
               <div key={item.id} className="wb-workspace-item-card">
                 <div className={`wb-workspace-item-icon ${item.iconTheme}`}>
                   {item.icon}

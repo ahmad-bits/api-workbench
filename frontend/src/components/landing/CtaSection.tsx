@@ -9,7 +9,11 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onCreateAccountClick }) 
     <section className="wb-cta-banner-section" id="about">
       <div className="wb-cta-banner-container">
         <div className="wb-cta-banner-card">
+          <div className="wb-cta-about-badge">About API Workbench</div>
           <h2 className="wb-cta-banner-heading">Ready to build better APIs?</h2>
+          <p className="wb-cta-about-desc">
+            API Workbench is a fast, lightweight developer platform built to test, mock, and organize HTTP endpoints in isolated workspaces without complex setup.
+          </p>
           <p className="wb-cta-banner-subheading">
             Join thousands of developers who upgraded their API workflow. Start for free in under a minute.
           </p>

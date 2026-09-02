@@ -27,24 +27,17 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header className="wb-header-wrapper">
       <div className="wb-header-container">
-        {/* Brand Logo */}
-        <button
-          type="button"
-          className="wb-brand-link"
-          onClick={() => handleNavClick('hero')}
-          aria-label="API Workbench Home"
-        >
+        {/* Brand Logo (Static, Non-Interactive) */}
+        <div className="wb-brand-link">
           <div className="wb-brand-logo-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2.2C12 7.6 7.6 12 2.2 12C7.6 12 12 16.4 12 21.8C12 16.4 16.4 12 21.8 12C16.4 12 12 7.6 12 2.2Z"
-                fill="#1860ec"
-              />
-              <circle cx="12" cy="12" r="2" fill="#ffffff" />
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+              <path d="M16 3.5L26.5 9.5L16 15.5L5.5 9.5Z" fill="#60a5fa" />
+              <path d="M4.5 11.2L15 17.2V29.5L4.5 23.5Z" fill="#1860ec" />
+              <path d="M27.5 11.2L17 17.2V29.5L27.5 23.5Z" fill="#1d4ed8" />
             </svg>
           </div>
           <span className="wb-brand-text">API Workbench</span>
-        </button>
+        </div>
 
         {/* Center Navigation Links */}
         <nav className="wb-header-nav" aria-label="Main Navigation">
@@ -52,11 +45,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <li className="wb-nav-item">
               <button type="button" onClick={() => handleNavClick('features')}>
                 Features
-              </button>
-            </li>
-            <li className="wb-nav-item">
-              <button type="button" onClick={() => handleNavClick('how-it-works')}>
-                How It Works
               </button>
             </li>
             <li className="wb-nav-item">
@@ -87,7 +75,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 <line x1="3" y1="9" x2="21" y2="9" />
                 <line x1="9" y1="21" x2="9" y2="9" />
               </svg>
-              <span>{userName ? `Open Workbench (${userName})` : 'Open Workbench'}</span>
+              <span>Open Workbench</span>
             </button>
           ) : (
             <>
@@ -139,11 +127,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <li>
               <button type="button" onClick={() => handleNavClick('features')}>
                 Features
-              </button>
-            </li>
-            <li>
-              <button type="button" onClick={() => handleNavClick('how-it-works')}>
-                How It Works
               </button>
             </li>
             <li>

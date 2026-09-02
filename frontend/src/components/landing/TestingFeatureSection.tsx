@@ -1,23 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 export const TestingFeatureSection: React.FC = () => {
-  const [activeCollectionItem, setActiveCollectionItem] = useState<'login' | 'refresh'>('login');
-  const [activeReqTab, setActiveReqTab] = useState<'params' | 'headers' | 'auth' | 'body' | 'tests'>('body');
-  const [activeRespTab, setActiveRespTab] = useState<'response' | 'headers' | 'tests'>('response');
-
   return (
     <section className="wb-testing-feature-section" id="testing-workspace">
       <div className="wb-centered-section-container">
         {/* Section Header */}
         <div className="wb-centered-header-box">
-          <div className="wb-section-badge-pill">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0" />
-              <path d="M5.52 16h12.96" />
-            </svg>
-            <span>API Testing</span>
-          </div>
-
           <h2 className="wb-centered-heading">Comprehensive Testing Workspace</h2>
 
           <p className="wb-centered-subtitle">
@@ -26,7 +14,7 @@ export const TestingFeatureSection: React.FC = () => {
           </p>
         </div>
 
-        {/* macOS Full Testing Workspace Mockup */}
+        {/* macOS Full Testing Workspace Mockup (Static Demonstration) */}
         <div className="wb-testing-window-wrapper">
           <div className="wb-window-card">
             {/* Titlebar */}
@@ -57,23 +45,15 @@ export const TestingFeatureSection: React.FC = () => {
                     </div>
 
                     <div className="wb-folder-items">
-                      <button
-                        type="button"
-                        className={`wb-tree-item ${activeCollectionItem === 'login' ? 'active' : ''}`}
-                        onClick={() => setActiveCollectionItem('login')}
-                      >
+                      <div className="wb-tree-item active">
                         <span className="wb-mini-badge post">POST</span>
                         <span className="wb-tree-item-name">Login User</span>
-                      </button>
+                      </div>
 
-                      <button
-                        type="button"
-                        className={`wb-tree-item ${activeCollectionItem === 'refresh' ? 'active' : ''}`}
-                        onClick={() => setActiveCollectionItem('refresh')}
-                      >
+                      <div className="wb-tree-item">
                         <span className="wb-mini-badge post">POST</span>
                         <span className="wb-tree-item-name">Refresh Token</span>
-                      </button>
+                      </div>
                     </div>
                   </div>
 
@@ -125,114 +105,43 @@ export const TestingFeatureSection: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Request Sub-Tabs */}
+                {/* Request Sub-Tabs (Static Display) */}
                 <div className="wb-testing-subtabs-row">
-                  <button
-                    type="button"
-                    className={`wb-subtab ${activeReqTab === 'params' ? 'active' : ''}`}
-                    onClick={() => setActiveReqTab('params')}
-                  >
-                    Params
-                  </button>
-                  <button
-                    type="button"
-                    className={`wb-subtab ${activeReqTab === 'headers' ? 'active' : ''}`}
-                    onClick={() => setActiveReqTab('headers')}
-                  >
-                    Headers
-                  </button>
-                  <button
-                    type="button"
-                    className={`wb-subtab ${activeReqTab === 'auth' ? 'active' : ''}`}
-                    onClick={() => setActiveReqTab('auth')}
-                  >
-                    Auth
-                  </button>
-                  <button
-                    type="button"
-                    className={`wb-subtab ${activeReqTab === 'body' ? 'active' : ''}`}
-                    onClick={() => setActiveReqTab('body')}
-                  >
-                    Body (JSON)
-                  </button>
-                  <button
-                    type="button"
-                    className={`wb-subtab ${activeReqTab === 'tests' ? 'active' : ''}`}
-                    onClick={() => setActiveReqTab('tests')}
-                  >
-                    Tests
-                  </button>
+                  <span className="wb-subtab">Params</span>
+                  <span className="wb-subtab">Headers</span>
+                  <span className="wb-subtab">Auth</span>
+                  <span className="wb-subtab active">Body (JSON)</span>
+                  <span className="wb-subtab">Tests</span>
                 </div>
 
                 {/* Request Body Code Box */}
                 <div className="wb-testing-code-box">
-                  {activeReqTab === 'body' && (
-                    <div className="wb-code-block-inner">
-                      <div className="wb-code-line"><span className="wb-code-punc">&#123;</span></div>
-                      <div className="wb-code-line indent-1">
-                        <span className="wb-code-key">"email"</span>: <span className="wb-code-str">"developer@workbench.dev"</span>,
-                      </div>
-                      <div className="wb-code-line indent-1">
-                        <span className="wb-code-key">"password"</span>: <span className="wb-code-str">"pass_7327_workbench!"</span>,
-                      </div>
-                      <div className="wb-code-line indent-1">
-                        <span className="wb-code-key">"device_id"</span>: <span className="wb-code-str">"dev_41903"</span>,
-                      </div>
-                      <div className="wb-code-line indent-1">
-                        <span className="wb-code-key">"remember_me"</span>: <span className="wb-code-bool">true</span>
-                      </div>
-                      <div className="wb-code-line"><span className="wb-code-punc">&#125;</span></div>
+                  <div className="wb-code-block-inner">
+                    <div className="wb-code-line"><span className="wb-code-punc">&#123;</span></div>
+                    <div className="wb-code-line indent-1">
+                      <span className="wb-code-key">"email"</span>: <span className="wb-code-str">"developer@workbench.dev"</span>,
                     </div>
-                  )}
-
-                  {activeReqTab === 'tests' && (
-                    <div className="wb-code-block-inner">
-                      <div className="wb-code-line">
-                        <span className="wb-code-comment">// Automated JS assertions</span>
-                      </div>
-                      <div className="wb-code-line">
-                        <span className="wb-code-js">pm.test</span>(<span className="wb-code-str">"Status is 200"</span>, () =&gt; &#123;
-                      </div>
-                      <div className="wb-code-line indent-1">
-                        <span className="wb-code-js">pm.response.to.have.status</span>(<span className="wb-code-num">200</span>);
-                      </div>
-                      <div className="wb-code-line">&#125;);</div>
+                    <div className="wb-code-line indent-1">
+                      <span className="wb-code-key">"password"</span>: <span className="wb-code-str">"pass_7327_workbench!"</span>,
                     </div>
-                  )}
-
-                  {(activeReqTab === 'params' || activeReqTab === 'headers' || activeReqTab === 'auth') && (
-                    <div className="wb-code-block-inner">
-                      <div className="wb-code-comment">// Standard {activeReqTab} configuration applied automatically</div>
+                    <div className="wb-code-line indent-1">
+                      <span className="wb-code-key">"device_id"</span>: <span className="wb-code-str">"dev_41903"</span>,
                     </div>
-                  )}
+                    <div className="wb-code-line indent-1">
+                      <span className="wb-code-key">"remember_me"</span>: <span className="wb-code-bool">true</span>
+                    </div>
+                    <div className="wb-code-line"><span className="wb-code-punc">&#125;</span></div>
+                  </div>
                 </div>
 
-                {/* Response Section */}
+                {/* Response Section (Static Display - Full Visibility) */}
                 <div className="wb-testing-response-section">
                   {/* Response Header Row */}
                   <div className="wb-resp-top-bar">
                     <div className="wb-resp-tabs-group">
-                      <button
-                        type="button"
-                        className={`wb-resp-tab-btn ${activeRespTab === 'response' ? 'active' : ''}`}
-                        onClick={() => setActiveRespTab('response')}
-                      >
-                        Response
-                      </button>
-                      <button
-                        type="button"
-                        className={`wb-resp-tab-btn ${activeRespTab === 'headers' ? 'active' : ''}`}
-                        onClick={() => setActiveRespTab('headers')}
-                      >
-                        Headers (12)
-                      </button>
-                      <button
-                        type="button"
-                        className={`wb-resp-tab-btn ${activeRespTab === 'tests' ? 'active' : ''}`}
-                        onClick={() => setActiveRespTab('tests')}
-                      >
-                        Test Results (3/3)
-                      </button>
+                      <span className="wb-resp-tab-btn active">Response</span>
+                      <span className="wb-resp-tab-btn">Headers (12)</span>
+                      <span className="wb-resp-tab-btn">Test Results (3/3)</span>
                     </div>
 
                     <div className="wb-resp-metrics-group">
@@ -242,68 +151,35 @@ export const TestingFeatureSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Response Body */}
+                  {/* Response Body (Fully visible, no internal scroll) */}
                   <div className="wb-resp-body-code">
-                    {activeRespTab === 'response' && (
-                      <div className="wb-code-block-inner">
-                        <div className="wb-code-line"><span className="wb-code-punc">&#123;</span></div>
-                        <div className="wb-code-line indent-1">
-                          <span className="wb-code-key">"success"</span>: <span className="wb-code-bool">true</span>,
-                        </div>
-                        <div className="wb-code-line indent-1">
-                          <span className="wb-code-key">"data"</span>: <span className="wb-code-punc">&#123;</span>
-                        </div>
-                        <div className="wb-code-line indent-2">
-                          <span className="wb-code-key">"token"</span>: <span className="wb-code-str">"eyJhGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
-                        </div>
-                        <div className="wb-code-line indent-2">
-                          <span className="wb-code-key">"user"</span>: <span className="wb-code-punc">&#123;</span>
-                        </div>
-                        <div className="wb-code-line indent-3">
-                          <span className="wb-code-key">"id"</span>: <span className="wb-code-str">"usr_92847a9b1"</span>,
-                        </div>
-                        <div className="wb-code-line indent-3">
-                          <span className="wb-code-key">"name"</span>: <span className="wb-code-str">"Alex Developer"</span>,
-                        </div>
-                        <div className="wb-code-line indent-3">
-                          <span className="wb-code-key">"email"</span>: <span className="wb-code-str">"developer@workbench.dev"</span>
-                        </div>
-                        <div className="wb-code-line indent-2"><span className="wb-code-punc">&#125;</span></div>
-                        <div className="wb-code-line indent-1"><span className="wb-code-punc">&#125;</span></div>
-                        <div className="wb-code-line"><span className="wb-code-punc">&#125;</span></div>
+                    <div className="wb-code-block-inner">
+                      <div className="wb-code-line"><span className="wb-code-punc">&#123;</span></div>
+                      <div className="wb-code-line indent-1">
+                        <span className="wb-code-key">"success"</span>: <span className="wb-code-bool">true</span>,
                       </div>
-                    )}
-
-                    {activeRespTab === 'headers' && (
-                      <div className="wb-code-block-inner">
-                        <div className="wb-code-line">
-                          <span className="wb-code-key">Content-Type</span>: <span className="wb-code-str">application/json; charset=utf-8</span>
-                        </div>
-                        <div className="wb-code-line">
-                          <span className="wb-code-key">Server</span>: <span className="wb-code-str">workbench-gateway/2.4.0</span>
-                        </div>
-                        <div className="wb-code-line">
-                          <span className="wb-code-key">X-Request-Id</span>: <span className="wb-code-str">req_88192a01f</span>
-                        </div>
+                      <div className="wb-code-line indent-1">
+                        <span className="wb-code-key">"data"</span>: <span className="wb-code-punc">&#123;</span>
                       </div>
-                    )}
-
-                    {activeRespTab === 'tests' && (
-                      <div className="wb-code-block-inner">
-                        <div className="wb-test-pass-row">
-                          <span className="wb-test-pass-badge">PASS</span>
-                          <span>Status code is 200</span>
-                        </div>
-                        <div className="wb-test-pass-row">
-                          <span className="wb-test-pass-badge">PASS</span>
-                          <span>Response time is less than 200ms</span>
-                        </div>
-                        <div className="wb-test-pass-row">
-                          <span className="wb-test-pass-badge">PASS</span>
-                          <span>User object contains valid ID</span>
-                        </div>
+                      <div className="wb-code-line indent-2">
+                        <span className="wb-code-key">"token"</span>: <span className="wb-code-str">"eyJhGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
                       </div>
-                    )}
+                      <div className="wb-code-line indent-2">
+                        <span className="wb-code-key">"user"</span>: <span className="wb-code-punc">&#123;</span>
+                      </div>
+                      <div className="wb-code-line indent-3">
+                        <span className="wb-code-key">"id"</span>: <span className="wb-code-str">"usr_92847a9b1"</span>,
+                      </div>
+                      <div className="wb-code-line indent-3">
+                        <span className="wb-code-key">"name"</span>: <span className="wb-code-str">"Alex Developer"</span>,
+                      </div>
+                      <div className="wb-code-line indent-3">
+                        <span className="wb-code-key">"email"</span>: <span className="wb-code-str">"developer@workbench.dev"</span>
+                      </div>
+                      <div className="wb-code-line indent-2"><span className="wb-code-punc">&#125;</span></div>
+                      <div className="wb-code-line indent-1"><span className="wb-code-punc">&#125;</span></div>
+                      <div className="wb-code-line"><span className="wb-code-punc">&#125;</span></div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -20,7 +20,7 @@ export const HowItWorksSection: React.FC = () => {
   ];
 
   return (
-    <section className="wb-how-section" id="how-it-works">
+    <section className="wb-how-section">
       <div className="wb-section-container">
         <div className="wb-section-header">
           <h2 className="wb-section-title">How It Works</h2>

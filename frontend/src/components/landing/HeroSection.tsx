@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface HeroSectionProps {
   onGetStartedClick: () => void;
@@ -9,8 +9,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onGetStartedClick,
   onViewDocsClick,
 }) => {
-  const [activeTab, setActiveTab] = useState<'params' | 'headers' | 'body'>('params');
-
   return (
     <section className="wb-hero-section" id="hero">
       <div className="wb-hero-container">
@@ -75,6 +73,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     className="wb-hero-url-input"
                     value="https://api.workbench.dev/users/me"
                     readOnly
+                    tabIndex={-1}
                   />
                   {/* Send button is for demonstration only - disabled / non-clickable */}
                   <button
@@ -88,73 +87,30 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   </button>
                 </div>
 
-                {/* Sub-tabs */}
+                {/* Sub-tabs (Static Display) */}
                 <div className="wb-hero-tabs-row">
-                  <button
-                    type="button"
-                    className={`wb-hero-tab ${activeTab === 'params' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('params')}
-                  >
+                  <span className="wb-hero-tab active">
                     Params
-                  </button>
-                  <button
-                    type="button"
-                    className={`wb-hero-tab ${activeTab === 'headers' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('headers')}
-                  >
+                  </span>
+                  <span className="wb-hero-tab">
                     Headers (2)
-                  </button>
-                  <button
-                    type="button"
-                    className={`wb-hero-tab ${activeTab === 'body' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('body')}
-                  >
+                  </span>
+                  <span className="wb-hero-tab">
                     Body
-                  </button>
+                  </span>
                 </div>
 
-                {/* Tab content row */}
+                {/* Tab content row (Static Display) */}
                 <div className="wb-hero-params-table">
-                  {activeTab === 'params' && (
-                    <div className="wb-hero-param-row">
-                      <div className="wb-checkbox-mock checked">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
-                      <div className="wb-param-key-box">include_profile</div>
-                      <div className="wb-param-val-box">true</div>
+                  <div className="wb-hero-param-row">
+                    <div className="wb-checkbox-mock checked">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
                     </div>
-                  )}
-
-                  {activeTab === 'headers' && (
-                    <>
-                      <div className="wb-hero-param-row">
-                        <div className="wb-checkbox-mock checked">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </div>
-                        <div className="wb-param-key-box">Accept</div>
-                        <div className="wb-param-val-box">application/json</div>
-                      </div>
-                      <div className="wb-hero-param-row">
-                        <div className="wb-checkbox-mock checked">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </div>
-                        <div className="wb-param-key-box">Authorization</div>
-                        <div className="wb-param-val-box">Bearer wb_live_7934</div>
-                      </div>
-                    </>
-                  )}
-
-                  {activeTab === 'body' && (
-                    <div className="wb-hero-empty-body">
-                      <span>No body required for GET request</span>
-                    </div>
-                  )}
+                    <div className="wb-param-key-box">include_profile</div>
+                    <div className="wb-param-val-box">true</div>
+                  </div>
                 </div>
               </div>
 

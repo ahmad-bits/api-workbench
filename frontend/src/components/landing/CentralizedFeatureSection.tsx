@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 export const CentralizedFeatureSection: React.FC = () => {
-  const [activeItem, setActiveItem] = useState<number>(0);
-
   const features = [
     {
       id: 0,
@@ -74,15 +72,13 @@ export const CentralizedFeatureSection: React.FC = () => {
 
               <div className="wb-bento-tiles-list">
                 {features.map((item, idx) => (
-                  <button
+                  <div
                     key={item.id}
-                    type="button"
-                    className={`wb-bento-tile-btn ${activeItem === idx ? 'active' : ''}`}
-                    onClick={() => setActiveItem(idx)}
+                    className={`wb-bento-tile-btn ${idx === 0 ? 'active' : ''}`}
                   >
                     <span className="wb-bento-tile-icon">{item.icon}</span>
                     <span className="wb-bento-tile-text">{item.title}</span>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

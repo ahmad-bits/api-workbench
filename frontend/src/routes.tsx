@@ -105,7 +105,6 @@ export function AppRoutes() {
       />
 
       <Route path="/features" element={<Navigate to="/#features" replace />} />
-      <Route path="/how-it-works" element={<Navigate to="/#how-it-works" replace />} />
       <Route path="/about" element={<Navigate to="/#about" replace />} />
 
       <Route
@@ -118,10 +117,29 @@ export function AppRoutes() {
       />
 
       <Route
+        path="/signin"
+        element={<Navigate to="/login" replace />}
+      />
+
+      <Route
         path="/register"
         element={
           <PublicOnlyRoute>
             <AuthPage initialMode="register" />
+          </PublicOnlyRoute>
+        }
+      />
+
+      <Route
+        path="/signup"
+        element={<Navigate to="/register" replace />}
+      />
+
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicOnlyRoute>
+            <AuthPage initialMode="forgot_password" />
           </PublicOnlyRoute>
         }
       />

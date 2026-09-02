@@ -1,25 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './auth.css';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../services/api';
 
 export interface AuthPageProps {
-  initialMode?: 'login' | 'register';
+  initialMode?: 'login' | 'register' | 'forgot_password';
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({
   initialMode = 'login',
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, requestOtp, verifyOtp, resendOtp, error: authError, clearError } = useAuth();
   const toast = useToast();
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(initialMode);
 
-  // Sync mode if initialMode prop changes
+  const getModeFromPath = (): 'login' | 'register' | 'forgot_password' => {
+    if (location.pathname === '/register' || location.pathname === '/signup') return 'register';
+    if (location.pathname === '/forgot-password') return 'forgot_password';
+    if (location.pathname === '/login' || location.pathname === '/signin') return 'login';
+    return initialMode;
+  };
+
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(getModeFromPath);
+
+  // Sync mode whenever URL path changes (e.g. browser Back / Forward buttons)
   useEffect(() => {
-    setMode(initialMode);
+    const nextMode = getModeFromPath();
+    setMode(nextMode);
     setRegisterStep('form');
     setForgotPasswordStep('form');
     setOtp('');
@@ -27,7 +37,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setLocalError(null);
     setSuccessInfo(null);
     clearError();
-  }, [initialMode, clearError]);
+  }, [location.pathname, clearError]);
 
   // Step 1: 'form' | Step 2: 'verify' (for registration)
   const [registerStep, setRegisterStep] = useState<'form' | 'verify'>('form');
@@ -71,14 +81,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   }, [registerStep]);
 
   const handleSwitchMode = (newMode: 'login' | 'register' | 'forgot_password') => {
-    setMode(newMode);
-    setRegisterStep('form');
-    setForgotPasswordStep('form');
-    setOtp('');
-    setResetToken('');
-    setLocalError(null);
-    setSuccessInfo(null);
-    clearError();
+    if (newMode === 'register') {
+      navigate('/register');
+    } else if (newMode === 'forgot_password') {
+      navigate('/forgot-password');
+    } else {
+      navigate('/login');
+    }
   };
 
   // Step 1: Initiate registration and send OTP
@@ -339,31 +348,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <div className="wb-auth-circle-ring ring-3" />
           </div>
 
-          {/* Top Brand Info */}
-          <div
-            className="wb-auth-brand-box"
-            onClick={() => navigate('/')}
-            style={{ cursor: 'pointer' }}
-          >
+          {/* Top Brand Info (Static, Non-Interactive) */}
+          <div className="wb-auth-brand-box">
             <div className="wb-auth-brand-logo">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                <rect width="24" height="24" rx="6" fill="#1860ec" />
-                <path
-                  d="M7 8.5L11 12L7 15.5"
-                  stroke="white"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="13"
-                  y1="16"
-                  x2="17"
-                  y2="16"
-                  stroke="white"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                />
+              <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                <path d="M16 3.5L26.5 9.5L16 15.5L5.5 9.5Z" fill="#60a5fa" />
+                <path d="M4.5 11.2L15 17.2V29.5L4.5 23.5Z" fill="#1860ec" />
+                <path d="M27.5 11.2L17 17.2V29.5L27.5 23.5Z" fill="#1d4ed8" />
               </svg>
             </div>
             <span className="wb-auth-brand-name">API Workbench</span>

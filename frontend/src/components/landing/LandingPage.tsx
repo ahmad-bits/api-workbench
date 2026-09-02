@@ -71,9 +71,7 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* 4. Comprehensive Testing Workspace */}
-        <div id="how-it-works">
-          <TestingFeatureSection />
-        </div>
+        <TestingFeatureSection />
 
         {/* 5. Your Personal Workspace */}
         <PersonalWorkspaceSection />
@@ -85,9 +83,7 @@ export const LandingPage: React.FC = () => {
       </main>
 
       {/* 7. Footer */}
-      <LandingFooter
-        onNavigateSection={handleNavigateSection}
-      />
+      <LandingFooter />
     </div>
   );
 };

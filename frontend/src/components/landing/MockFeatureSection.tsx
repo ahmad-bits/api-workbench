@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface MockFeatureSectionProps {
   onExploreMockingClick?: () => void;
@@ -7,8 +7,6 @@ interface MockFeatureSectionProps {
 export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
   onExploreMockingClick,
 }) => {
-  const [selectedEndpoint, setSelectedEndpoint] = useState<number>(0);
-
   const mockEndpoints = [
     {
       id: 0,
@@ -74,42 +72,7 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
       status: '201 Created',
       statusClass: 'wb-status-tag-green',
       templateTitle: 'Response Template (POST /api/v1/orders)',
-      lines: [
-        { indent: 0, content: <span className="wb-code-punc">&#123;</span> },
-        {
-          indent: 1,
-          content: (
-            <>
-              <span className="wb-code-key">"order_id"</span>: <span className="wb-code-str">"ord_8829103"</span>,
-            </>
-          ),
-        },
-        {
-          indent: 1,
-          content: (
-            <>
-              <span className="wb-code-key">"status"</span>: <span className="wb-code-str">"processing"</span>,
-            </>
-          ),
-        },
-        {
-          indent: 1,
-          content: (
-            <>
-              <span className="wb-code-key">"total"</span>: <span className="wb-code-num">149.99</span>,
-            </>
-          ),
-        },
-        {
-          indent: 1,
-          content: (
-            <>
-              <span className="wb-code-key">"created_at"</span>: <span className="wb-code-str">"2024-01-15T12:00:00Z"</span>
-            </>
-          ),
-        },
-        { indent: 0, content: <span className="wb-code-punc">&#125;</span> },
-      ],
+      lines: [],
     },
     {
       id: 2,
@@ -119,43 +82,17 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
       status: '204 No Content',
       statusClass: 'wb-status-tag-gray',
       templateTitle: 'Response Template (DELETE /api/v1/products/42)',
-      lines: [
-        { indent: 0, content: <span className="wb-code-punc">&#123;</span> },
-        {
-          indent: 1,
-          content: (
-            <>
-              <span className="wb-code-key">"success"</span>: <span className="wb-code-bool">true</span>,
-            </>
-          ),
-        },
-        {
-          indent: 1,
-          content: (
-            <>
-              <span className="wb-code-key">"message"</span>: <span className="wb-code-str">"Product deleted successfully"</span>
-            </>
-          ),
-        },
-        { indent: 0, content: <span className="wb-code-punc">&#125;</span> },
-      ],
+      lines: [],
     },
   ];
 
-  const current = mockEndpoints[selectedEndpoint];
+  const current = mockEndpoints[0];
 
   return (
     <section className="wb-mock-feature-section" id="mock-engine">
       <div className="wb-feature-container">
         {/* Left Column: Information */}
         <div className="wb-mock-feature-content">
-          <div className="wb-section-badge-pill">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
-            <span>Mock API Engine</span>
-          </div>
-
           <h2 className="wb-feature-heading">
             Instant Simulated
             <br />
@@ -211,7 +148,7 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Interactive Mock Endpoints Window */}
+        {/* Right Column: Static Mock Endpoints Demonstration Card */}
         <div className="wb-mock-feature-card">
           {/* Card Header */}
           <div className="wb-mock-card-header">
@@ -228,15 +165,12 @@ export const MockFeatureSection: React.FC<MockFeatureSectionProps> = ({
             </button>
           </div>
 
-          {/* Endpoints List */}
+          {/* Endpoints List (Static Demonstration) */}
           <div className="wb-mock-endpoints-list">
             {mockEndpoints.map((ep, idx) => (
               <div
                 key={ep.id}
-                className={`wb-mock-endpoint-row ${selectedEndpoint === idx ? 'active-row' : ''}`}
-                onClick={() => setSelectedEndpoint(idx)}
-                role="button"
-                tabIndex={0}
+                className={`wb-mock-endpoint-row ${idx === 0 ? 'active-row' : ''}`}
               >
                 <div className="wb-mock-ep-left">
                   <span className={`wb-badge-method ${ep.methodClass}`}>{ep.method}</span>

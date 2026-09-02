@@ -90,12 +90,17 @@
   color: #0f172a;
   letter-spacing: -0.01em;
   margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .wb-saved-subheading {
   font-size: 0.8125rem;
   color: #64748b;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wb-saved-topbar-actions {

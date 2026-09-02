@@ -90,7 +90,8 @@
   align-items: center;
   gap: 0.6rem;
   text-decoration: none;
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   background: none;
   border: none;
   padding: 0;
@@ -103,11 +104,6 @@
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.wb-brand-link:hover .wb-brand-logo-icon {
-  transform: rotate(15deg) scale(1.08);
 }
 
 .wb-brand-text {
@@ -543,7 +539,8 @@
   color: var(--wb-text-muted);
   font-size: 0.8rem;
   font-weight: 500;
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   padding: 0.2rem 0;
   position: relative;
   font-family: inherit;
@@ -925,11 +922,10 @@
   border: 1px solid var(--wb-border-light);
   border-radius: 8px;
   padding: 0.6rem 0.85rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  cursor: default;
+  user-select: none;
 }
 
-.wb-mock-endpoint-row:hover,
 .wb-mock-endpoint-row.active-row {
   background-color: #ffffff;
   border-color: var(--wb-blue-border);
@@ -985,16 +981,12 @@
   background: none;
   border: none;
   color: var(--wb-text-muted);
-  cursor: pointer;
+  cursor: default;
+  pointer-events: none;
   padding: 0.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease;
-}
-
-.wb-btn-icon-edit:hover {
-  color: var(--wb-blue-primary);
 }
 
 .wb-mock-template-container {
@@ -1078,7 +1070,8 @@
   font-weight: 600;
   color: var(--wb-text-heading);
   padding: 0.3rem 0.35rem;
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
 }
 
 .wb-tree-folder.collapsed .wb-folder-title {
@@ -1102,14 +1095,10 @@
   padding: 0.35rem 0.5rem;
   font-size: 0.775rem;
   color: var(--wb-text-body);
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   text-align: left;
-  transition: all 0.15s ease;
   font-family: inherit;
-}
-
-.wb-tree-item:hover {
-  background-color: #f1f5f9;
 }
 
 .wb-tree-item.active {
@@ -1211,7 +1200,8 @@
   color: var(--wb-text-muted);
   font-size: 0.775rem;
   font-weight: 500;
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   padding: 0.15rem 0;
   font-family: inherit;
   position: relative;
@@ -1270,7 +1260,8 @@
   font-size: 0.775rem;
   font-weight: 500;
   color: var(--wb-text-muted);
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   padding: 0.15rem 0;
   font-family: inherit;
   position: relative;
@@ -1313,8 +1304,7 @@
   font-family: var(--wb-font-mono);
   font-size: 0.775rem;
   line-height: 1.5;
-  max-height: 160px;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .wb-test-pass-row {
@@ -1392,13 +1382,12 @@
   border: 1px solid var(--wb-border-light);
   border-radius: 10px;
   padding: 0.85rem 1.15rem;
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   text-align: left;
-  transition: all 0.15s ease;
   font-family: inherit;
 }
 
-.wb-bento-tile-btn:hover,
 .wb-bento-tile-btn.active {
   background-color: #ffffff;
   border-color: var(--wb-blue-primary);
@@ -1555,9 +1544,11 @@
   background: none;
   outline: none;
   font-size: 0.85rem;
-  color: var(--wb-text-heading);
+  color: var(--wb-text-muted);
   width: 100%;
   font-family: inherit;
+  cursor: default;
+  user-select: none;
 }
 
 .wb-workspaces-cards-grid {
@@ -1574,13 +1565,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.wb-workspace-item-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--wb-blue-border);
-  box-shadow: 0 8px 24px rgba(24, 96, 236, 0.08);
+  cursor: default;
+  user-select: none;
 }
 
 .wb-workspace-item-icon {
@@ -1660,6 +1646,22 @@
   box-shadow: 0 20px 45px -8px rgba(24, 96, 236, 0.4);
 }
 
+.wb-cta-about-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--wb-radius-pill);
+  margin-bottom: 1.25rem;
+}
+
 .wb-cta-banner-heading {
   font-size: 2.65rem;
   font-weight: 800;
@@ -1668,12 +1670,22 @@
   margin: 0 0 1rem 0;
 }
 
-.wb-cta-banner-subheading {
-  font-size: 1.1rem;
+.wb-cta-about-desc {
+  font-size: 1.05rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 600px;
+  color: #ffffff;
+  max-width: 620px;
+  margin: 0 auto 0.85rem auto;
+  font-weight: 500;
+}
+
+.wb-cta-banner-subheading {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #ffffff;
+  max-width: 620px;
   margin: 0 auto 2.25rem auto;
+  font-weight: 500;
 }
 
 .wb-btn-cta-white-pill {
@@ -1707,7 +1719,7 @@
 .wb-landing-footer {
   background-color: #ffffff;
   border-top: 1px solid var(--wb-border-light);
-  padding: 2.25rem 1.5rem;
+  padding: 2rem 1.5rem;
   margin-top: auto;
 }
 
@@ -1718,13 +1730,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.wb-footer-left {
-  display: flex;
-  align-items: center;
-  gap: 1.75rem;
   flex-wrap: wrap;
 }
 
@@ -1743,28 +1748,6 @@
 .wb-footer-copyright {
   font-size: 0.85rem;
   color: var(--wb-text-subtle);
-}
-
-.wb-footer-links-row {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.wb-footer-link-btn {
-  background: none;
-  border: none;
-  font-size: 0.875rem;
-  color: var(--wb-text-body);
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.15s ease;
-  font-family: inherit;
-}
-
-.wb-footer-link-btn:hover {
-  color: var(--wb-blue-primary);
 }
 
 /* ==========================================================================

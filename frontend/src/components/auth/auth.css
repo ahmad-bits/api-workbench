@@ -149,6 +149,8 @@
   gap: 0.65rem;
   position: relative;
   z-index: 2;
+  cursor: default;
+  user-select: none;
 }
 
 .wb-auth-brand-logo {

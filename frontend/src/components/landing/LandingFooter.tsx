@@ -1,72 +1,26 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import './landing.css';
 
-interface LandingFooterProps {
-  onLoginClick?: () => void;
-  onSignUpClick?: () => void;
-  onNavigateSection?: (sectionId: string) => void;
-}
-
-export const LandingFooter: React.FC<LandingFooterProps> = ({
-  onNavigateSection,
-}) => {
-  const navigate = useNavigate();
-
-  const handleNav = (sectionId: string) => {
-    if (onNavigateSection) {
-      onNavigateSection(sectionId);
-    } else {
-      navigate('/#' + sectionId);
-    }
-  };
-
+export const LandingFooter: React.FC = () => {
   return (
     <footer className="wb-landing-footer">
       <div className="wb-footer-inner-container">
-        {/* Left Column: Brand & Copyright */}
-        <div className="wb-footer-left">
-          <div className="wb-footer-brand">
-            <div className="wb-brand-logo-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2.2C12 7.6 7.6 12 2.2 12C7.6 12 12 16.4 12 21.8C12 16.4 16.4 12 21.8 12C16.4 12 12 7.6 12 2.2Z"
-                  fill="#1860ec"
-                />
-                <circle cx="12" cy="12" r="2" fill="#ffffff" />
-              </svg>
-            </div>
-            <span className="wb-footer-brand-title">API Workbench</span>
+        {/* Brand */}
+        <div className="wb-footer-brand">
+          <div className="wb-brand-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+              <path d="M16 3.5L26.5 9.5L16 15.5L5.5 9.5Z" fill="#60a5fa" />
+              <path d="M4.5 11.2L15 17.2V29.5L4.5 23.5Z" fill="#1860ec" />
+              <path d="M27.5 11.2L17 17.2V29.5L27.5 23.5Z" fill="#1d4ed8" />
+            </svg>
           </div>
-          <span className="wb-footer-copyright">
-            &copy; 2024 API Workbench. All rights reserved.
-          </span>
+          <span className="wb-footer-brand-title">API Workbench</span>
         </div>
 
-        {/* Right Column: Links matching Figma design */}
-        <div className="wb-footer-links-row">
-          <button
-            type="button"
-            className="wb-footer-link-btn"
-            onClick={() => handleNav('features')}
-          >
-            Privacy Policy
-          </button>
-          <button
-            type="button"
-            className="wb-footer-link-btn"
-            onClick={() => handleNav('about')}
-          >
-            Terms of Service
-          </button>
-          <button
-            type="button"
-            className="wb-footer-link-btn"
-            onClick={() => handleNav('how-it-works')}
-          >
-            Pricing
-          </button>
-        </div>
+        {/* Copyright */}
+        <span className="wb-footer-copyright">
+          &copy; 2026 API Workbench. All rights reserved.
+        </span>
       </div>
     </footer>
   );

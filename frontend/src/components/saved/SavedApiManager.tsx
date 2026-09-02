@@ -315,7 +315,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
             <p className="wb-saved-subheading">
               {activeWorkspace
                 ? activeWorkspace.description
-                : 'Organize, test, and manage all your API endpoints across personal workspaces.'}
+                : 'Manage and test saved API endpoints.'}
             </p>
           </div>
         </div>
