@@ -500,6 +500,15 @@ const MockApiDoc: React.FC = () => (
           <li><strong>Method:</strong> Select the HTTP method (<code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>, <code>HEAD</code>, or <code>OPTIONS</code>).</li>
           <li><strong>Path:</strong> Set the route subpath (e.g., <code>/api/v1/users</code>).</li>
           <li><strong>Status Code:</strong> Select the returned HTTP status code (e.g., <code>200</code>, <code>201</code>, <code>400</code>, <code>404</code>).</li>
+          <li><strong>Response Delay:</strong> Set a custom response delay in milliseconds (default is <code>0 ms</code> for immediate response).</li>
+          <li>
+            <strong>Authentication:</strong> Choose between <code>None</code> (default), <code>API Key</code>, or <code>Bearer Token</code>.
+            <ul>
+              <li><em>API Key:</em> Requires incoming requests to match the configured header name and secret value.</li>
+              <li><em>Bearer Token:</em> Requires incoming requests to supply <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+              <li>Missing or incorrect credentials return <code>401 Unauthorized</code>.</li>
+            </ul>
+          </li>
           <li><strong>Response Headers:</strong> Add custom headers (e.g., <code>Content-Type: application/json</code>).</li>
           <li><strong>Response Body:</strong> Enter the JSON response payload.</li>
         </ul>
@@ -509,7 +518,7 @@ const MockApiDoc: React.FC = () => (
 
     <h2>Public Mock Endpoints</h2>
     <p>
-      Each mock generates a public URL that you can call from any application without authentication headers.
+      Each mock generates a public URL that you can call from any application.
     </p>
     <ul>
       <li><strong>Call Counter:</strong> Tracks the total number of requests received on each mock card.</li>
@@ -519,7 +528,7 @@ const MockApiDoc: React.FC = () => (
     <h2>Managing Mocks</h2>
     <ul>
       <li><strong>Search:</strong> Filter mocks by name, path, or method.</li>
-      <li><strong>Edit:</strong> Update the route, status code, headers, or response body.</li>
+      <li><strong>Edit:</strong> Update the route, status code, delay, authentication, headers, or response body.</li>
       <li><strong>Test:</strong> Click <strong>Test</strong> on a mock card to load its URL and method into the API Tester.</li>
       <li><strong>Delete:</strong> Permanently remove the mock endpoint.</li>
     </ul>

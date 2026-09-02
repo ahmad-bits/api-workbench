@@ -1745,6 +1745,29 @@
   color: var(--wb-text-heading);
 }
 
+.wb-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.wb-footer-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--wb-text-subtle, #64748b);
+  cursor: pointer;
+  transition: color 150ms ease;
+  text-decoration: none;
+}
+
+.wb-footer-link-btn:hover {
+  color: var(--wb-primary, #1860ec);
+}
+
 .wb-footer-copyright {
   font-size: 0.85rem;
   color: var(--wb-text-subtle);

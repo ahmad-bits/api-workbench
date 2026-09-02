@@ -484,14 +484,22 @@
   gap: 1.25rem;
 }
 
-.wb-account-footer-links a {
+.wb-account-footer-links a,
+.wb-account-footer-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
   color: #94a3b8;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
   text-decoration: none;
   transition: color 150ms ease;
 }
 
-.wb-account-footer-links a:hover {
-  color: #475569;
+.wb-account-footer-links a:hover,
+.wb-account-footer-link-btn:hover {
+  color: #1860ec;
 }
 
 /* ==========================================================================

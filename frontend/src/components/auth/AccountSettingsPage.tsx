@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './account.css';
 import { useAuth } from '../../context/AuthContext';
 import { useConfirm } from '../../context/ModalContext';
@@ -124,6 +125,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
 };
 
 export const AccountSettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user, updateProfile, deleteAccount, logout } = useAuth();
   const confirm = useConfirm();
   const toast = useToast();
@@ -445,10 +447,13 @@ export const AccountSettingsPage: React.FC = () => {
             <span>&copy; {new Date().getFullYear()} API Workbench. All rights reserved.</span>
           </div>
           <div className="wb-account-footer-links">
-            <a href="#privacy">Privacy</a>
-            <a href="#terms">Terms</a>
-            <a href="#security">Security</a>
-            <a href="#docs">Documentation</a>
+            <button
+              type="button"
+              className="wb-account-footer-link-btn"
+              onClick={() => navigate('/docs')}
+            >
+              Documentation
+            </button>
           </div>
         </footer>
       </div>

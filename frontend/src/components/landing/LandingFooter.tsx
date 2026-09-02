@@ -1,7 +1,18 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './landing.css';
 
-export const LandingFooter: React.FC = () => {
+interface LandingFooterProps {
+  onNavigateSection?: (sectionId: string) => void;
+  hideDocsLink?: boolean;
+}
+
+export const LandingFooter: React.FC<LandingFooterProps> = ({ hideDocsLink }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isDocsPage = hideDocsLink || location.pathname.startsWith('/docs');
+
   return (
     <footer className="wb-landing-footer">
       <div className="wb-footer-inner-container">
@@ -17,9 +28,22 @@ export const LandingFooter: React.FC = () => {
           <span className="wb-footer-brand-title">API Workbench</span>
         </div>
 
+        {/* Links: Documentation (Hidden on Docs page) */}
+        {!isDocsPage && (
+          <div className="wb-footer-links">
+            <button
+              type="button"
+              className="wb-footer-link-btn"
+              onClick={() => navigate('/docs')}
+            >
+              Documentation
+            </button>
+          </div>
+        )}
+
         {/* Copyright */}
         <span className="wb-footer-copyright">
-          &copy; 2026 API Workbench. All rights reserved.
+          &copy; {new Date().getFullYear()} API Workbench. All rights reserved.
         </span>
       </div>
     </footer>
