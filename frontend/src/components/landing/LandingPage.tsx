@@ -60,7 +60,7 @@ export const LandingPage: React.FC = () => {
         {/* 2. Hero Section */}
         <HeroSection
           onGetStartedClick={isAuthenticated ? handleWorkbenchClick : handleLoginClick}
-          onViewDocsClick={() => {}}
+          onViewDocsClick={() => navigate('/docs')}
         />
 
         {/* 3. Instant Simulated Endpoints */}

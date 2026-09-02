@@ -7,6 +7,7 @@ import { SavedApiManager } from './components/saved/SavedApiManager';
 import { MockManager } from './components/mock/MockManager';
 import { AccountSettingsPage } from './components/auth/AccountSettingsPage';
 import { LandingPage } from './components/landing/LandingPage';
+import { DocsPage } from './components/docs/DocsPage';
 import { AuthPage } from './components/auth/AuthPage';
 import { useWorkbench } from './context/WorkbenchContext';
 import { useEffect } from 'react';
@@ -106,6 +107,7 @@ export function AppRoutes() {
 
       <Route path="/features" element={<Navigate to="/#features" replace />} />
       <Route path="/about" element={<Navigate to="/#about" replace />} />
+      <Route path="/docs" element={<DocsPage />} />
 
       <Route
         path="/login"

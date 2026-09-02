@@ -1,0 +1,517 @@
+/* ==========================================================================
+   API Workbench - Documentation Stylesheet
+   Clean, developer-focused documentation design system with sticky navigation
+   ========================================================================== */
+
+/* Fix parent overflow to ensure position: sticky works reliably */
+.wb-landing-root.wb-docs-root {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+
+.wb-docs-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+  color: #334155;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Plus Jakarta Sans", sans-serif;
+  line-height: 1.6;
+}
+
+/* Main Layout Grid */
+.wb-docs-layout {
+  flex: 1;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  gap: 2rem;
+  padding: 1.75rem 1.5rem 4rem 1.5rem;
+  box-sizing: border-box;
+  transition: grid-template-columns 0.2s ease;
+}
+
+/* Collapsed Sidebar Mode */
+.wb-docs-layout.sidebar-collapsed {
+  grid-template-columns: 1fr;
+}
+
+.wb-docs-layout.sidebar-collapsed .wb-docs-sidebar {
+  display: none;
+}
+
+/* ==========================================================================
+   Left Sticky Sidebar (Pinned in place, never moves on scroll)
+   ========================================================================== */
+
+.wb-docs-sidebar {
+  position: sticky;
+  top: 5rem;
+  align-self: flex-start;
+  max-height: calc(100vh - 6.5rem);
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  scrollbar-width: thin;
+}
+
+/* Sidebar Top Header with Nav Toggle */
+.wb-docs-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.15rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.wb-docs-sidebar-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.wb-docs-nav-group {
+  margin-bottom: 1.25rem;
+}
+
+.wb-docs-nav-group:last-child {
+  margin-bottom: 0;
+}
+
+.wb-docs-nav-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.wb-docs-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.wb-docs-nav-item {
+  width: 100%;
+}
+
+.wb-docs-nav-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.wb-docs-nav-button:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.wb-docs-nav-button.active {
+  background-color: #eff6ff;
+  color: #1860ec;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Navigation Toggle Button (Dashboard Style)
+   ========================================================================== */
+
+.wb-docs-nav-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  margin: 0;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.wb-docs-nav-toggle-btn:hover {
+  background-color: #f1f5f9;
+  color: #1860ec;
+  border-color: #bfdbfe;
+  box-shadow: 0 2px 6px rgba(24, 96, 236, 0.12);
+}
+
+.wb-docs-nav-toggle-btn:hover .wb-hamburger-svg {
+  stroke: #1860ec;
+}
+
+/* ==========================================================================
+   Right Main Column & Breadcrumb Bar
+   ========================================================================== */
+
+.wb-docs-main-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.wb-docs-top-bar {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.wb-docs-top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.wb-docs-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.wb-docs-crumb-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1860ec;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+}
+
+.wb-docs-crumb-link:hover {
+  text-decoration: underline;
+}
+
+.wb-docs-crumb-sep {
+  color: #cbd5e1;
+}
+
+.wb-docs-crumb-current {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* Mobile section switcher */
+.wb-docs-mobile-select-wrap {
+  display: none;
+}
+
+.wb-docs-mobile-select {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Content Area & Continuous Sections
+   ========================================================================== */
+
+.wb-docs-content-pane {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2.75rem 3.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  min-width: 0;
+}
+
+.wb-docs-section-block {
+  margin-bottom: 3.5rem;
+  padding-bottom: 3.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  scroll-margin-top: 5rem;
+}
+
+.wb-docs-section-block:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* Typography & Markdown Rendering */
+.wb-docs-article h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.wb-docs-article h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  margin: 2rem 0 0.75rem 0;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.wb-docs-article h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 1.35rem 0 0.5rem 0;
+}
+
+.wb-docs-article p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #334155;
+  margin: 0 0 1rem 0;
+}
+
+.wb-docs-article ul,
+.wb-docs-article ol {
+  margin: 0 0 1.25rem 0;
+  padding-left: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #334155;
+}
+
+.wb-docs-article li {
+  margin-bottom: 0.35rem;
+}
+
+.wb-docs-article strong {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Code & Code Blocks */
+.wb-docs-article code {
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 0.85em;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.wb-docs-code-block {
+  background-color: #0f172a;
+  border-radius: 8px;
+  margin: 1.15rem 0;
+  overflow: hidden;
+  border: 1px solid #1e293b;
+}
+
+.wb-docs-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: #1e293b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wb-docs-code-pre {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #e2e8f0;
+}
+
+.wb-docs-code-pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Callout Boxes */
+.wb-docs-note {
+  background-color: #eff6ff;
+  border-left: 4px solid #1860ec;
+  border-radius: 0 8px 8px 0;
+  padding: 0.9rem 1.15rem;
+  margin: 1.15rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #1e293b;
+}
+
+.wb-docs-note strong {
+  color: #1860ec;
+}
+
+/* ==========================================================================
+   Mobile Drawer Overlay
+   ========================================================================== */
+
+.wb-docs-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1200;
+  display: flex;
+}
+
+.wb-docs-drawer {
+  width: 280px;
+  max-width: 80vw;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem 2rem 1.25rem;
+  overflow-y: auto;
+  animation: slideInLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.wb-docs-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.wb-docs-drawer-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.wb-docs-drawer-close {
+  background: none;
+  border: none;
+  padding: 0.35rem;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wb-docs-drawer-close:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .wb-docs-layout {
+    grid-template-columns: 230px 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem 1rem 3rem 1rem;
+  }
+
+  .wb-docs-content-pane {
+    padding: 2rem 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .wb-docs-mobile-select-wrap {
+    display: block;
+  }
+
+  .wb-docs-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem;
+    padding: 1rem 1rem 3rem 1rem;
+  }
+
+  .wb-docs-sidebar {
+    display: none !important;
+  }
+
+  .wb-docs-content-pane {
+    padding: 1.75rem 1.25rem;
+    border-radius: 8px;
+  }
+
+  .wb-docs-article h1 {
+    font-size: 1.75rem;
+  }
+
+  .wb-docs-article h2 {
+    font-size: 1.2rem;
+  }
+}
