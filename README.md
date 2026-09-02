@@ -89,6 +89,3 @@ Start both backend and frontend servers together:
 ./scripts/start_dev.bat
 ```
 
-## License
-
-This project is licensed under the MIT License.
