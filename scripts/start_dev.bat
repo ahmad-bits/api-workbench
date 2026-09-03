@@ -14,8 +14,4 @@ echo.
 echo [OK] Backend starting at:  http://127.0.0.1:8000
 echo [OK] Frontend starting at: http://localhost:5173
 echo.
-echo Login Credentials:
-echo   Username: ahmad
-echo   Password: Password123!
-echo.
 pause

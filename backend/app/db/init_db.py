@@ -3,9 +3,8 @@ import logging
 from pathlib import Path
 from sqlalchemy import text
 from app.core.config import settings
-from app.core.security import get_password_hash
 from app.db.base import Base
-from app.db.session import engine, SessionLocal
+from app.db.session import engine
 from app.models.user import User
 from app.models.mock import MockEndpoint
 from app.models.pending_registration import PendingRegistration
@@ -69,42 +68,6 @@ def migrate_sqlite_schema() -> None:
         logger.warning("Schema migration notice: %s", exc)
 
 
-def seed_default_users() -> None:
-    try:
-        with SessionLocal() as db:
-            ahmad_user = db.query(User).filter(
-                (User.username == "ahmad") | (User.email == "ahmad@workbench.dev")
-            ).first()
-            if not ahmad_user:
-                ahmad_user = User(
-                    name="Ahmad Developer",
-                    username="ahmad",
-                    email="ahmad@workbench.dev",
-                    hashed_password=get_password_hash("Password123!"),
-                    is_active=True,
-                )
-                db.add(ahmad_user)
-                logger.info("Seeded demo user: ahmad (Password123!)")
-
-            demo_user = db.query(User).filter(
-                (User.username == "demo.developer") | (User.email == "demo.developer@apiworkbench.io")
-            ).first()
-            if not demo_user:
-                demo_user = User(
-                    name="Demo Developer",
-                    username="demo.developer",
-                    email="demo.developer@apiworkbench.io",
-                    hashed_password=get_password_hash("DemoWorkbench123!"),
-                    is_active=True,
-                )
-                db.add(demo_user)
-                logger.info("Seeded demo user: demo.developer (DemoWorkbench123!)")
-
-            db.commit()
-    except Exception as exc:
-        logger.warning("Seeding demo users notice: %s", exc)
-
-
 def init_db() -> None:
     db_url = settings.DATABASE_URL
     if db_url and db_url.startswith("sqlite:///"):
@@ -119,4 +82,3 @@ def init_db() -> None:
     logger.info("Database tables verified/created successfully.")
 
     migrate_sqlite_schema()
-    seed_default_users()
