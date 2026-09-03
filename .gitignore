@@ -1,5 +1,6 @@
-# Python / FastAPI
+
 backend/venv/
+backend/.venv/
 backend/__pycache__/
 *.py[cod]
 *$py.class
@@ -8,7 +9,7 @@ backend/__pycache__/
 htmlcov/
 .mypy_cache/
 
-# Database (SQLite)
+
 *.db
 *.sqlite
 *.sqlite3
@@ -20,12 +21,11 @@ backend/database/*.sqlite
 backend/database/*.sqlite3
 
 
-# Node / React / Vite
+
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
 
-# Logs
 logs/
 *.log
 npm-debug.log*
@@ -34,13 +34,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Local files & Environment variables
+
 *.local
 .env
 *.env
 !.env.example
 
-# Editor / OS files
+
 .vscode/*
 !.vscode/extensions.json
 .idea/
