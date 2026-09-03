@@ -10,6 +10,7 @@ import type {
   MockEndpoint,
   MockEndpointCreate,
   MockEndpointUpdate,
+  MockRequestHistoryItem,
 } from '../types/mock';
 import type {
   User,
@@ -156,11 +157,14 @@ export class ApiClient {
       authHeaderValue: m.auth_header_value || '',
       authToken: m.auth_token || '',
       delayMs: m.delay_ms || 0,
+      initialResourceData: m.initial_resource_data,
+      currentResourceData: m.current_resource_data || m.initial_resource_data,
       mockUrl: m.mock_url,
       fullUrl: m.full_url || `http://127.0.0.1:8000${m.mock_url}`,
       createdAt: m.created_at,
       updatedAt: m.updated_at,
       callCount: m.call_count || 0,
+      historyCount: m.history_count || 0,
     };
   }
 
@@ -306,6 +310,8 @@ export class ApiClient {
       auth_header_value: data.authHeaderValue || '',
       auth_token: data.authToken || '',
       delay_ms: data.delayMs || 0,
+      initial_resource_data: data.initialResourceData,
+      current_resource_data: data.currentResourceData,
     };
 
     const response = await this.fetchWithHandling(`${this.baseUrl}/mocks`, {
@@ -351,6 +357,8 @@ export class ApiClient {
     if (data.authHeaderValue !== undefined) payload.auth_header_value = data.authHeaderValue;
     if (data.authToken !== undefined) payload.auth_token = data.authToken;
     if (data.delayMs !== undefined) payload.delay_ms = data.delayMs;
+    if (data.initialResourceData !== undefined) payload.initial_resource_data = data.initialResourceData;
+    if (data.currentResourceData !== undefined) payload.current_resource_data = data.currentResourceData;
 
     const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${id}`, {
       method: 'PUT',
@@ -380,6 +388,23 @@ export class ApiClient {
     return this.formatMock(result);
   }
 
+  async getMock(id: string): Promise<MockEndpoint> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${id}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to fetch mock endpoint`);
+    }
+
+    const result = await response.json();
+    return this.formatMock(result);
+  }
+
   async deleteMock(id: string): Promise<{ success: boolean }> {
     const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${id}`, {
       method: 'DELETE',
@@ -391,6 +416,61 @@ export class ApiClient {
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: Failed to delete mock endpoint`);
+    }
+
+    return { success: true };
+  }
+
+  async resetMockData(id: string): Promise<MockEndpoint> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${id}/reset-data`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to reset mock resource data`);
+    }
+
+    const result = await response.json();
+    return this.formatMock(result);
+  }
+
+  async getMockHistory(mockId: string): Promise<MockRequestHistoryItem[]> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${mockId}/history`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to fetch mock request history`);
+    }
+
+    const data = await response.json();
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      mockId: item.mock_id,
+      body: item.body || '',
+      createdAt: item.created_at,
+    }));
+  }
+
+  async clearMockHistory(mockId: string): Promise<{ success: boolean }> {
+    const response = await this.fetchWithHandling(`${this.baseUrl}/mocks/${mockId}/history`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to clear request history`);
     }
 
     return { success: true };

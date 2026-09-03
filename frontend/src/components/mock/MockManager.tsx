@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './mock.css';
 import { api } from '../../services/api';
 import type { MockEndpoint, MockEndpointCreate, MockEndpointUpdate } from '../../types/mock';
@@ -12,6 +13,7 @@ interface MockManagerProps {
 }
 
 export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) => {
+  const navigate = useNavigate();
   const toast = useToast();
   const [mocks, setMocks] = useState<MockEndpoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +54,15 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
   const handleSelectMock = (mock: MockEndpoint) => {
     setSelectedMock(mock);
     setIsEditorOpen(true);
+  };
+
+  const handleOpenHistory = (mock: MockEndpoint) => {
+    try {
+      sessionStorage.setItem('active_history_mock', JSON.stringify(mock));
+    } catch {
+      // ignore
+    }
+    navigate('/mocks/history', { state: { mock } });
   };
 
   const handleSaveMock = async (
@@ -194,6 +205,7 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
                     onEdit={handleSelectMock}
                     onDelete={handleDeleteMock}
                     onTestInWorkbench={onTestInWorkbench}
+                    onViewHistory={handleOpenHistory}
                   />
                 ))
               )}
@@ -207,6 +219,7 @@ export const MockManager: React.FC<MockManagerProps> = ({ onTestInWorkbench }) =
               onSave={handleSaveMock}
               initialMock={selectedMock}
               existingMocks={mocks}
+              onOpenHistory={handleOpenHistory}
             />
           )}
         </div>

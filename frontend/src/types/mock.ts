@@ -17,11 +17,21 @@ export interface MockEndpoint {
   authHeaderValue?: string;
   authToken?: string;
   delayMs?: number;
+  initialResourceData?: string | null;
+  currentResourceData?: string | null;
   mockUrl: string;
   fullUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   callCount: number;
+  historyCount?: number;
+}
+
+export interface MockRequestHistoryItem {
+  id: string;
+  mockId: string;
+  body: string;
+  createdAt: string;
 }
 
 export interface MockEndpointCreate {
@@ -38,6 +48,8 @@ export interface MockEndpointCreate {
   authHeaderValue?: string;
   authToken?: string;
   delayMs?: number;
+  initialResourceData?: string;
+  currentResourceData?: string;
 }
 
 export interface MockEndpointUpdate {
@@ -54,6 +66,8 @@ export interface MockEndpointUpdate {
   authHeaderValue?: string;
   authToken?: string;
   delayMs?: number;
+  initialResourceData?: string;
+  currentResourceData?: string;
 }
 
 export interface MockHeaderRow {

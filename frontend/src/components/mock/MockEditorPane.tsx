@@ -15,6 +15,7 @@ interface MockEditorPaneProps {
   onSave: (data: MockEndpointCreate | MockEndpointUpdate, isEdit: boolean, id?: string) => Promise<void>;
   initialMock?: MockEndpoint | null;
   existingMocks?: MockEndpoint[];
+  onOpenHistory?: (mock: MockEndpoint) => void;
 }
 
 const STATUS_CODES = [
@@ -33,8 +34,6 @@ const STATUS_CODES = [
 
 const ALL_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
-const METHODS_WITH_REQUEST_BODY: HttpMethod[] = ['POST', 'PUT', 'PATCH'];
-
 const methodHasResponseBody = (method: HttpMethod, statusCode: number): boolean => {
   if (method === 'HEAD' || method === 'OPTIONS') return false;
   if (method === 'DELETE' && statusCode === 204) return false;
@@ -43,7 +42,7 @@ const methodHasResponseBody = (method: HttpMethod, statusCode: number): boolean 
 
 const defaultStatusForMethod = (method: HttpMethod): number => {
   if (method === 'POST') return 201;
-  if (method === 'DELETE') return 204;
+  if (method === 'DELETE') return 200;
   return 200;
 };
 
@@ -53,6 +52,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   onSave,
   initialMock,
   existingMocks = [],
+  onOpenHistory,
 }) => {
   const toast = useToast();
   const isEdit = !!initialMock;
@@ -61,7 +61,7 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   const [path, setPath] = useState('/api/v1/resource');
   const [statusCode, setStatusCode] = useState<number>(200);
   const [responseBody, setResponseBody] = useState(`{\n  "id": 1,\n  "message": "Success"\n}`);
-  const [requestBody, setRequestBody] = useState('');
+
   const [headers, setHeaders] = useState<MockHeaderRow[]>([
     { id: 'h_default', key: 'Content-Type', value: 'application/json', enabled: true },
   ]);
@@ -75,7 +75,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   const [delayMs, setDelayMs] = useState<number>(0);
 
   const [jsonError, setJsonError] = useState<string | null>(null);
-  const [requestJsonError, setRequestJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -84,7 +83,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       setPath(initialMock.path);
       setStatusCode(initialMock.statusCode);
       setResponseBody(initialMock.responseBody || '');
-      setRequestBody('');
       setAuthType(initialMock.authType || 'none');
       setAuthHeaderName(initialMock.authHeaderName || 'X-API-Key');
       setAuthHeaderValue(initialMock.authHeaderValue || '');
@@ -115,7 +113,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       setPath('/api/v1/resource');
       setStatusCode(200);
       setResponseBody(`{\n  "id": 1,\n  "message": "Success"\n}`);
-      setRequestBody('');
       setHeaders([
         { id: 'h_default', key: 'Content-Type', value: 'application/json', enabled: true },
       ]);
@@ -127,13 +124,23 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       setDelayMs(0);
     }
     setJsonError(null);
-    setRequestJsonError(null);
   }, [initialMock, isOpen]);
 
   const handleMethodChange = (newMethod: HttpMethod) => {
     setMethod(newMethod);
     if (!isEdit) {
       setStatusCode(defaultStatusForMethod(newMethod));
+      if (newMethod === 'POST') {
+        setResponseBody(JSON.stringify({ message: 'User created successfully', id: 123 }, null, 2));
+      } else if (newMethod === 'PUT') {
+        setResponseBody(JSON.stringify({ message: 'Resource updated successfully', status: 'ok' }, null, 2));
+      } else if (newMethod === 'PATCH') {
+        setResponseBody(JSON.stringify({ message: 'Resource patched successfully' }, null, 2));
+      } else if (newMethod === 'DELETE') {
+        setResponseBody(JSON.stringify({ success: true, message: 'Resource deleted successfully' }, null, 2));
+      } else {
+        setResponseBody(`{\n  "id": 1,\n  "message": "Success"\n}`);
+      }
     }
   };
 
@@ -153,23 +160,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       setJsonError(null);
     }
   }, [responseBody, method, statusCode]);
-
-  useEffect(() => {
-    if (!METHODS_WITH_REQUEST_BODY.includes(method)) {
-      setRequestJsonError(null);
-      return;
-    }
-    if (requestBody.trim()) {
-      try {
-        JSON.parse(requestBody);
-        setRequestJsonError(null);
-      } catch (err: any) {
-        setRequestJsonError(err.message || 'Invalid JSON');
-      }
-    } else {
-      setRequestJsonError(null);
-    }
-  }, [requestBody, method]);
 
   const handleAddHeader = () => {
     setHeaders([...headers, { id: `h_${Date.now()}`, key: '', value: '', enabled: true }]);
@@ -200,7 +190,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
   };
 
   const showAllowedMethods = method === 'OPTIONS';
-  const showRequestBody = METHODS_WITH_REQUEST_BODY.includes(method);
   const showResponseBody = methodHasResponseBody(method, statusCode);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -231,13 +220,13 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
       return;
     }
 
-    if (showResponseBody && jsonError) {
+    if (showResponseBody && method !== 'POST' && jsonError) {
       toast.error('Please resolve response JSON syntax errors before saving.');
       return;
     }
 
-    if (showRequestBody && requestJsonError) {
-      toast.error('Please resolve request JSON syntax errors before saving.');
+    if (showResponseBody && method === 'POST' && responseBody.trim() && jsonError) {
+      toast.error('Please resolve response JSON syntax errors before saving.');
       return;
     }
 
@@ -313,12 +302,28 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </svg>
           <h3 className="wb-mock-editor-title">{isEdit ? 'Edit Endpoint' : 'Create Mock API'}</h3>
         </div>
-        <button type="button" className="wb-mock-btn-close" onClick={onClose} title="Close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+        <div className="wb-mock-editor-header-actions">
+          {isEdit && ['POST', 'PUT', 'PATCH'].includes(initialMock.method) && onOpenHistory && (
+            <button
+              type="button"
+              className="wb-mock-header-history-btn"
+              onClick={() => onOpenHistory(initialMock)}
+              title="View request history"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>History ({initialMock.historyCount || 0})</span>
+            </button>
+          )}
+          <button type="button" className="wb-mock-btn-close" onClick={onClose} title="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="wb-mock-form">
@@ -465,23 +470,6 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
           </div>
         )}
 
-        {showRequestBody && (
-          <div className="wb-form-field">
-            <label className="wb-form-label">Request Body (JSON)</label>
-            <textarea
-              value={requestBody}
-              onChange={(e) => setRequestBody(e.target.value)}
-              className="wb-mock-body-textarea"
-              rows={6}
-              spellCheck={false}
-              placeholder='{ "key": "value" }'
-            />
-            {requestJsonError && (
-              <span className="wb-mock-json-error">{requestJsonError}</span>
-            )}
-          </div>
-        )}
-
         <div className="wb-mock-headers-section">
           <div className="wb-mock-headers-header">
             <label className="wb-form-label" style={{ margin: 0 }}>Response Headers</label>
@@ -525,13 +513,24 @@ export const MockEditorPane: React.FC<MockEditorPaneProps> = ({
 
         {showResponseBody && (
           <div className="wb-form-field">
-            <label className="wb-form-label">Response Body (JSON)</label>
+            <label className="wb-form-label">
+              {['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) ? 'Response JSON' : 'Response Body (JSON)'}
+            </label>
             <textarea
               value={responseBody}
               onChange={(e) => setResponseBody(e.target.value)}
               className="wb-mock-body-textarea"
               rows={10}
               spellCheck={false}
+              placeholder={
+                method === 'PUT'
+                  ? '{\n  "message": "Resource updated successfully",\n  "status": "ok"\n}'
+                  : method === 'PATCH'
+                  ? '{\n  "message": "Resource patched successfully"\n}'
+                  : method === 'DELETE'
+                  ? '{\n  "success": true,\n  "message": "Resource deleted successfully"\n}'
+                  : '{\n  "message": "User created successfully",\n  "id": 123\n}'
+              }
             />
             {jsonError && (
               <span className="wb-mock-json-error">{jsonError}</span>

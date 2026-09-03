@@ -10,6 +10,7 @@ interface MockCardProps {
   onEdit: (mock: MockEndpoint) => void;
   onDelete: (id: string) => void;
   onTestInWorkbench: (mock: MockEndpoint) => void;
+  onViewHistory?: (mock: MockEndpoint) => void;
 }
 
 export const MockCard: React.FC<MockCardProps> = ({
@@ -19,6 +20,7 @@ export const MockCard: React.FC<MockCardProps> = ({
   onEdit,
   onDelete,
   onTestInWorkbench,
+  onViewHistory,
 }) => {
   const confirm = useConfirm();
   const toast = useToast();
@@ -50,6 +52,13 @@ export const MockCard: React.FC<MockCardProps> = ({
   const handleTest = (e: React.MouseEvent) => {
     e.stopPropagation();
     onTestInWorkbench(mock);
+  };
+
+  const handleHistory = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onViewHistory) {
+      onViewHistory(mock);
+    }
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -88,6 +97,11 @@ export const MockCard: React.FC<MockCardProps> = ({
           <span className={`wb-mock-status-pill ${getStatusPillClass(mock.statusCode)}`}>
             {mock.statusCode}
           </span>
+          {mock.method === 'POST' && (
+            <span className="wb-mock-meta-badge wb-mock-capture-badge" title="Captures and stores all incoming POST requests">
+              Capture
+            </span>
+          )}
           {mock.authType === 'api_key' && (
             <span className="wb-mock-meta-badge wb-mock-auth-badge" title={`Requires Header "${mock.authHeaderName || 'X-API-Key'}"`}>
               API Key
@@ -111,6 +125,21 @@ export const MockCard: React.FC<MockCardProps> = ({
       </div>
 
       <div className="wb-mock-card-actions">
+        {['POST', 'PUT', 'PATCH'].includes(mock.method) && (
+          <button
+            type="button"
+            className="wb-mock-action-btn action-history"
+            onClick={handleHistory}
+            title="View request history"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>History ({mock.historyCount || 0})</span>
+          </button>
+        )}
+
         <button type="button" className="wb-mock-action-btn action-edit" onClick={handleEdit} title="Edit endpoint">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />

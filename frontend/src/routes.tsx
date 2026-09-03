@@ -5,6 +5,7 @@ import { WorkbenchLayout } from './components/WorkbenchLayout';
 import { TesterPage } from './components/TesterPage';
 import { SavedApiManager } from './components/saved/SavedApiManager';
 import { MockManager } from './components/mock/MockManager';
+import { MockHistoryPage } from './components/mock/MockHistoryPage';
 import { AccountSettingsPage } from './components/auth/AccountSettingsPage';
 import { LandingPage } from './components/landing/LandingPage';
 import { DocsPage } from './components/docs/DocsPage';
@@ -157,9 +158,9 @@ export function AppRoutes() {
 
         <Route path="/apis" element={<Navigate to="/my-apis" replace />} />
         <Route path="/apis/workspace/:slug" element={<SavedApisPage />} />
-        <Route path="/apis/:id" element={<OpenSavedApiRoute />} />
-
         <Route path="/mocks" element={<MocksPage />} />
+        <Route path="/mocks/history" element={<MockHistoryPage />} />
+        <Route path="/mocks/:mockId/history" element={<MockHistoryPage />} />
         <Route path="/settings" element={<AccountSettingsPage />} />
       </Route>
 
