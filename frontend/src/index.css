@@ -143,6 +143,7 @@ code, pre {
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #ffffff 40%, #9ca3af 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -886,6 +887,7 @@ code, pre {
   padding: 0.2rem;
   outline: none;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .count-number-input::-webkit-outer-spin-button,
@@ -1437,6 +1439,7 @@ code, pre {
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #ffffff 40%, #c4b5fd 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.2rem;
 }
