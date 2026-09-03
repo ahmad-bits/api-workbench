@@ -32,6 +32,38 @@ def migrate_sqlite_schema() -> None:
                     conn.commit()
                     logger.info("Successfully added and backfilled 'username' column in 'users' table.")
 
+            # Check if users table has AUTOINCREMENT keyword in DDL
+            res_sql = conn.execute(text("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'")).fetchone()
+            if res_sql and res_sql[0]:
+                sql_def = res_sql[0].upper()
+                if "AUTOINCREMENT" not in sql_def:
+                    logger.info("Migrating SQLite schema: Converting 'users' table to use AUTOINCREMENT...")
+                    conn.execute(text("PRAGMA foreign_keys = OFF"))
+                    conn.execute(text("""
+                        CREATE TABLE users_autoincrement_migration (
+                            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                            name VARCHAR(120) NOT NULL,
+                            email VARCHAR(255) NOT NULL,
+                            hashed_password VARCHAR(255) NOT NULL,
+                            is_active BOOLEAN NOT NULL,
+                            created_at DATETIME NOT NULL,
+                            updated_at DATETIME NOT NULL,
+                            username VARCHAR(60)
+                        )
+                    """))
+                    conn.execute(text("""
+                        INSERT INTO users_autoincrement_migration (id, name, email, hashed_password, is_active, created_at, updated_at, username)
+                        SELECT id, name, email, hashed_password, is_active, created_at, updated_at, username FROM users
+                    """))
+                    conn.execute(text("DROP TABLE users"))
+                    conn.execute(text("ALTER TABLE users_autoincrement_migration RENAME TO users"))
+                    conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email ON users (email)"))
+                    conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_username ON users (username)"))
+                    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_id ON users (id)"))
+                    conn.execute(text("PRAGMA foreign_keys = ON"))
+                    conn.commit()
+                    logger.info("Successfully converted 'users' table to AUTOINCREMENT.")
+
             res_saved = conn.execute(text("PRAGMA table_info(saved_apis)"))
             saved_cols = [row[1] for row in res_saved.fetchall()]
             if saved_cols and "category" not in saved_cols:

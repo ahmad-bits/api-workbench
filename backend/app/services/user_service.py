@@ -175,6 +175,22 @@ def delete_user_permanently(db: Session, user_id: int) -> bool:
             detail=f"User with ID {user_id} not found.",
         )
 
+    user_email = (user.email or "").lower().strip()
+
+    from app.models.saved_api import SavedApi
+    from app.models.mock import MockEndpoint
+    from app.models.pending_registration import PendingRegistration
+    from app.models.password_reset import PasswordResetOtp
+
+    # Explicitly purge all records owned by this user ID
+    db.query(SavedApi).filter(SavedApi.user_id == user_id).delete(synchronize_session=False)
+    db.query(MockEndpoint).filter(MockEndpoint.user_id == user_id).delete(synchronize_session=False)
+
+    # Explicitly purge any pending registration or password reset OTPs for this email
+    if user_email:
+        db.query(PendingRegistration).filter(PendingRegistration.email == user_email).delete(synchronize_session=False)
+        db.query(PasswordResetOtp).filter(PasswordResetOtp.email == user_email).delete(synchronize_session=False)
+
     db.delete(user)
     db.commit()
     return True
