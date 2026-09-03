@@ -9,8 +9,13 @@ import { NewWorkspaceModal } from './NewWorkspaceModal';
 import { NavToggle } from '../common/NavToggle';
 import { useConfirm } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
-const LOCAL_STORAGE_WS_KEY = 'api_workbench_custom_workspaces';
+export const getWorkspaceStorageKey = (userId?: number | string | null, email?: string | null): string => {
+  if (userId) return `api_workbench_workspaces_${userId}`;
+  if (email && email.trim()) return `api_workbench_workspaces_${email.trim().toLowerCase()}`;
+  return 'api_workbench_workspaces_guest';
+};
 
 const slugify = (name: string): string => {
   return (name || '')
@@ -30,6 +35,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
   onOpenInTester,
   onCountChange,
 }) => {
+  const { user } = useAuth();
   const { slug } = useParams<{ slug?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,6 +43,10 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
   const toast = useToast();
 
   const basePrefix = location.pathname.startsWith('/my-apis') ? '/my-apis' : '/apis';
+
+  const storageKey = useMemo(() => {
+    return getWorkspaceStorageKey(user?.id, user?.email);
+  }, [user?.id, user?.email]);
 
   const [apis, setApis] = useState<SavedApi[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -47,7 +57,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
 
   const [workspaces, setWorkspaces] = useState<WorkspaceCategory[]>(() => {
     try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_WS_KEY);
+      const stored = localStorage.getItem(getWorkspaceStorageKey(user?.id, user?.email));
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
@@ -59,6 +69,22 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     }
     return [];
   });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setWorkspaces(parsed);
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    setWorkspaces([]);
+  }, [storageKey]);
 
   const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState<boolean>(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -95,7 +121,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
             if (newDiscovered.length > 0) {
               const combined = [...prevWs, ...newDiscovered];
               try {
-                localStorage.setItem(LOCAL_STORAGE_WS_KEY, JSON.stringify(combined));
+                localStorage.setItem(storageKey, JSON.stringify(combined));
               } catch {
                 return combined;
               }
@@ -116,7 +142,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
     return () => {
       isSubscribed = false;
     };
-  }, [onCountChange]);
+  }, [onCountChange, storageKey]);
 
   const activeWorkspace = useMemo<WorkspaceCategory | null>(() => {
     if (!slug) return null;
@@ -151,7 +177,7 @@ export const SavedApiManager: React.FC<SavedApiManagerProps> = ({
   const saveWorkspaces = (newList: WorkspaceCategory[]) => {
     setWorkspaces(newList);
     try {
-      localStorage.setItem(LOCAL_STORAGE_WS_KEY, JSON.stringify(newList));
+      localStorage.setItem(storageKey, JSON.stringify(newList));
     } catch {
       return;
     }
