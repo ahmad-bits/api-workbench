@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
 from app.models.user import User
-from app.models.mock import MockEndpoint
+from app.models.mock import MockEndpoint, MockRequestHistory
 from app.models.pending_registration import PendingRegistration
 from app.models.saved_api import SavedApi
 from app.models.password_reset import PasswordResetOtp
@@ -95,7 +95,42 @@ def migrate_sqlite_schema() -> None:
                     logger.info("Migrating SQLite schema: Adding missing 'delay_ms' column to 'mock_endpoints' table...")
                     conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN delay_ms INTEGER DEFAULT 0"))
                     conn.commit()
+                if "initial_resource_data" not in mock_cols:
+                    logger.info("Migrating SQLite schema: Adding missing 'initial_resource_data' column to 'mock_endpoints' table...")
+                    conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN initial_resource_data TEXT DEFAULT NULL"))
+                    conn.commit()
+                if "current_resource_data" not in mock_cols:
+                    logger.info("Migrating SQLite schema: Adding missing 'current_resource_data' column to 'mock_endpoints' table...")
+                    conn.execute(text("ALTER TABLE mock_endpoints ADD COLUMN current_resource_data TEXT DEFAULT NULL"))
+                    conn.commit()
                 logger.info("Successfully verified/updated 'mock_endpoints' schema.")
+
+            res_history = conn.execute(text("PRAGMA table_info(mock_request_history)"))
+            history_cols = [row[1] for row in res_history.fetchall()]
+            if history_cols and ("method" in history_cols or "status_code" in history_cols or "headers" in history_cols):
+                logger.info("Migrating SQLite schema: Updating 'mock_request_history' table to simplified schema...")
+                conn.execute(text("PRAGMA foreign_keys = OFF"))
+                conn.execute(text("""
+                    CREATE TABLE mock_request_history_migrated (
+                        id VARCHAR(36) NOT NULL PRIMARY KEY,
+                        mock_id VARCHAR(36) NOT NULL,
+                        body TEXT NOT NULL DEFAULT '',
+                        created_at DATETIME NOT NULL,
+                        FOREIGN KEY(mock_id) REFERENCES mock_endpoints(id) ON DELETE CASCADE
+                    )
+                """))
+                conn.execute(text("""
+                    INSERT INTO mock_request_history_migrated (id, mock_id, body, created_at)
+                    SELECT id, mock_id, body, created_at FROM mock_request_history
+                """))
+                conn.execute(text("DROP TABLE mock_request_history"))
+                conn.execute(text("ALTER TABLE mock_request_history_migrated RENAME TO mock_request_history"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_mock_request_history_id ON mock_request_history (id)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_mock_request_history_mock_id ON mock_request_history (mock_id)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_mock_request_history_created_at ON mock_request_history (created_at)"))
+                conn.execute(text("PRAGMA foreign_keys = ON"))
+                conn.commit()
+                logger.info("Successfully migrated 'mock_request_history' to simplified schema.")
     except Exception as exc:
         logger.warning("Schema migration notice: %s", exc)
 

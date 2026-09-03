@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import Integer, String, Text, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
@@ -40,6 +40,9 @@ class MockEndpoint(Base):
 
     delay_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
+    initial_resource_data: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)
+    current_resource_data: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)
+
     call_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
@@ -47,6 +50,28 @@ class MockEndpoint(Base):
     )
 
     user: Mapped["User"] = relationship("User", back_populates="mocks")
+    request_history: Mapped[List["MockRequestHistory"]] = relationship(
+        "MockRequestHistory",
+        back_populates="mock",
+        cascade="all, delete-orphan",
+        order_by="desc(MockRequestHistory.created_at)",
+    )
 
     def __repr__(self) -> str:
         return f"<MockEndpoint id={self.id!r} user_id={self.user_id} method={self.method!r} path={self.path!r}>"
+
+
+class MockRequestHistory(Base):
+    __tablename__ = "mock_request_history"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, index=True)
+    mock_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("mock_endpoints.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    body: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False, index=True)
+
+    mock: Mapped["MockEndpoint"] = relationship("MockEndpoint", back_populates="request_history")
+
+    def __repr__(self) -> str:
+        return f"<MockRequestHistory id={self.id!r} mock_id={self.mock_id!r} created_at={self.created_at}>"

@@ -21,6 +21,8 @@ class MockEndpointBase(BaseModel):
     auth_token: Optional[str] = Field(default="", description="Expected secret token for Bearer auth")
 
     delay_ms: int = Field(default=0, ge=0, description="Response delay in milliseconds (>= 0)")
+    initial_resource_data: Optional[str] = Field(default=None, description="Starting resource JSON for PUT/PATCH mocks")
+    current_resource_data: Optional[str] = Field(default=None, description="Current live resource state for PUT/PATCH mocks")
 
     @field_validator("method")
     @classmethod
@@ -82,6 +84,8 @@ class MockEndpointUpdate(BaseModel):
     auth_header_value: Optional[str] = None
     auth_token: Optional[str] = None
     delay_ms: Optional[int] = Field(default=None, ge=0)
+    initial_resource_data: Optional[str] = None
+    current_resource_data: Optional[str] = None
 
     @field_validator("method")
     @classmethod
@@ -135,5 +139,15 @@ class MockEndpointResponse(MockEndpointBase):
     created_at: str = Field(..., description="ISO 8601 creation timestamp")
     updated_at: str = Field(..., description="ISO 8601 update timestamp")
     call_count: int = Field(default=0, description="Total number of requests served by this mock")
+    history_count: int = Field(default=0, description="Total captured requests for this mock")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MockRequestHistoryItem(BaseModel):
+    id: str = Field(..., description="Unique identifier for this history entry")
+    mock_id: str = Field(..., description="ID of the mock endpoint")
+    body: str = Field(default="", description="Request body content received from client")
+    created_at: str = Field(..., description="ISO 8601 creation timestamp")
 
     model_config = ConfigDict(from_attributes=True)
