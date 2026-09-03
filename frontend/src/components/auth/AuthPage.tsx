@@ -198,6 +198,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setLocalError(null);
     setSuccessInfo(null);
     clearError();
+
+    if (!usernameOrEmail.trim()) {
+      setLocalError('Please enter your email or username.');
+      toast.warning('Please enter your email or username.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const resp = await api.requestPasswordResetOtp(usernameOrEmail);
@@ -421,7 +428,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <form onSubmit={handleLoginSubmit} className="wb-auth-form">
               <div className="wb-auth-field">
                 <label className="wb-auth-label" htmlFor="login-email">
-                  Email
+                  Email or Username
                 </label>
                 <div className="wb-auth-input-wrapper">
                   <input
@@ -430,6 +437,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     className="wb-auth-input"
                     value={usernameOrEmail}
                     onChange={(e) => setUsernameOrEmail(e.target.value)}
+                    placeholder="Enter email or username"
                     autoComplete="username"
                     disabled={isSubmitting}
                     required
@@ -712,13 +720,25 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
           {mode === 'forgot_password' && forgotPasswordStep === 'form' && (
             <div className="wb-auth-form">
-              <div className="wb-auth-field" style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <p style={{ color: '#8b949e', marginBottom: '16px', fontSize: '14px' }}>
-                  We will send a password reset code to the email associated with:
-                </p>
-                <div style={{ padding: '12px', background: '#0d1117', border: '1px solid #30363d', borderRadius: '6px', color: '#c9d1d9', fontWeight: 'bold' }}>
-                  {usernameOrEmail}
+              <div className="wb-auth-field" style={{ marginBottom: '20px' }}>
+                <label className="wb-auth-label" htmlFor="forgot-email">
+                  Email or Username
+                </label>
+                <div className="wb-auth-input-wrapper">
+                  <input
+                    id="forgot-email"
+                    type="text"
+                    className="wb-auth-input"
+                    value={usernameOrEmail}
+                    onChange={(e) => setUsernameOrEmail(e.target.value)}
+                    placeholder="Enter email or username"
+                    disabled={isSubmitting}
+                    required
+                  />
                 </div>
+                <p style={{ color: '#8b949e', marginTop: '8px', fontSize: '13px' }}>
+                  We will send a password reset code to the email associated with your account.
+                </p>
               </div>
 
               <button
