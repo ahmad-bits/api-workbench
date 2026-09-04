@@ -1,6 +1,6 @@
 # API Workbench
 
-API Workbench is a developer platform for testing HTTP requests, creating live mock REST endpoints, running concurrency benchmarks, and organizing APIs into workspaces.
+API Workbench is a developer platform built for REST APIs over HTTP/HTTPS, enabling developers to test HTTP methods (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS), create live mock REST endpoints, run concurrency benchmarks, and organize APIs into workspaces.
 
 ## Screenshots
 
@@ -18,7 +18,7 @@ API Workbench is a developer platform for testing HTTP requests, creating live m
 
 ## Key Features
 
-- **HTTP Request Tester**: Send GET, POST, PUT, DELETE, and PATCH requests with headers, query parameters, auth tokens, and JSON payloads.
+- **HTTP Request Tester**: Send GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS requests with headers, query parameters, auth tokens, and JSON payloads.
 - **Live Mock Server**: Define mock endpoints with custom HTTP status codes, response delays, and authentication served under `/mock/*`.
 - **Concurrency Benchmarking**: Run batch requests in parallel and monitor latency metrics (min, avg, max) and success rates.
 - **Workspaces**: Organize and categorize saved API collections with custom themes and quick-launch testing.
