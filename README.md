@@ -13,6 +13,9 @@ API Workbench is a developer platform for testing HTTP requests, creating live m
 ### Mock API Server
 ![Mock Server Manager](docs/screenshots/mock_api.png)
 
+### My APIs & Workspaces
+![My APIs and Workspaces](docs/screenshots/my_apis.png)
+
 ## Key Features
 
 - **HTTP Request Tester**: Send GET, POST, PUT, DELETE, and PATCH requests with headers, query parameters, auth tokens, and JSON payloads.
